@@ -31,7 +31,7 @@ export function SiteShell({ children }: SiteShellProps) {
   );
 
   return (
-    <div className="min-h-screen bg-sand text-ink">
+    <div className="min-h-screen text-ink">
       <header className="border-b border-ink/10 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
