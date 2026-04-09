@@ -31,7 +31,22 @@ export function SiteShell({ children }: SiteShellProps) {
   );
 
   return (
-    <div className="min-h-screen text-ink">
+    <div className="relative min-h-screen overflow-x-hidden bg-sand text-ink">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 opacity-[0.22]"
+        style={{
+          backgroundImage:
+            "url('/images/site-background.png'), url('/images/site-background.svg')",
+          backgroundPosition: "center top, center top",
+          backgroundRepeat: "no-repeat, no-repeat",
+          backgroundSize: "1700px auto, cover"
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-[7.25rem] bottom-12 mx-auto w-[min(96vw,112rem)] rounded-[3rem] bg-[#faf7ef]/78"
+      />
       <header className="border-b border-ink/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
@@ -62,9 +77,9 @@ export function SiteShell({ children }: SiteShellProps) {
         </div>
       </header>
 
-      <main>{children}</main>
+      <main className="relative z-10">{children}</main>
 
-      <footer className="border-t border-ink/10 bg-[#fbf7ef]">
+      <footer className="relative z-10 border-t border-ink/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 text-sm text-ink/70 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>
