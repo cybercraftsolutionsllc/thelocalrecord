@@ -6,12 +6,24 @@
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(216, 233, 239, 0.7), transparent 32%),
+    radial-gradient(
+      circle at top left,
+      rgba(216, 233, 239, 0.7),
+      transparent 32%
+    ),
     linear-gradient(180deg, #faf7ef 0%, #f3efe4 100%);
+  color: #1f2a2a;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -21,4 +33,17 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(180, 93, 61, 0.2);
+  color: #1f2a2a;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
 }

@@ -45,13 +45,16 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
 
     void (async () => {
       try {
-        const response = await fetch(`${contentApiBase}/api/localities/${slug}/ask`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ question: trimmed })
-        });
+        const response = await fetch(
+          `${contentApiBase}/api/localities/${slug}/ask`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ question: trimmed })
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to ask locality question");
@@ -68,9 +71,13 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
   return (
     <section className="rounded-[2rem] bg-white p-6 shadow-card">
       <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Ask this locality</p>
-        <h2 className="font-serif text-2xl text-moss">{localityName} Q&amp;A</h2>
-        <p className="max-w-3xl text-sm leading-7 text-ink/70">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+          Ask this locality
+        </p>
+        <h2 className="text-balance font-serif text-[1.85rem] leading-tight text-moss">
+          {localityName} Q&amp;A
+        </h2>
+        <p className="text-sm leading-7 text-ink/70">
           Ask about notices, meetings, ordinances, alerts, or planning items.
         </p>
       </div>
@@ -87,7 +94,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
           />
         </label>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col items-start gap-3">
           <button
             type="submit"
             disabled={status === "loading" || question.trim().length === 0}
@@ -96,7 +103,8 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             {status === "loading" ? "Thinking..." : "Ask"}
           </button>
           <p className="text-xs leading-6 text-ink/55">
-            Source-grounded and AI-assisted. Check the cited source before relying on it.
+            Source-grounded and AI-assisted. Check the cited source before
+            relying on it.
           </p>
         </div>
       </form>
@@ -111,26 +119,34 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
         <div className="mt-5 rounded-[1.75rem] border border-ink/10 bg-sand/30 p-5">
           {result.mode === "clarify" ? (
             <div className="space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Clarifying question</p>
-              <p className="text-base leading-7 text-ink/80">{result.clarifyQuestion}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                Clarifying question
+              </p>
+              <p className="text-base leading-7 text-ink/80">
+                {result.clarifyQuestion}
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Answer</p>
-                <p className="mt-3 text-base leading-8 text-ink/85">{result.answer}</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                  Answer
+                </p>
+                <p className="mt-3 text-base leading-8 text-ink/85">
+                  {result.answer}
+                </p>
               </div>
 
               <div>
                 <p className="text-sm font-semibold text-ink">Sources</p>
-                <div className="mt-3 flex flex-wrap gap-3">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {result.citations.map((citation) => (
                     <a
                       key={`${citation.url}-${citation.title}`}
                       href={citation.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-moss/15 px-3 py-2 text-sm text-moss transition hover:bg-sky"
+                      className="rounded-full border border-moss/15 bg-white px-3 py-2 text-sm text-moss transition hover:bg-sky"
                       title={`${citation.sourceName}: ${citation.title}`}
                     >
                       {citation.label}
@@ -141,7 +157,9 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             </div>
           )}
 
-          <p className="mt-4 text-xs leading-6 text-ink/55">{result.disclaimer}</p>
+          <p className="mt-4 text-xs leading-6 text-ink/55">
+            {result.disclaimer}
+          </p>
         </div>
       ) : null}
     </section>

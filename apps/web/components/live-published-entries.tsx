@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 
 import type { PublicEntry } from "../lib/data";
 import { contentApiBase } from "../lib/public-config";
-import { entryTopicLabels, getEntryTopic, type EntryTopicKey } from "../lib/topics";
+import {
+  entryTopicLabels,
+  getEntryTopic,
+  type EntryTopicKey
+} from "../lib/topics";
 
 import { UpdateCard } from "./update-card";
 
@@ -61,11 +65,15 @@ function relabelSourceLink(label: string, url: string, index: number) {
   }
 
   if (lowerLabel.includes("source item")) {
-    return url.toLowerCase().endsWith(".pdf") ? "Original document" : "Original post";
+    return url.toLowerCase().endsWith(".pdf")
+      ? "Original document"
+      : "Original post";
   }
 
   if (index === 0) {
-    return url.toLowerCase().endsWith(".pdf") ? "Original document" : "Original post";
+    return url.toLowerCase().endsWith(".pdf")
+      ? "Original document"
+      : "Original post";
   }
 
   return label;
@@ -87,14 +95,20 @@ function parseSourceLinks(value: string) {
 
         const candidate = item as Record<string, unknown>;
 
-        return typeof candidate.label === "string" && typeof candidate.url === "string";
+        return (
+          typeof candidate.label === "string" &&
+          typeof candidate.url === "string"
+        );
       })
       .map((item, index) => ({
         label: relabelSourceLink(item.label, item.url, index),
         url: item.url
       }))
       .filter((item, index, collection) => {
-        return collection.findIndex((candidate) => candidate.url === item.url) === index;
+        return (
+          collection.findIndex((candidate) => candidate.url === item.url) ===
+          index
+        );
       });
   } catch {
     return [];
@@ -115,9 +129,14 @@ function mapApiEntry(entry: ApiEntry): PublicEntry {
   };
 }
 
-export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntriesProps) {
+export function LivePublishedEntries({
+  slug,
+  initialEntries
+}: LivePublishedEntriesProps) {
   const [entries, setEntries] = useState(initialEntries);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle"
+  );
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialEntries.length);
   const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
@@ -146,7 +165,9 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
           throw new Error("Failed to load published entries");
         }
 
-        const payload = normalizePayload((await response.json()) as PublishedPayload | ApiEntry[]);
+        const payload = normalizePayload(
+          (await response.json()) as PublishedPayload | ApiEntry[]
+        );
         const nextEntries = payload.entries.map(mapApiEntry);
 
         if (!cancelled) {
@@ -156,7 +177,10 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
             }
 
             const existingIds = new Set(current.map((entry) => entry.id));
-            return [...current, ...nextEntries.filter((entry) => !existingIds.has(entry.id))];
+            return [
+              ...current,
+              ...nextEntries.filter((entry) => !existingIds.has(entry.id))
+            ];
           });
           setTotal(payload.total);
           setStatus("ready");
@@ -194,7 +218,8 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
     [{ key: "all", label: entryTopicLabels.all, count: entries.length }]
   );
   const filteredEntries = entries.filter((entry) => {
-    const matchesTopic = activeTopic === "all" || getEntryTopic(entry) === activeTopic;
+    const matchesTopic =
+      activeTopic === "all" || getEntryTopic(entry) === activeTopic;
 
     if (!matchesTopic) {
       return false;
@@ -204,7 +229,8 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
       return true;
     }
 
-    const haystack = `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel}`.toLowerCase();
+    const haystack =
+      `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel}`.toLowerCase();
     return haystack.includes(normalizedQuery);
   });
 
@@ -212,19 +238,21 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
     return (
       <div className="space-y-5">
         <div className="rounded-[2rem] bg-white p-5 shadow-card">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Browse this feed</p>
-                <p className="mt-2 text-sm leading-7 text-ink/70">
-                  Major notices and township updates appear first. Use the filters to focus on meetings,
-                  planning items, or specific topics.
-                </p>
-                <p className="mt-2 text-xs leading-6 text-ink/55">
-                  Showing {loadedCount} of {total} published entries.
-                </p>
-              </div>
-              <label className="w-full max-w-sm">
+          <div className="flex flex-col gap-5">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                Browse this feed
+              </p>
+              <p className="text-sm leading-7 text-ink/70">
+                Major notices and township updates appear first. Use the filters
+                to focus on meetings, planning items, or specific topics.
+              </p>
+              <p className="text-xs leading-6 text-ink/55">
+                Showing {loadedCount} of {total} published entries.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <label className="w-full xl:max-w-sm">
                 <span className="sr-only">Search updates</span>
                 <input
                   type="search"
@@ -234,22 +262,22 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
                   className="w-full rounded-full border border-ink/10 bg-sand/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
                 />
               </label>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {topicOptions.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  onClick={() => setActiveTopic(option.key)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    activeTopic === option.key
-                      ? "bg-moss text-white"
-                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
-                  }`}
-                >
-                  {option.label} ({option.count})
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-3">
+                {topicOptions.map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setActiveTopic(option.key)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      activeTopic === option.key
+                        ? "bg-moss text-white"
+                        : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                    }`}
+                  >
+                    {option.label} ({option.count})
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -280,7 +308,9 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
             </button>
             <button
               type="button"
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
               disabled={page >= totalPages || loadedCount >= total}
               className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -295,7 +325,9 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
   return (
     <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
       <h3 className="font-serif text-2xl text-moss">
-        {status === "loading" ? "Loading published entries" : "No published entries yet"}
+        {status === "loading"
+          ? "Loading published entries"
+          : "No published entries yet"}
       </h3>
       <p className="mt-3 max-w-2xl leading-7">
         {status === "error"

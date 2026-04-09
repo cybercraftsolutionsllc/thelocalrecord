@@ -18,7 +18,7 @@ export function LocalitySubnav({ slug }: LocalitySubnavProps) {
         <Link
           key={item.suffix || "digest"}
           href={`/${slug}${item.suffix}`}
-          className="rounded-full border border-moss/10 bg-white px-4 py-2 text-sm font-semibold text-moss transition hover:border-moss/30 hover:bg-sky/40"
+          className="rounded-full border border-moss/10 bg-sand/35 px-4 py-2 text-sm font-semibold text-moss transition hover:border-moss/30 hover:bg-sky/40"
         >
           {item.label}
         </Link>

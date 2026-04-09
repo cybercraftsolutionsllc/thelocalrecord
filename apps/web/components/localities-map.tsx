@@ -26,13 +26,17 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
 
   return (
     <div className="rounded-[2rem] bg-moss px-6 py-6 text-white shadow-card">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">Locality map</p>
-          <h2 className="mt-2 font-serif text-3xl text-sand">Pennsylvania launch footprint</h2>
-          <p className="mt-3 max-w-xl text-sm leading-7 text-white/75">
-            Supported localities can be selected from the map or the directory. The highlighted area
-            marks the current launch locality.
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">
+            Locality map
+          </p>
+          <h2 className="text-balance mt-2 font-serif text-3xl leading-tight text-sand">
+            Pennsylvania launch footprint
+          </h2>
+          <p className="text-pretty mt-3 max-w-xl text-sm leading-7 text-white/75">
+            Supported localities can be selected from the map or the directory.
+            The highlighted area marks the current launch locality.
           </p>
         </div>
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky">
@@ -101,7 +105,12 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
                   filter="url(#localityGlow)"
                 />
               </a>
-              <circle cx={locality.markerX} cy={locality.markerY} r="4" fill="#f4f0e3" />
+              <circle
+                cx={locality.markerX}
+                cy={locality.markerY}
+                r="4"
+                fill="#f4f0e3"
+              />
               <path
                 d={`M ${locality.markerX + 3} ${locality.markerY - 3} C 342 150, 370 130, 390 112`}
                 stroke="#f4f0e3"
@@ -117,10 +126,23 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
                   fill="rgba(255,255,255,0.12)"
                   stroke="rgba(255,255,255,0.25)"
                 />
-                <text x="14" y="19" fill="#d2e7ec" fontSize="10" fontWeight="700" letterSpacing="2.2">
+                <text
+                  x="14"
+                  y="19"
+                  fill="#d2e7ec"
+                  fontSize="10"
+                  fontWeight="700"
+                  letterSpacing="2.2"
+                >
                   LIVE LOCALITY
                 </text>
-                <text x="14" y="33" fill="#f4f0e3" fontSize="14" fontWeight="700">
+                <text
+                  x="14"
+                  y="33"
+                  fill="#f4f0e3"
+                  fontSize="14"
+                  fontWeight="700"
+                >
                   {locality.label}
                 </text>
               </g>

@@ -23,46 +23,65 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-12">
-      <section className="rounded-[2rem] bg-white px-8 py-10 shadow-card">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-4xl space-y-5">
-          <span className="inline-flex rounded-full bg-sky px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss">
-            Locality digest
-          </span>
-          <div className="space-y-3">
-            <h1 className="font-serif text-5xl text-moss">{data.municipality.shortName}</h1>
-            <p className="max-w-3xl text-lg leading-8 text-ink/75">
-              Clear local updates with source links, timelines, and room to dig into the original
-              material when something matters.
-            </p>
+    <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
+      <section className="rounded-[2rem] bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+          <div className="space-y-5">
+            <span className="inline-flex rounded-full bg-sky px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss">
+              Locality digest
+            </span>
+            <div className="space-y-3">
+              <h1 className="text-balance font-serif text-4xl leading-tight text-moss sm:text-5xl">
+                {data.municipality.shortName}
+              </h1>
+              <p className="text-pretty max-w-3xl text-lg leading-8 text-ink/75">
+                Clear local updates, the most useful source links, and enough
+                context to understand what changed without digging through five
+                township pages first.
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-clay/20 bg-clay/5 px-5 py-4 text-sm leading-7 text-ink/75">
+              This digest is independent and resident-run. It links back to
+              township sources, but it is not affiliated with or speaking for
+              Manheim Township.
+            </div>
+            <LocalitySubnav slug={slug} />
           </div>
-          <div className="rounded-[1.5rem] border border-clay/20 bg-clay/5 px-5 py-4 text-sm leading-7 text-ink/75">
-            This digest is independent and resident-run. It links back to township sources, but it is not
-            affiliated with or speaking for Manheim Township.
-          </div>
-          <LocalitySubnav slug={slug} />
-        </div>
 
-          <div className="grid gap-4 lg:w-[22rem]">
+          <div className="grid gap-4">
             <div className="rounded-[1.5rem] bg-sand p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">What this page is for</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">
+                What this page is for
+              </p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
-                <li>Track the newest local notices, meetings, and planning items.</li>
+                <li>
+                  Track the newest local notices, meetings, and planning items.
+                </li>
                 <li>Open the original source when you want the full record.</li>
-                <li>Use the source inventory to see exactly what this digest watches.</li>
+                <li>
+                  Use the source inventory to see exactly what this digest
+                  watches.
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
         <div className="space-y-6">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Latest updates</p>
-              <h2 className="mt-2 font-serif text-3xl text-moss">Published entries</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                Latest updates
+              </p>
+              <h2 className="mt-2 font-serif text-3xl text-moss">
+                Published entries
+              </h2>
+              <p className="mt-2 text-sm leading-7 text-ink/68">
+                Browse the latest public updates first, then drill into the
+                original documents when you need the full record.
+              </p>
             </div>
           </div>
 
@@ -70,10 +89,15 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </div>
 
         <aside className="space-y-6">
-          <LocalityAskBox slug={slug} localityName={data.municipality.shortName} />
+          <LocalityAskBox
+            slug={slug}
+            localityName={data.municipality.shortName}
+          />
 
           <section className="rounded-[2rem] bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Locality links</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+              Locality links
+            </p>
             <div className="mt-4 grid gap-3">
               <Link
                 href={`/${slug}/source-inventory`}
@@ -97,11 +121,22 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           </section>
 
           <section className="rounded-[2rem] bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">How to use this page</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+              How to use this page
+            </p>
             <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
-              <li>Published entries are meant to be quick to scan, not a substitute for the source.</li>
-              <li>Use the filters to narrow to meetings, alerts, planning items, or township news.</li>
-              <li>If a question matters legally or financially, open the cited source before acting.</li>
+              <li>
+                Published entries are meant to be quick to scan, not a
+                substitute for the source.
+              </li>
+              <li>
+                Use the filters to narrow to meetings, alerts, planning items,
+                or township news.
+              </li>
+              <li>
+                If a question matters legally or financially, open the cited
+                source before acting.
+              </li>
             </ul>
           </section>
         </aside>
