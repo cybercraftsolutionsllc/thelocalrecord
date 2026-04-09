@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { LocalityAskBox } from "../../components/locality-ask-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
@@ -23,14 +24,18 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-12">
-      <section className="grid gap-6 rounded-[2rem] bg-white px-8 py-10 shadow-card lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-5">
+      <section className="rounded-[2rem] bg-white px-8 py-10 shadow-card">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-4xl space-y-5">
           <span className="inline-flex rounded-full bg-sky px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss">
             Locality digest
           </span>
           <div className="space-y-3">
             <h1 className="font-serif text-5xl text-moss">{data.municipality.shortName}</h1>
-            <p className="max-w-3xl text-lg leading-8 text-ink/75">{data.municipality.about}</p>
+            <p className="max-w-3xl text-lg leading-8 text-ink/75">
+              Clear local updates with source links, timelines, and room to dig into the original
+              material when something matters.
+            </p>
           </div>
           <div className="rounded-[1.5rem] border border-clay/20 bg-clay/5 px-5 py-4 text-sm leading-7 text-ink/75">
             This digest is independent and resident-run. It links back to township sources, but it is not
@@ -39,21 +44,21 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           <LocalitySubnav slug={slug} />
         </div>
 
-        <div className="rounded-[1.75rem] bg-sand p-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">About this digest</p>
-          <ul className="mt-4 space-y-4 text-sm leading-7 text-ink/75">
-            <li>Official township and government sources publish automatically.</li>
-            <li>Review is reserved for unofficial sources.</li>
-            <li>Every public entry links to underlying sources.</li>
-            <li>Corrections can be reported from the site footer and corrections page.</li>
-          </ul>
+          <div className="grid gap-4 lg:w-[22rem]">
+            <div className="rounded-[1.5rem] bg-sand p-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">What this page is for</p>
+              <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
+                <li>Track the newest local notices, meetings, and planning items.</li>
+                <li>Open the original source when you want the full record.</li>
+                <li>Use the source inventory to see exactly what this digest watches.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
         <div className="space-y-6">
-          <LocalityAskBox slug={slug} localityName={data.municipality.shortName} />
-
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Latest updates</p>
@@ -65,26 +70,38 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </div>
 
         <aside className="space-y-6">
+          <LocalityAskBox slug={slug} localityName={data.municipality.shortName} />
+
           <section className="rounded-[2rem] bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Source categories</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {data.municipality.sources.map((source) => (
-                <span
-                  key={source.slug}
-                  className="rounded-full border border-moss/10 bg-sky/60 px-3 py-2 text-sm text-moss"
-                >
-                  {source.publicCategory}
-                </span>
-              ))}
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Locality links</p>
+            <div className="mt-4 grid gap-3">
+              <Link
+                href={`/${slug}/source-inventory`}
+                className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-4 text-sm font-semibold text-moss transition hover:bg-sky/40"
+              >
+                Source inventory
+              </Link>
+              <Link
+                href={`/${slug}/corrections`}
+                className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-4 text-sm font-semibold text-moss transition hover:bg-sky/40"
+              >
+                Corrections and reporting
+              </Link>
+              <Link
+                href="/policy"
+                className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-4 text-sm font-semibold text-moss transition hover:bg-sky/40"
+              >
+                Platform policy
+              </Link>
             </div>
           </section>
 
           <section className="rounded-[2rem] bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Transparency notes</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">How to use this page</p>
             <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
-              <li>Fetches are hashed for auditability.</li>
-              <li>Unchanged items do not generate duplicate public posts.</li>
-              <li>Low-confidence extraction is surfaced instead of hidden.</li>
+              <li>Published entries are meant to be quick to scan, not a substitute for the source.</li>
+              <li>Use the filters to narrow to meetings, alerts, planning items, or township news.</li>
+              <li>If a question matters legally or financially, open the cited source before acting.</li>
             </ul>
           </section>
         </aside>

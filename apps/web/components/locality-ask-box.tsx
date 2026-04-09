@@ -69,10 +69,9 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
     <section className="rounded-[2rem] bg-white p-6 shadow-card">
       <div className="space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Ask this locality</p>
-        <h2 className="font-serif text-3xl text-moss">Ask a question about {localityName}</h2>
+        <h2 className="font-serif text-2xl text-moss">{localityName} Q&amp;A</h2>
         <p className="max-w-3xl text-sm leading-7 text-ink/70">
-          Ask about a notice, meeting, ordinance, alert, or planning item. Answers are grounded in the
-          current published entries and return source links.
+          Ask about notices, meetings, ordinances, alerts, or planning items.
         </p>
       </div>
 
@@ -82,8 +81,8 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            rows={4}
-            placeholder="Ask something like: What changed with the codified code notice? or What meetings are coming up this month?"
+            rows={3}
+            placeholder="What changed with the codified code notice?"
             className="w-full rounded-[1.5rem] border border-ink/10 bg-sand/40 px-4 py-4 text-sm leading-7 text-ink outline-none transition focus:border-moss/30 focus:bg-white"
           />
         </label>
@@ -97,7 +96,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             {status === "loading" ? "Thinking..." : "Ask"}
           </button>
           <p className="text-xs leading-6 text-ink/55">
-            AI-assisted answers are informational only and should be checked against the cited source.
+            Source-grounded and AI-assisted. Check the cited source before relying on it.
           </p>
         </div>
       </form>
