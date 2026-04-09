@@ -24,8 +24,14 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
-      <section className="rounded-[2rem] bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+      <section className="relative overflow-hidden rounded-[2rem] bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-[-4rem] top-[-5rem] h-40 w-40 rounded-full bg-sky/50 blur-3xl" />
+          <div className="absolute bottom-[-5rem] right-[-2rem] h-48 w-48 rounded-full bg-clay/10 blur-3xl" />
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sky/20 to-transparent" />
+        </div>
+
+        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           <div className="space-y-5">
             <span className="inline-flex rounded-full bg-sky px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss">
               Locality digest
@@ -49,7 +55,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           </div>
 
           <div className="grid gap-4">
-            <div className="rounded-[1.5rem] bg-sand p-5">
+            <div className="rounded-[1.5rem] border border-white/80 bg-white/80 p-5 backdrop-blur-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">
                 What this page is for
               </p>
@@ -70,18 +76,20 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
       <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
         <div className="space-y-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                Latest updates
-              </p>
-              <h2 className="mt-2 font-serif text-3xl text-moss">
-                Published entries
-              </h2>
-              <p className="mt-2 text-sm leading-7 text-ink/68">
-                Browse the latest public updates first, then drill into the
-                original documents when you need the full record.
-              </p>
+          <div className="rounded-[1.75rem] bg-white/70 px-5 py-4 shadow-card backdrop-blur-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                  Latest updates
+                </p>
+                <h2 className="mt-2 font-serif text-3xl text-moss">
+                  Published entries
+                </h2>
+                <p className="mt-2 text-sm leading-7 text-ink/68">
+                  Browse the latest public updates first, then drill into the
+                  original documents when you need the full record.
+                </p>
+              </div>
             </div>
           </div>
 

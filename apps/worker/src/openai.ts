@@ -1,4 +1,7 @@
-import type { ContentDecision, NormalizedSourceItem } from "@thelocalrecord/core";
+import type {
+  ContentDecision,
+  NormalizedSourceItem
+} from "@thelocalrecord/core";
 
 import type { WorkerEnv } from "./env";
 import type { SearchablePublishedEntry } from "./d1";
@@ -148,7 +151,9 @@ export async function maybeRefineSummaryWithOpenAI(
       }>;
     };
 
-    const text = payload.output?.flatMap((item) => item.content ?? []).find((content) => content.text)?.text;
+    const text = payload.output
+      ?.flatMap((item) => item.content ?? [])
+      .find((content) => content.text)?.text;
 
     if (!text) {
       return baseDecision;
@@ -160,8 +165,12 @@ export async function maybeRefineSummaryWithOpenAI(
       ...baseDecision,
       summary: normalizeSummary(parsed.summary ?? baseDecision.summary),
       extractionNote:
-        parsed.extractionNote === null ? undefined : parsed.extractionNote ?? baseDecision.extractionNote,
-      rationale: parsed.rationale?.length ? parsed.rationale : baseDecision.rationale
+        parsed.extractionNote === null
+          ? undefined
+          : (parsed.extractionNote ?? baseDecision.extractionNote),
+      rationale: parsed.rationale?.length
+        ? parsed.rationale
+        : baseDecision.rationale
     };
   } catch {
     return baseDecision;
@@ -194,9 +203,7 @@ function defaultAskDisclaimer() {
 
 function needsClarification(question: string) {
   const normalized = question.trim().toLowerCase();
-  const tokenCount = normalized
-    .split(/\s+/)
-    .filter(Boolean).length;
+  const tokenCount = normalized.split(/\s+/).filter(Boolean).length;
 
   if (normalized.length < 12) {
     return "What topic do you want to ask about? Try a meeting, road closure, ordinance, planning item, or a specific notice.";
@@ -227,11 +234,33 @@ function needsClarification(question: string) {
   return null;
 }
 
+function relabelCitationLink(label: string, url: string, index: number) {
+  const lowerLabel = label.toLowerCase();
+  const isPdf = url.toLowerCase().endsWith(".pdf");
+
+  if (lowerLabel.includes("source page")) {
+    return "Listing page";
+  }
+
+  if (lowerLabel.includes("source item")) {
+    return isPdf ? "Original document" : "Original post";
+  }
+
+  if (index === 0) {
+    return isPdf ? "Original document" : "Original post";
+  }
+
+  return label;
+}
+
 function parseCitationLinks(entries: SearchablePublishedEntry[]) {
   return entries.map((entry) => {
     const parsedLinks = safeParseLinks(entry.source_links_json);
     const preferredLink =
-      parsedLinks[0] ??
+      parsedLinks.map((link, index) => ({
+        ...link,
+        label: relabelCitationLink(link.label, link.url, index)
+      }))[0] ??
       ({
         label: "Source",
         url: "#"
@@ -260,7 +289,9 @@ function safeParseLinks(value: string) {
       }
 
       const candidate = item as Record<string, unknown>;
-      return typeof candidate.label === "string" && typeof candidate.url === "string";
+      return (
+        typeof candidate.label === "string" && typeof candidate.url === "string"
+      );
     });
   } catch {
     return [] as Array<{ label: string; url: string }>;
@@ -377,7 +408,9 @@ export async function answerLocalityQuestion(
       }>;
     };
 
-    const text = payload.output?.flatMap((item) => item.content ?? []).find((item) => item.text)?.text;
+    const text = payload.output
+      ?.flatMap((item) => item.content ?? [])
+      .find((item) => item.text)?.text;
 
     if (!text) {
       throw new Error("Missing model output");
@@ -386,15 +419,19 @@ export async function answerLocalityQuestion(
     const parsed = JSON.parse(text) as AskLocalityStructuredAnswer;
     const citedIndexes = Array.from(
       new Set(
-        (parsed.citationIndexes ?? [])
-          .filter((index) => Number.isInteger(index) && index >= 0 && index < citations.length)
+        (parsed.citationIndexes ?? []).filter(
+          (index) =>
+            Number.isInteger(index) && index >= 0 && index < citations.length
+        )
       )
     );
 
     return {
       mode: "answer",
       answer: normalizeAnswer(parsed.answer),
-      citations: (citedIndexes.length ? citedIndexes : [0]).map((index) => citations[index]),
+      citations: (citedIndexes.length ? citedIndexes : [0]).map(
+        (index) => citations[index]
+      ),
       disclaimer: defaultAskDisclaimer()
     };
   } catch {
@@ -407,14 +444,19 @@ export async function answerLocalityQuestion(
   }
 }
 
-function buildFallbackAnswer(question: string, matches: SearchablePublishedEntry[]) {
+function buildFallbackAnswer(
+  question: string,
+  matches: SearchablePublishedEntry[]
+) {
   const leadingMatches = matches.slice(0, 3);
   const joined = leadingMatches
     .map((match) => `${match.title}: ${match.summary}`)
     .join(" ");
 
   if (joined) {
-    return normalizeAnswer(`Based on the current published entries related to "${question}", ${joined}`);
+    return normalizeAnswer(
+      `Based on the current published entries related to "${question}", ${joined}`
+    );
   }
 
   return "I could not build a grounded answer from the current published entries.";

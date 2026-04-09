@@ -69,8 +69,13 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
   }
 
   return (
-    <section className="rounded-[2rem] bg-white p-6 shadow-card">
-      <div className="space-y-2">
+    <section className="relative overflow-hidden rounded-[2rem] bg-white p-6 shadow-card">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute right-[-3rem] top-[-3rem] h-24 w-24 rounded-full bg-sky/45 blur-2xl" />
+        <div className="absolute bottom-[-2rem] left-[-2rem] h-20 w-20 rounded-full bg-clay/10 blur-2xl" />
+      </div>
+
+      <div className="relative space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
           Ask this locality
         </p>
@@ -82,7 +87,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
         </p>
       </div>
 
-      <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+      <form className="relative mt-5 space-y-4" onSubmit={handleSubmit}>
         <label className="block">
           <span className="sr-only">Question about this locality</span>
           <textarea
@@ -90,7 +95,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             onChange={(event) => setQuestion(event.target.value)}
             rows={3}
             placeholder="What changed with the codified code notice?"
-            className="w-full rounded-[1.5rem] border border-ink/10 bg-sand/40 px-4 py-4 text-sm leading-7 text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+            className="w-full rounded-[1.5rem] border border-ink/10 bg-sand/35 px-4 py-4 text-sm leading-7 text-ink outline-none transition focus:border-moss/30 focus:bg-white"
           />
         </label>
 
@@ -116,7 +121,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
       ) : null}
 
       {result ? (
-        <div className="mt-5 rounded-[1.75rem] border border-ink/10 bg-sand/30 p-5">
+        <div className="relative mt-5 rounded-[1.75rem] border border-ink/10 bg-sand/30 p-5">
           {result.mode === "clarify" ? (
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
