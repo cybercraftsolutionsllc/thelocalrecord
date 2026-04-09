@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Municipality {
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  name             String
+  state            String
+  localityType     String
+  shortName        String
+  disclaimer       String
+  about            String
+  correctionsEmail String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  sources          Source[]
+  fetchRuns        FetchRun[]
+  sourceItems      SourceItem[]
+  diffEvents       DiffEvent[]
+  contentEntries   ContentEntry[]
+  corrections      Correction[]
+}
+
+model Source {
+  id             String       @id @default(cuid())
+  municipalityId String
+  slug           String
+  name           String
+  description    String
+  url            String
+  kind           String
+  fetchStrategy  String
+  implemented    Boolean      @default(false)
+  publicCategory String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  sourceItems    SourceItem[]
+  artifacts      Artifact[]
+
+  @@unique([municipalityId, slug])
+}
+
+model FetchRun {
+  id             String       @id @default(cuid())
+  municipalityId String
+  status         String
+  startedAt      DateTime     @default(now())
+  completedAt    DateTime?
+  statsJson      String?
+  errorMessage   String?
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  artifacts      Artifact[]
+  diffEvents     DiffEvent[]
+}
+
+model SourceItem {
+  id                   String       @id @default(cuid())
+  municipalityId       String
+  sourceId             String
+  externalId           String
+  title                String
+  sourceUrl            String
+  sourcePageUrl        String
+  normalizedText       String
+  publishedAt          DateTime?
+  eventDate            DateTime?
+  contentHash          String
+  metadataJson         String
+  extractionMethod     String
+  extractionConfidence Float
+  extractionNote       String?
+  firstSeenAt          DateTime     @default(now())
+  lastSeenAt           DateTime     @default(now())
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  municipality         Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  source               Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  artifacts            Artifact[]
+  diffEvents           DiffEvent[]
+  contentEntries       ContentEntry[]
+
+  @@unique([sourceId, externalId])
+}
+
+model Artifact {
+  id           String      @id @default(cuid())
+  sourceId     String?
+  sourceItemId String?
+  fetchRunId   String?
+  kind         String
+  url          String
+  sha256       String
+  mimeType     String?
+  createdAt    DateTime    @default(now())
+  source       Source?     @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceItem   SourceItem? @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+  fetchRun     FetchRun?   @relation(fields: [fetchRunId], references: [id], onDelete: Cascade)
+}
+
+model DiffEvent {
+  id             String       @id @default(cuid())
+  municipalityId String
+  fetchRunId     String
+  sourceItemId   String
+  eventType      String
+  previousHash   String?
+  currentHash    String
+  title          String
+  classification String
+  riskLevel      String
+  reviewState    String
+  rationaleJson  String
+  createdAt      DateTime     @default(now())
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  fetchRun       FetchRun     @relation(fields: [fetchRunId], references: [id], onDelete: Cascade)
+  sourceItem     SourceItem   @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+  contentEntry   ContentEntry?
+}
+
+model ContentEntry {
+  id              String       @id @default(cuid())
+  municipalityId  String
+  sourceItemId    String
+  diffEventId     String       @unique
+  title           String
+  summary         String
+  category        String
+  riskLevel       String
+  reviewState     String
+  sourceLinksJson String
+  extractionNote  String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  municipality    Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  sourceItem      SourceItem   @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+  diffEvent       DiffEvent    @relation(fields: [diffEventId], references: [id], onDelete: Cascade)
+  publication     Publication?
+  corrections     Correction[]
+}
+
+model Publication {
+  id             String       @id @default(cuid())
+  contentEntryId String       @unique
+  path           String
+  status         String
+  publishedAt    DateTime     @default(now())
+  contentEntry   ContentEntry @relation(fields: [contentEntryId], references: [id], onDelete: Cascade)
+}
+
+model Correction {
+  id             String        @id @default(cuid())
+  municipalityId String
+  contentEntryId String?
+  reporterName   String?
+  reporterEmail  String?
+  details        String
+  status         String        @default("open")
+  createdAt      DateTime      @default(now())
+  municipality   Municipality  @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  contentEntry   ContentEntry? @relation(fields: [contentEntryId], references: [id], onDelete: SetNull)
+}

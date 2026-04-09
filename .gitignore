@@ -1,0 +1,13 @@
+node_modules
+.next
+coverage
+dist
+.turbo
+*.log
+.env
+.env.local
+data/*.db
+data/*.db-journal
+packages/storage/*.db
+packages/storage/*.db-journal
+packages/storage/generated

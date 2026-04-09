@@ -1,0 +1,16 @@
+{
+  "name": "@thelocalrecord/content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@thelocalrecord/core": "workspace:*"
+  }
+}
