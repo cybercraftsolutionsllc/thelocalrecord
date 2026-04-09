@@ -1,12 +1,16 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import Link from "next/link";
-
-import { PLATFORM_DISCLAIMER } from "@thelocalrecord/core";
+import { usePathname } from "next/navigation";
 
 type SiteShellProps = {
   children: ReactNode;
 };
+
+const PLATFORM_DISCLAIMER =
+  "Independent resident-run digest platform. Not an official municipal website.";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -17,6 +21,15 @@ const navItems = [
 ];
 
 export function SiteShell({ children }: SiteShellProps) {
+  const pathname = usePathname();
+  const normalizedPathname =
+    pathname && pathname !== "/"
+      ? pathname.replace(/\/+$/, "")
+      : (pathname ?? "/");
+  const visibleNavItems = navItems.filter(
+    (item) => item.href !== normalizedPathname
+  );
+
   return (
     <div className="min-h-screen bg-sand text-ink">
       <header className="border-b border-ink/10 bg-white/90 backdrop-blur">
@@ -36,7 +49,7 @@ export function SiteShell({ children }: SiteShellProps) {
           </div>
 
           <nav className="flex flex-wrap gap-2 text-sm lg:justify-end">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -61,18 +74,22 @@ export function SiteShell({ children }: SiteShellProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-4">
-            <Link href="/about" className="hover:text-moss">
-              About
-            </Link>
-            <Link href="/corrections" className="hover:text-moss">
-              Report an issue
-            </Link>
-            <Link href="/policy" className="hover:text-moss">
-              Policy
-            </Link>
-            <Link href="/localities" className="hover:text-moss">
-              Locality
-            </Link>
+            {[
+              { href: "/about", label: "About" },
+              { href: "/corrections", label: "Report an issue" },
+              { href: "/policy", label: "Policy" },
+              { href: "/localities", label: "Locality" }
+            ]
+              .filter((item) => item.href !== normalizedPathname)
+              .map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="hover:text-moss"
+                >
+                  {item.label}
+                </Link>
+              ))}
           </div>
         </div>
       </footer>

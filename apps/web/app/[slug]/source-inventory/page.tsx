@@ -29,19 +29,24 @@ export default async function LocalitySourceInventoryPage({
             {data.municipality.shortName} source inventory
           </p>
           <div className="space-y-3">
-            <h1 className="font-serif text-4xl text-moss">Tracked source pages for this digest</h1>
+            <h1 className="font-serif text-4xl text-moss">
+              Tracked source pages for this digest
+            </h1>
             <p className="max-w-3xl text-base leading-8 text-ink/75">
-              These are the official pages and feeds this locality digest is designed to watch. The
-              inventory is separated per municipality so future township pages can keep their own source
-              trail.
+              These are the official pages and feeds this locality digest is
+              designed to watch. The inventory is separated per municipality so
+              future township pages can keep their own source trail.
             </p>
           </div>
-          <LocalitySubnav slug={slug} />
+          <LocalitySubnav slug={slug} currentSuffix="/source-inventory" />
         </div>
 
         <div className="grid gap-4">
           {data.municipality.sources.map((source) => (
-            <article key={source.slug} className="rounded-[1.5rem] border border-ink/10 p-5">
+            <article
+              key={source.slug}
+              className="rounded-[1.5rem] border border-ink/10 p-5"
+            >
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-serif text-2xl text-moss">{source.name}</h2>
                 <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
@@ -51,7 +56,9 @@ export default async function LocalitySourceInventoryPage({
                   {source.implemented ? "Active" : "Planned"}
                 </span>
               </div>
-              <p className="mt-3 text-base leading-7 text-ink/75">{source.description}</p>
+              <p className="mt-3 text-base leading-7 text-ink/75">
+                {source.description}
+              </p>
               <a
                 href={source.url}
                 target="_blank"

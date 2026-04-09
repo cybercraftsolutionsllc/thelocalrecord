@@ -51,7 +51,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
               township sources, but it is not affiliated with or speaking for
               Manheim Township.
             </div>
-            <LocalitySubnav slug={slug} />
+            <LocalitySubnav slug={slug} currentSuffix="" />
           </div>
 
           <div className="grid gap-4">
