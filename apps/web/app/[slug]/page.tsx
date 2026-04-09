@@ -24,11 +24,14 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
-      <section className="relative overflow-hidden rounded-[2rem] bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/88 px-7 py-8 shadow-card backdrop-blur-[2px] lg:px-8 lg:py-9">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-[-4rem] top-[-5rem] h-40 w-40 rounded-full bg-sky/50 blur-3xl" />
-          <div className="absolute bottom-[-5rem] right-[-2rem] h-48 w-48 rounded-full bg-clay/10 blur-3xl" />
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sky/20 to-transparent" />
+          <div
+            className="absolute inset-x-0 top-0 h-[72%] bg-cover bg-center opacity-75"
+            style={{ backgroundImage: "url('/images/manheim-hero.svg')" }}
+          />
+          <div className="absolute inset-x-0 top-0 h-[78%] bg-gradient-to-b from-[#faf6ee]/68 via-[#faf6ee]/88 to-white" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(216,233,239,0.22),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(180,93,61,0.08),transparent_24%)]" />
         </div>
 
         <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">

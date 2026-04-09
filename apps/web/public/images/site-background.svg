@@ -1,0 +1,58 @@
+<svg width="1600" height="1200" viewBox="0 0 1600 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1600" y2="1200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBF7EE"/>
+      <stop offset="1" stop-color="#F5F0E4"/>
+    </linearGradient>
+    <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.06"/>
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="washBlue" x1="286" y1="161" x2="748" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9BC9CF" stop-opacity="0.56"/>
+      <stop offset="1" stop-color="#9BC9CF" stop-opacity="0.16"/>
+    </linearGradient>
+    <linearGradient id="washGreen" x1="915" y1="687" x2="1396" y2="1088" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B8C7A8" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#B8C7A8" stop-opacity="0.14"/>
+    </linearGradient>
+    <linearGradient id="washClay" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#D98C6C" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#D98C6C" stop-opacity="0.16"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1200" fill="url(#paper)"/>
+
+  <path d="M-58 167C102 87 212 58 356 76C505 95 634 170 734 175C863 181 961 113 1090 101C1247 86 1395 153 1663 78V-64H-58V167Z" fill="url(#washClay)"/>
+  <path d="M-62 560C63 502 143 378 293 372C438 366 519 483 655 489C802 497 902 360 1049 355C1226 348 1387 502 1677 441V762C1493 836 1308 858 1141 790C993 730 890 611 731 597C603 586 503 644 375 663C213 688 87 635-62 704V560Z" fill="url(#washBlue)"/>
+  <path d="M928 698C1075 612 1189 594 1329 641C1459 683 1538 781 1671 790V1248H816C841 1047 815 905 928 698Z" fill="url(#washGreen)"/>
+  <path d="M-74 948C39 852 146 824 286 845C394 862 493 922 583 916C705 908 792 789 916 772C1097 747 1268 902 1672 850V1247H-74V948Z" fill="#C8D5BF" fill-opacity="0.16"/>
+
+  <path d="M462 30C547 127 575 232 553 334C531 433 459 526 426 641C394 752 403 877 462 1020" stroke="#A5C9D1" stroke-opacity="0.42" stroke-width="30" stroke-linecap="round"/>
+
+  <g stroke="#E7DFCF" stroke-opacity="0.8" stroke-width="3">
+    <circle cx="121" cy="101" r="267"/>
+    <circle cx="1446" cy="1082" r="292"/>
+    <circle cx="1372" cy="173" r="208"/>
+    <circle cx="746" cy="1078" r="235"/>
+    <path d="M88 345C220 297 324 289 432 312C554 338 641 401 724 409C824 419 912 348 1016 337C1165 321 1262 409 1391 403"/>
+    <path d="M1061 621C1168 574 1261 565 1378 588C1474 607 1550 653 1620 654"/>
+  </g>
+
+  <g stroke="#D7D0C1" stroke-opacity="0.52" stroke-width="2">
+    <path d="M246 154L351 226L402 303L495 341L572 427"/>
+    <path d="M324 107L378 178L502 210L614 181L699 238"/>
+    <path d="M216 287L295 326L348 411L466 459L557 528"/>
+    <path d="M1028 136L1124 188L1168 270L1277 301L1352 381"/>
+    <path d="M983 282L1076 337L1110 425L1244 466L1328 550"/>
+    <path d="M1068 839L1165 803L1264 826L1359 914L1452 960"/>
+    <path d="M920 947L1030 902L1127 924L1202 1006L1328 1042"/>
+  </g>
+
+  <rect width="1600" height="1200" fill="#FFFFFF" opacity="0.24"/>
+  <rect width="1600" height="1200" filter="url(#grain)"/>
+</svg>
