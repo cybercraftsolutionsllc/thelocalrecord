@@ -84,6 +84,8 @@ export async function getLocalityData(slug: string) {
   }
 }
 
+export type { PublicEntry, ReviewEntry };
+
 export async function getReviewData(slug: string) {
   if (!databaseEnabled()) {
     return [] satisfies ReviewEntry[];

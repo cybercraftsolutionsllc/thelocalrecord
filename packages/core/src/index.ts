@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 
 import { z } from "zod";
 
+export const PLATFORM_DISCLAIMER =
+  "Independent resident-run digest platform. Not an official municipal website.";
+
 export const INDEPENDENT_DISCLAIMER =
   "Independent resident-run digest. Not affiliated with or speaking for Manheim Township.";
 

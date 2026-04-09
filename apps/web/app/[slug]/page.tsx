@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { UpdateCard } from "../../components/update-card";
+import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
 
 type LocalityPageProps = {
@@ -56,21 +56,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             </div>
           </div>
 
-          {data.entries.length > 0 ? (
-            <div className="space-y-5">
-              {data.entries.map((entry) => (
-                <UpdateCard key={entry.id} {...entry} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
-              <h3 className="font-serif text-2xl text-moss">No published entries yet</h3>
-              <p className="mt-3 max-w-2xl leading-7">
-                The source registry is ready and the page is live. Run the ingestion workflow locally or in GitHub
-                Actions to populate the first set of source-linked updates.
-              </p>
-            </div>
-          )}
+          <LivePublishedEntries slug={slug} initialEntries={data.entries} />
         </div>
 
         <aside className="space-y-6">

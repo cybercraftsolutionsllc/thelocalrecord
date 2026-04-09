@@ -7,6 +7,7 @@
     "dev": "pnpm --filter @thelocalrecord/web dev",
     "build": "pnpm -r build",
     "build:web": "pnpm --filter @thelocalrecord/web build",
+    "build:worker": "pnpm --filter @thelocalrecord/worker build",
     "lint": "pnpm -r lint",
     "test": "vitest run",
     "format": "prettier --write .",
@@ -15,6 +16,7 @@
     "db:seed": "pnpm --filter @thelocalrecord/storage seed",
     "ingest:run": "pnpm --filter @thelocalrecord/ingest ingest",
     "deploy:pages": "wrangler pages deploy apps/web/out --project-name thelocalrecord-web",
+    "deploy:worker": "pnpm --filter @thelocalrecord/worker deploy",
     "postinstall": "pnpm db:generate"
   },
   "devDependencies": {

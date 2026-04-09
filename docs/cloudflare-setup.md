@@ -3,6 +3,7 @@
 ## Recommended production resource names
 
 - Pages project: `thelocalrecord-web`
+- Worker/API service: `thelocalrecord-api`
 - Production D1 database: `thelocalrecord-prod`
 - Preview D1 database: `thelocalrecord-preview`
 - Production R2 bucket: `thelocalrecord-artifacts-prod`
@@ -34,24 +35,27 @@
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_PROJECT_NAME`
+- `OPENAI_API_KEY` (optional until LLM refinement is enabled)
 
 ## Runtime environment variables
 
 - `NEXT_PUBLIC_SITE_URL=https://thelocalrecord.org`
-- `CORRECTIONS_EMAIL=...`
+- `NEXT_PUBLIC_CONTENT_API_BASE=https://thelocalrecord-api.cybercraftsolutions.workers.dev`
+- `CORRECTIONS_EMAIL=cyber.craft@craftedcybersolutions.com`
 - `INGEST_USER_AGENT=thelocalrecord-bot/0.1 (+https://thelocalrecord.org)`
+- `OPENAI_API_KEY=...`
+- `OPENAI_MODEL=gpt-5-mini`
 
 ## API token scopes
 
 - `Cloudflare Pages:Edit`
+- `Workers Scripts:Edit`
 - `Account:D1:Edit`
 - `Account:R2:Edit`
-
-Add `Workers Scripts:Edit` only if deployment moves to Workers-based runtime instead of Pages.
 
 ## Notes
 
 - The current repo foundation is vendor-neutral and keeps a no-DB fallback for local repo work.
-- Production persistence is intended to move to Cloudflare-managed resources instead of local SQLite.
-- Scheduled ingest remains GitHub Actions in v1, which keeps cron management simple while the web surface moves toward Cloudflare deployment.
-- The remaining deployment work for the page itself is the Cloudflare Pages runtime wiring, GitHub repo connection, and environment/binding setup.
+- Production persistence is already being moved to Cloudflare-managed resources through the Worker and D1.
+- Scheduled ingest can run in the Worker via cron and deploys can stay automated through GitHub Actions.
+- A Worker foundation now exists in `apps/worker` for D1, R2, scheduled ingest, and OpenAI-backed summary refinement.

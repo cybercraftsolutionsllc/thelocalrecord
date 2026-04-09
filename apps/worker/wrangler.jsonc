@@ -1,0 +1,47 @@
+{
+  "name": "thelocalrecord-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "thelocalrecord-prod",
+      "database_id": "cbf2a916-0881-47a6-ab59-ca081008b2b3"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "thelocalrecord-artifacts-prod"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://thelocalrecord.org",
+    "INGEST_USER_AGENT": "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)",
+    "OPENAI_MODEL": "gpt-5-mini"
+  },
+  "triggers": {
+    "crons": ["17 * * * *"]
+  },
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "thelocalrecord-preview",
+          "database_id": "f20468b6-8def-411a-9274-aabc3a0d710b"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ARTIFACTS",
+          "bucket_name": "thelocalrecord-artifacts-preview"
+        }
+      ]
+    }
+  }
+}

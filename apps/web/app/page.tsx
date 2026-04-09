@@ -7,60 +7,140 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-14">
-      <section className="grid gap-8 rounded-[2rem] bg-white px-8 py-10 shadow-card lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="space-y-6">
-          <span className="inline-flex rounded-full bg-sky px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss">
-            Citizen-run local government digest
-          </span>
-          <div className="space-y-4">
-            <h1 className="max-w-3xl font-serif text-5xl leading-tight text-moss">
-              A source-linked local government digest that stays clearly independent.
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-ink/75">
-              thelocalrecord tracks selected public municipal sources, detects changes, and publishes
-              restrained summaries with links back to the originals. It is not an official township
-              website.
-            </p>
+      <section className="overflow-hidden rounded-[2.5rem] bg-moss text-white shadow-card">
+        <div className="grid gap-10 px-8 py-10 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:py-12">
+          <div className="space-y-7">
+            <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-sky">
+              Platform home
+            </span>
+            <div className="space-y-4">
+              <h1 className="max-w-4xl font-serif text-5xl leading-tight text-sand lg:text-6xl">
+                Follow local government updates without pretending to be local government.
+              </h1>
+              <p className="max-w-3xl text-lg leading-8 text-white/80">
+                thelocalrecord is the umbrella project: a citizen-run platform for source-linked,
+                audit-friendly municipal digests. Locality pages live underneath it. The homepage is
+                the product front door, not a township digest.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/manheimtownshippa"
+                className="rounded-full bg-sand px-6 py-3 text-sm font-semibold text-moss transition hover:bg-white"
+              >
+                Open live Manheim Township page
+              </Link>
+              <Link
+                href="/source-inventory"
+                className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Browse source inventory
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/manheimtownshippa"
-              className="rounded-full bg-moss px-6 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
-            >
-              View Manheim Township digest
-            </Link>
-            <Link
-              href="/source-inventory"
-              className="rounded-full border border-ink/10 px-6 py-3 text-sm font-semibold text-ink/80 transition hover:border-moss hover:text-moss"
-            >
-              See source inventory
-            </Link>
+
+          <div className="grid gap-4 self-start rounded-[2rem] bg-white/10 p-5 backdrop-blur-sm">
+            <div className="rounded-[1.5rem] bg-white/10 p-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">What the platform does</p>
+              <ul className="mt-4 space-y-3 text-sm leading-7 text-white/80">
+                <li>Fetches public municipal sources on a schedule.</li>
+                <li>Detects what changed and keeps source hashes.</li>
+                <li>Publishes only low-risk items automatically.</li>
+                <li>Routes nuanced items into human review.</li>
+              </ul>
+            </div>
+            <div className="rounded-[1.5rem] border border-white/15 p-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">What this is not</p>
+              <p className="mt-3 text-sm leading-7 text-white/80">
+                Not an official township website, not a proxy for public notices, and not a place for
+                unsupported interpretation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-[2rem] bg-white p-8 shadow-card">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">How the product works</p>
+          <div className="mt-6 space-y-5">
+            {[
+              "Sources are registered per municipality, not scraped blindly.",
+              "Every item is normalized, hashed, and compared against prior fetches.",
+              "Low-risk items can publish with source links. High-risk items require review.",
+              "Corrections stay visible and the source trail remains intact."
+            ].map((line, index) => (
+              <div key={line} className="flex gap-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky text-sm font-semibold text-moss">
+                  {index + 1}
+                </div>
+                <p className="pt-1 text-base leading-7 text-ink/75">{line}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] bg-sand p-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">MVP scope</p>
-          <ul className="mt-4 space-y-4 text-sm leading-7 text-ink/75">
-            <li>Fetches real municipal sources on a schedule.</li>
-            <li>Hashes source responses and keeps an audit trail.</li>
-            <li>Auto-publishes only low-risk items.</li>
-            <li>Routes nuanced or uncertain items into review.</li>
-            <li>Preserves source links, timestamps, and correction paths.</li>
-          </ul>
+        <div className="rounded-[2rem] border border-ink/10 bg-white p-8 shadow-card">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Live localities</p>
+              <h2 className="mt-2 font-serif text-4xl text-moss">Current rollout</h2>
+            </div>
+            <Link href="/review" className="text-sm font-semibold text-moss">
+              Review queue
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-5">
+            {municipalities.map((municipality) => (
+              <article
+                key={municipality.slug}
+                className="grid gap-5 rounded-[1.75rem] border border-ink/10 bg-sand/40 p-6 lg:grid-cols-[1fr_auto]"
+              >
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Launching locality</p>
+                  <h3 className="font-serif text-3xl text-moss">{municipality.shortName}</h3>
+                  <p className="max-w-2xl text-base leading-7 text-ink/75">{municipality.about}</p>
+                </div>
+                <div className="flex items-start">
+                  <Link
+                    href={`/${municipality.slug}`}
+                    className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+                  >
+                    View digest
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3">
-        {municipalities.map((municipality) => (
-          <article key={municipality.slug} className="rounded-[2rem] border border-ink/10 bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Launching locality</p>
-            <h2 className="mt-3 font-serif text-3xl text-moss">{municipality.shortName}</h2>
-            <p className="mt-3 text-base leading-7 text-ink/75">{municipality.about}</p>
-            <Link href={`/${municipality.slug}`} className="mt-6 inline-flex text-sm font-semibold text-moss">
-              Open locality page
-            </Link>
-          </article>
-        ))}
+        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Transparency</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">Source first</h2>
+          <p className="mt-3 text-base leading-7 text-ink/75">
+            Each public entry is supposed to trace back to the original municipal record, with enough
+            metadata to inspect what changed and when it was fetched.
+          </p>
+        </div>
+        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Editorial posture</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">Conservative by design</h2>
+          <p className="mt-3 text-base leading-7 text-ink/75">
+            The system is designed to publish restrained summaries for low-risk items and avoid
+            overclaiming on planning, legal, reputational, or low-confidence materials.
+          </p>
+        </div>
+        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Operations</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">Multi-tenant foundation</h2>
+          <p className="mt-3 text-base leading-7 text-ink/75">
+            Manheim Township is the first launch. The architecture is already organized to support more
+            municipalities under separate slugs as the source registry grows.
+          </p>
+        </div>
       </section>
     </div>
   );

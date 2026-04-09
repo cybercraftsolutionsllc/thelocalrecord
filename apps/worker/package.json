@@ -1,0 +1,17 @@
+{
+  "name": "@thelocalrecord/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@thelocalrecord/content": "workspace:*",
+    "@thelocalrecord/core": "workspace:*",
+    "@thelocalrecord/ingest": "workspace:*"
+  }
+}

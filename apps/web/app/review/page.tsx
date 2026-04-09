@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getReviewData } from "../../lib/data";
 
 export default async function ReviewPage() {
@@ -6,10 +8,22 @@ export default async function ReviewPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       <div className="rounded-[2rem] bg-white p-8 shadow-card">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Local admin path</p>
-        <h1 className="mt-3 font-serif text-4xl text-moss">Review queue</h1>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Platform admin path</p>
+            <h1 className="mt-3 font-serif text-4xl text-moss">Review queue</h1>
+          </div>
+          <Link
+            href="/manheimtownshippa"
+            className="rounded-full border border-moss/15 bg-sky/50 px-4 py-2 text-sm font-semibold text-moss"
+          >
+            Current queue: Manheim Township
+          </Link>
+        </div>
         <p className="mt-4 max-w-3xl text-base leading-8 text-ink/75">
-          This basic review view is intended for local or internal use during the MVP. High-risk or low-confidence items appear here instead of on the public locality page.
+          This basic review view is intended for local or internal use during the MVP. It is a platform route,
+          but today it is showing only the Manheim Township launch queue. High-risk or low-confidence items
+          appear here instead of on the public locality page.
         </p>
 
         <div className="mt-8 space-y-4">

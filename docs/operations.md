@@ -29,12 +29,15 @@ That is enough for repo and UI work because the app falls back when no database 
 
 ## GitHub Actions expectations
 
-- CI should install dependencies, initialize Prisma, seed registry data, lint, test, and build.
+- CI should install dependencies, lint, test, and build.
+- Deploy automation should apply the D1 schema, deploy the Worker, and publish the Pages build.
 - Scheduled ingest should log source counts and diff counts for debugging.
-- Production persistence requires a configured `DATABASE_URL` secret.
+- Cloudflare production requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- Model-backed refinement is optional and requires `OPENAI_API_KEY`.
 
 ## Debugging source breakage
 
 - Run ingest locally for the affected municipality.
+- Or trigger `POST /admin/run?slug=...` on the Worker for a remote test.
 - Inspect the latest source page HTML and selector assumptions in the adapter.
 - Check `artifact` hashes to confirm whether the source changed or the parser drifted.

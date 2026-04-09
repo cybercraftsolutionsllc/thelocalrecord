@@ -17,18 +17,19 @@ This repository is scaffolded as a multi-tenant foundation from day one. The fir
 - Source registry for Manheim Township
 - Scheduled ingestion pipeline for implemented public sources
 - Deterministic diff, classification, and risk-gating flow
-- SQLite + Prisma persistence with a clear upgrade path to Postgres
-- Basic local review queue for items requiring manual review
+- Cloudflare Worker API with D1-backed persistence and R2 artifact retention
+- Basic review queue for items requiring manual review
 - Corrections, editorial policy, and source inventory pages
 
 ## Repository layout
 
 ```text
 apps/web                  Public website
+apps/worker               Cloudflare Worker API + scheduled ingest foundation
 packages/core             Shared types, validators, registry, constants
 packages/ingest           Fetch + normalize + diff pipeline
 packages/content          Classification, summaries, risk gating
-packages/storage          Prisma schema and repository helpers
+packages/storage          Legacy local Prisma helpers retained during migration
 docs                      Architecture, policy, operations, roadmap
 .github/workflows         CI and scheduled ingest workflows
 ```
@@ -38,12 +39,13 @@ docs                      Architecture, policy, operations, roadmap
 The codebase is deployment-neutral, but it is shaped to work well with a Cloudflare-first production setup:
 
 - Cloudflare DNS/CDN/WAF in front of the public site
-- Cloudflare Pages or Workers for the web app in phase 2 if desired
+- Cloudflare Pages for the public static shell
+- Cloudflare Workers for API reads and scheduled ingestion
 - R2 for raw source artifact retention
-- D1 or external Postgres for production persistence, depending scaling and ORM/runtime tradeoffs
-- GitHub Actions for scheduled ingestion in v1
+- D1 for production persistence
+- GitHub Actions for CI and deploy automation
 
-For local repo work, the public app can run without any database because it has a no-DB fallback. Production persistence is intended to move to Cloudflare-managed resources.
+For local repo work, the public app can still run without any database because it has a no-DB fallback.
 
 ## Local setup
 
@@ -59,7 +61,7 @@ The app will be available at `http://localhost:3000`.
 
 If you only want repo and UI work locally, that is enough.
 
-Optional persistence/bootstrap commands are still present for development and CI:
+Optional legacy local persistence/bootstrap commands are still present for development work:
 
 ```bash
 pnpm db:push
@@ -71,8 +73,12 @@ pnpm db:seed
 ```bash
 DATABASE_URL="file:./localrecord.db"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+NEXT_PUBLIC_CONTENT_API_BASE="https://thelocalrecord-api.cybercraftsolutions.workers.dev"
 INGEST_USER_AGENT="thelocalrecord-bot/0.1 (+https://github.com/your-org/thelocalrecord)"
 CORRECTIONS_EMAIL="cyber.craft@craftedcybersolutions.com"
+CLOUDFLARE_ACCOUNT_ID="..."
+CLOUDFLARE_API_TOKEN="..."
+OPENAI_API_KEY="..."
 ```
 
 ## Ingestion flow
@@ -123,11 +129,23 @@ Other Manheim Township sources are registered in the source inventory and ready 
 
 The current production naming plan is documented in [`docs/cloudflare-setup.md`](/Users/ZeroCool/Desktop/Cyber%20Craft%20Solutions/Projects/thelocalrecord/docs/cloudflare-setup.md).
 
+## Cloudflare migration status
+
+- Public site is live on Cloudflare Pages.
+- A Cloudflare Worker foundation now exists for:
+  scheduled ingest,
+  D1-backed persistence,
+  R2 artifact storage,
+  OpenAI-backed summary refinement,
+  and read-only API routes.
+- The remaining enrichment step is setting `OPENAI_API_KEY` for model-backed summary refinement.
+
 ## Scheduled workflows
 
-- `ci.yml` runs lint, test, Prisma setup, and build validation.
+- `ci.yml` runs lint, test, and build validation.
 - `ingest.yml` supports both manual dispatch and scheduled ingest runs.
 - `manual-ingest.yml` provides a dedicated manual trigger for parser checks and targeted runs.
+- `deploy-cloudflare.yml` deploys the worker, applies D1 schema, and publishes the static web build.
 
 ## Phase 2 next steps
 
@@ -135,4 +153,4 @@ The current production naming plan is documented in [`docs/cloudflare-setup.md`]
 - Add reviewer actions for approve/reject/correct
 - Move artifact storage from source references to durable object storage
 - Add municipality onboarding tooling
-- Harden deployment for Cloudflare-hosted production
+- Add authenticated reviewer tools and richer moderation history

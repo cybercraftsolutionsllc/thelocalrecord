@@ -88,6 +88,18 @@ importers:
         specifier: ^3.4.17
         version: 3.4.19(tsx@4.21.0)
 
+  apps/worker:
+    dependencies:
+      '@thelocalrecord/content':
+        specifier: workspace:*
+        version: link:../../packages/content
+      '@thelocalrecord/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@thelocalrecord/ingest':
+        specifier: workspace:*
+        version: link:../../packages/ingest
+
   packages/content:
     dependencies:
       '@thelocalrecord/core':
