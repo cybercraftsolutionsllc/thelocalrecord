@@ -1,20 +1,10 @@
-import Link from "next/link";
-
 export function PolicyPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       <div className="rounded-[2rem] bg-white p-8 shadow-card">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Platform policy</p>
-            <h1 className="mt-3 font-serif text-4xl text-moss">How The Local Record works</h1>
-          </div>
-          <Link
-            href="/manheimtownshippa"
-            className="rounded-full border border-moss/15 bg-sky/50 px-4 py-2 text-sm font-semibold text-moss"
-          >
-            Current live locality
-          </Link>
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Platform policy</p>
+          <h1 className="mt-3 font-serif text-4xl text-moss">How The Local Record works</h1>
         </div>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-2">

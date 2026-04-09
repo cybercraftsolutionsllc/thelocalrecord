@@ -108,6 +108,12 @@ export default function HomePage() {
                   >
                     View digest
                   </Link>
+                  <Link
+                    href={`/${municipality.slug}/source-inventory`}
+                    className="rounded-full border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                  >
+                    View sources
+                  </Link>
                 </div>
               </article>
             ))}

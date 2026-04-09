@@ -10,7 +10,7 @@ type SiteShellProps = {
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/source-inventory", label: "Source inventory" },
+  { href: "/manheimtownshippa", label: "Locality" },
   { href: "/policy", label: "Policy" },
   { href: "/corrections", label: "Corrections" },
   { href: "/review", label: "Review queue" }

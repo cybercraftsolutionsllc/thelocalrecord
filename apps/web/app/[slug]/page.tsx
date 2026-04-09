@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
 
@@ -34,6 +35,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             This digest is independent and resident-run. It links back to township sources, but it is not
             affiliated with or speaking for Manheim Township.
           </div>
+          <LocalitySubnav slug={slug} />
         </div>
 
         <div className="rounded-[1.75rem] bg-sand p-6">

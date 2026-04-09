@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { PublicEntry } from "../lib/data";
 import { contentApiBase } from "../lib/public-config";
+import { entryTopicLabels, getEntryTopic, type EntryTopicKey } from "../lib/topics";
 
 import { UpdateCard } from "./update-card";
 
@@ -31,6 +32,12 @@ type PublishedPayload = {
   total: number;
   page: number;
   pageSize: number;
+};
+
+type TopicOption = {
+  key: EntryTopicKey;
+  label: string;
+  count: number;
 };
 
 function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
@@ -113,6 +120,8 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialEntries.length);
+  const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
+  const [query, setQuery] = useState("");
   const pageSize = 10;
 
   useEffect(() => {
@@ -159,13 +168,86 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
   }, [page, slug]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const normalizedQuery = query.trim().toLowerCase();
+  const topicOptions = entries.reduce<TopicOption[]>(
+    (options, entry) => {
+      const topic = getEntryTopic(entry);
+      const existing = options.find((option) => option.key === topic);
+
+      if (existing) {
+        existing.count += 1;
+      } else {
+        options.push({ key: topic, label: entryTopicLabels[topic], count: 1 });
+      }
+
+      return options;
+    },
+    [{ key: "all", label: entryTopicLabels.all, count: entries.length }]
+  );
+  const filteredEntries = entries.filter((entry) => {
+    const matchesTopic = activeTopic === "all" || getEntryTopic(entry) === activeTopic;
+
+    if (!matchesTopic) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    const haystack = `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel}`.toLowerCase();
+    return haystack.includes(normalizedQuery);
+  });
 
   if (entries.length > 0) {
     return (
       <div className="space-y-5">
-        {entries.map((entry) => (
+        <div className="rounded-[2rem] bg-white p-5 shadow-card">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Browse this feed</p>
+                <p className="mt-2 text-sm leading-7 text-ink/70">
+                  Filter for the kinds of updates residents usually care about first.
+                </p>
+              </div>
+              <label className="w-full max-w-sm">
+                <span className="sr-only">Search updates</span>
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search updates, roads, meetings, ordinances..."
+                  className="w-full rounded-full border border-ink/10 bg-sand/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {topicOptions.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setActiveTopic(option.key)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    activeTopic === option.key
+                      ? "bg-moss text-white"
+                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                  }`}
+                >
+                  {option.label} ({option.count})
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {filteredEntries.map((entry) => (
           <UpdateCard key={entry.id} {...entry} />
         ))}
+        {filteredEntries.length === 0 ? (
+          <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
+            No entries match that filter on this page of results.
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] bg-white px-5 py-4 shadow-card">
           <p className="text-sm text-ink/70">
             Page {page} of {totalPages}
