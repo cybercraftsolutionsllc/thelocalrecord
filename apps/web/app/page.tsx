@@ -15,11 +15,11 @@ export default function HomePage() {
             </span>
             <div className="space-y-4">
               <h1 className="max-w-4xl font-serif text-5xl leading-tight text-sand lg:text-6xl">
-                Follow local government updates without pretending to be local government.
+                Clear local updates, available in one place and linked back to the source.
               </h1>
               <p className="max-w-3xl text-lg leading-8 text-white/80">
-                The Local Record is an independent platform for source-linked municipal digests.
-                Locality pages live underneath it.
+                The Local Record makes public municipal information easier to follow with readable
+                locality pages, direct source links, and a clear independence disclaimer.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
