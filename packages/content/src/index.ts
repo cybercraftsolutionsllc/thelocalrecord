@@ -55,29 +55,82 @@ export function summarizeItem(
   classification: ContentDecision["classification"]
 ): string {
   const text = compactText(item.normalizedText);
+  const detail = extractDetailSnippet(item.title, text);
 
   switch (classification) {
     case "agenda_posted":
-      return `According to the posted agenda listing, "${item.title}" is available from the township agenda portal.`;
+      return item.eventDate
+        ? `According to the posted agenda listing, this item is scheduled for ${formatIsoDate(item.eventDate)}.`
+        : `According to the posted agenda listing, this item is available from the township agenda portal.`;
     case "approved_minutes":
-      return `According to the posted minutes listing, "${item.title}" is available through the township agenda portal.`;
+      return item.eventDate
+        ? `According to the posted minutes listing, this record is tied to ${formatIsoDate(item.eventDate)}.`
+        : `According to the posted minutes listing, this record is available through the township agenda portal.`;
     case "official_alert":
-      return `The township alert center lists "${item.title}" as an active public alert${item.eventDate ? " with a listed event date." : "."}`;
+      return detail
+        ? `According to the township alert, ${detail}`
+        : `The township alert center lists this as an active public alert.`;
     case "official_news":
-      return `The township news feed lists "${item.title}" as an official news post.`;
+      return detail
+        ? `According to the township news post, ${detail}`
+        : `The township news feed lists this as an official news post.`;
     case "calendar_update":
-      return `The township calendar materials list "${item.title}" as a public event or meeting update.`;
+      return detail
+        ? `The township calendar lists ${detail}`
+        : `The township calendar lists this as a public event or meeting update.`;
     case "service_notice":
-      return `An official township source lists "${item.title}" as a public service or infrastructure notice.`;
+      return detail
+        ? `An official township source says ${detail}`
+        : `An official township source lists this as a public service or infrastructure notice.`;
     case "planning_zoning":
-      return `A posted township source references planning or zoning-related material for "${item.title}".`;
+      return detail
+        ? `A posted township source references planning or zoning-related material: ${detail}`
+        : `A posted township source references planning or zoning-related material.`;
     case "meeting_notice":
     case "unknown":
     default:
-      return text
-        ? `According to the posted source, "${item.title}" appears in the latest update list. ${text.slice(0, 160)}${text.length > 160 ? "..." : ""}`
-        : `According to the posted source, "${item.title}" appears in the latest municipal update list.`;
+      return detail
+        ? `According to the posted source, ${detail}`
+        : `According to the posted source, this item appears in the latest municipal update list.`;
   }
+}
+
+function extractDetailSnippet(title: string, normalizedText: string) {
+  const titleLower = compactText(title).toLowerCase();
+  const withoutTitle = compactText(normalizedText)
+    .replace(new RegExp(escapeRegExp(title), "ig"), "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentences = withoutTitle
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => compactText(sentence))
+    .filter((sentence) => sentence.length > 30 && sentence.toLowerCase() !== titleLower);
+
+  const snippet = sentences.slice(0, 2).join(" ");
+
+  if (!snippet) {
+    return "";
+  }
+
+  return snippet.length > 240 ? `${snippet.slice(0, 237)}...` : snippet;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function formatIsoDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(date);
 }
 
 function isOfficialSource(item: NormalizedSourceItem, options?: EvaluateItemOptions): boolean {

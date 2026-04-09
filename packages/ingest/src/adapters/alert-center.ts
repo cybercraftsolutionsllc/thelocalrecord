@@ -20,6 +20,7 @@ export function parseAlertCenter(html: string, sourcePageUrl: string): Normalize
     .map((alert, index) => {
       const title = compactText($(alert).find("a, h3, h4").first().text() || $(alert).text());
       const href = $(alert).find("a").first().attr("href");
+      const dateText = compactText($(alert).find(".date, .fst-italic, time").first().text());
 
       if (!title) {
         return null;
@@ -27,6 +28,7 @@ export function parseAlertCenter(html: string, sourcePageUrl: string): Normalize
 
       const sourceUrl = href ? absoluteUrl(href, sourcePageUrl) : sourcePageUrl;
       const normalizedText = compactText($(alert).text());
+      const publishedAt = parseDateText(dateText);
 
       return normalizedSourceItemSchema.parse({
         municipalitySlug: "manheimtownshippa",
@@ -36,13 +38,50 @@ export function parseAlertCenter(html: string, sourcePageUrl: string): Normalize
         sourceUrl,
         sourcePageUrl,
         normalizedText,
+        publishedAt,
         extraction: {
           method: "html",
           confidence: 0.93
         },
-        metadata: {},
-        contentHash: hashContent(`${title}|${sourceUrl}|${normalizedText}`)
+        metadata: dateText ? { listedDate: dateText } : {},
+        contentHash: hashContent(`${title}|${sourceUrl}|${dateText}|${normalizedText}`)
       });
     })
     .filter((value): value is NormalizedSourceItem => value !== null);
+}
+
+export function extractAlertDetail(html: string) {
+  const $ = load(html);
+  const detailText = compactText(
+    $(".article-content, .fr-view, .alert-content, .content").first().text()
+  );
+  const publishedText = compactText(
+    $("#article-header-date, .article-header-date, .article-date, .fst-italic, time").first().text()
+  );
+  const publishedAt = parseDateText(publishedText);
+
+  return {
+    detailText,
+    publishedAt,
+    publishedText
+  };
+}
+
+function parseDateText(value: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const cleaned = compactText(
+    value
+      .replace(/^published[:\s-]*/i, "")
+      .replace(/^posted[:\s-]*/i, "")
+  );
+  const parsed = Date.parse(cleaned);
+
+  if (Number.isNaN(parsed)) {
+    return undefined;
+  }
+
+  return new Date(parsed).toISOString();
 }

@@ -3,6 +3,7 @@ type UpdateCardProps = {
   summary: string;
   category: string;
   publishedAt: string;
+  sourceMaterialDate?: string | null;
   sourceLabel: string;
   sourceLinks: Array<{ label: string; url: string }>;
   extractionNote?: string | null;
@@ -32,6 +33,10 @@ function formatPublishedDate(publishedAt: string) {
 
 export function UpdateCard(props: UpdateCardProps) {
   const sourceLinks = Array.isArray(props.sourceLinks) ? props.sourceLinks : [];
+  const datedLabel =
+    props.sourceMaterialDate && props.sourceMaterialDate !== props.publishedAt
+      ? `Source date ${formatPublishedDate(props.sourceMaterialDate)}`
+      : `Published ${formatPublishedDate(props.publishedAt)}`;
 
   return (
     <article className="rounded-[2rem] border border-ink/10 bg-white p-6 shadow-card">
@@ -39,9 +44,7 @@ export function UpdateCard(props: UpdateCardProps) {
         <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss">
           {formatCategory(props.category)}
         </span>
-        <span className="text-sm text-ink/60">
-          Published {formatPublishedDate(props.publishedAt)}
-        </span>
+        <span className="text-sm text-ink/60">{datedLabel}</span>
       </div>
 
       <h3 className="font-serif text-2xl text-moss">{props.title}</h3>
@@ -54,7 +57,7 @@ export function UpdateCard(props: UpdateCardProps) {
       ) : null}
 
       <div className="mt-5 border-t border-ink/10 pt-4">
-        <p className="text-sm font-semibold text-ink">Sources: {props.sourceLabel}</p>
+        <p className="text-sm font-semibold text-ink">Source: {props.sourceLabel}</p>
         <div className="mt-2 flex flex-wrap gap-3 text-sm">
           {sourceLinks.map((link) => (
             <a

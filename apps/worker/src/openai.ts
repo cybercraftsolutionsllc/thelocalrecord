@@ -28,7 +28,7 @@ export async function maybeRefineSummaryWithOpenAI(
       body: JSON.stringify({
         model: env.OPENAI_MODEL ?? "gpt-5-mini",
         instructions:
-          "You are assisting a local-government digest. Keep summaries terse, factual, and source-grounded. Never imply approval or outcomes not explicitly supported by the source. Do not change risk gating.",
+          "You are assisting a local-government digest. Write 2 to 4 concise sentences that explain the update in plain language using only facts supported by the source. Explain what changed, what it means for residents, and any dates, deadlines, closures, meetings, or actions explicitly stated in the source. Avoid repeating the title word-for-word. Never imply approval or outcomes not explicitly supported by the source. Do not change risk gating.",
         input: [
           {
             role: "user",
@@ -98,7 +98,7 @@ export async function maybeRefineSummaryWithOpenAI(
 
     return {
       ...baseDecision,
-      summary: parsed.summary ?? baseDecision.summary,
+      summary: normalizeSummary(parsed.summary ?? baseDecision.summary),
       extractionNote:
         parsed.extractionNote === null ? undefined : parsed.extractionNote ?? baseDecision.extractionNote,
       rationale: parsed.rationale?.length ? parsed.rationale : baseDecision.rationale
@@ -106,4 +106,14 @@ export async function maybeRefineSummaryWithOpenAI(
   } catch {
     return baseDecision;
   }
+}
+
+function normalizeSummary(summary: string) {
+  const compact = summary.replace(/\s+/g, " ").trim();
+
+  if (compact.length <= 650) {
+    return compact;
+  }
+
+  return `${compact.slice(0, 647).trimEnd()}...`;
 }

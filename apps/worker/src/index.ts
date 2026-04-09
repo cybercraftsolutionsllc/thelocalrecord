@@ -62,10 +62,12 @@ export default {
       }
 
       if (!view || view === "") {
+        const page = Number(url.searchParams.get("page") ?? "1");
+        const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
         return Response.json(
           {
             municipality: getMunicipalityBySlug(slug),
-            published: await listPublishedEntries(env.DB, slug),
+            published: await listPublishedEntries(env.DB, slug, page, pageSize),
             review: await listReviewQueue(env.DB, slug)
           },
           { headers: jsonHeaders }
@@ -73,7 +75,11 @@ export default {
       }
 
       if (view === "published") {
-        return Response.json(await listPublishedEntries(env.DB, slug), { headers: jsonHeaders });
+        const page = Number(url.searchParams.get("page") ?? "1");
+        const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
+        return Response.json(await listPublishedEntries(env.DB, slug, page, pageSize), {
+          headers: jsonHeaders
+        });
       }
 
       if (view === "review") {

@@ -1,5 +1,5 @@
 import { PolicyPage } from "../../components/policy-page";
 
-export default function EditorialPolicyPage() {
+export default function PolicyRoutePage() {
   return <PolicyPage />;
 }

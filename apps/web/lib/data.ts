@@ -6,6 +6,7 @@ type PublicEntry = {
   summary: string;
   category: string;
   publishedAt: string;
+  sourceMaterialDate?: string | null;
   extractionNote?: string | null;
   sourceLabel: string;
   sourceLinks: Array<{ label: string; url: string }>;

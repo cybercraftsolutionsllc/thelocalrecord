@@ -30,6 +30,7 @@ export function parseAgendaCenter(html: string, sourcePageUrl: string): Normaliz
       }
 
       const metadata: Record<string, string> = {};
+      const eventDate = parseDateText(dateText);
 
       if (dateText) {
         metadata.listedDate = dateText;
@@ -49,6 +50,8 @@ export function parseAgendaCenter(html: string, sourcePageUrl: string): Normaliz
         sourceUrl,
         sourcePageUrl,
         normalizedText,
+        publishedAt: eventDate,
+        eventDate,
         extraction: {
           method: isPdf ? "pdf" : "html",
           confidence: isPdf ? 0.72 : 0.95,
@@ -62,4 +65,18 @@ export function parseAgendaCenter(html: string, sourcePageUrl: string): Normaliz
       });
     })
     .filter((value): value is NormalizedSourceItem => value !== null);
+}
+
+function parseDateText(value: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Date.parse(value);
+
+  if (Number.isNaN(parsed)) {
+    return undefined;
+  }
+
+  return new Date(parsed).toISOString();
 }

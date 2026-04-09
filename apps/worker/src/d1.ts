@@ -16,6 +16,8 @@ type PublishedRow = {
   source_links_json: string;
   extraction_note: string | null;
   published_at: string;
+  source_material_date: string | null;
+  source_name: string;
 };
 
 function nowIso() {
@@ -353,28 +355,71 @@ async function createDiffAndContent(
   return diffEventId;
 }
 
-export async function listPublishedEntries(db: D1Database, slug: string) {
-  const result = await db
+export async function listPublishedEntries(db: D1Database, slug: string, page = 1, pageSize = 10) {
+  const safePage = Math.max(1, page);
+  const safePageSize = Math.min(Math.max(1, pageSize), 25);
+  const offset = (safePage - 1) * safePageSize;
+  const totalRow = await db
     .prepare(
-      `SELECT
-        content_entry.id,
-        content_entry.title,
-        content_entry.summary,
-        content_entry.category,
-        content_entry.risk_level,
-        content_entry.review_state,
-        content_entry.source_links_json,
-        content_entry.extraction_note,
-        publication.published_at
+      `SELECT COUNT(DISTINCT content_entry.source_item_id) as total
       FROM content_entry
       INNER JOIN publication ON publication.content_entry_id = content_entry.id
-      WHERE content_entry.municipality_slug = ?
-      ORDER BY publication.published_at DESC`
+      WHERE content_entry.municipality_slug = ?`
     )
     .bind(slug)
+    .first<{ total: number }>();
+  const result = await db
+    .prepare(
+      `WITH ranked_publications AS (
+        SELECT
+          content_entry.id,
+          content_entry.source_item_id,
+          content_entry.title,
+          content_entry.summary,
+          content_entry.category,
+          content_entry.risk_level,
+          content_entry.review_state,
+          content_entry.source_links_json,
+          content_entry.extraction_note,
+          publication.published_at,
+          COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
+          source.name as source_name,
+          ROW_NUMBER() OVER (
+            PARTITION BY content_entry.source_item_id
+            ORDER BY publication.published_at DESC
+          ) as row_number
+        FROM content_entry
+        INNER JOIN publication ON publication.content_entry_id = content_entry.id
+        INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+        INNER JOIN source ON source.slug = source_item.source_slug
+        WHERE content_entry.municipality_slug = ?
+      )
+      SELECT
+        id,
+        title,
+        summary,
+        category,
+        risk_level,
+        review_state,
+        source_links_json,
+        extraction_note,
+        published_at,
+        source_material_date,
+        source_name
+      FROM ranked_publications
+      WHERE row_number = 1
+      ORDER BY source_material_date DESC, published_at DESC
+      LIMIT ? OFFSET ?`
+    )
+    .bind(slug, safePageSize, offset)
     .all<PublishedRow>();
 
-  return result.results ?? [];
+  return {
+    entries: result.results ?? [],
+    total: totalRow?.total ?? 0,
+    page: safePage,
+    pageSize: safePageSize
+  };
 }
 
 export async function listReviewQueue(db: D1Database, slug: string) {
