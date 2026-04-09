@@ -24,6 +24,33 @@ type ApiEntry = {
   published_at: string;
 };
 
+function parseSourceLinks(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((item): item is { label: string; url: string } => {
+        if (typeof item !== "object" || item === null) {
+          return false;
+        }
+
+        const candidate = item as Record<string, unknown>;
+
+        return typeof candidate.label === "string" && typeof candidate.url === "string";
+      })
+      .map((item) => ({
+        label: item.label,
+        url: item.url
+      }));
+  } catch {
+    return [];
+  }
+}
+
 function mapApiEntry(entry: ApiEntry): PublicEntry {
   return {
     id: entry.id,
@@ -33,7 +60,7 @@ function mapApiEntry(entry: ApiEntry): PublicEntry {
     publishedAt: entry.published_at,
     extractionNote: entry.extraction_note ?? null,
     sourceLabel: "Cloudflare worker API",
-    sourceLinks: JSON.parse(entry.source_links_json) as Array<{ label: string; url: string }>
+    sourceLinks: parseSourceLinks(entry.source_links_json)
   };
 }
 
