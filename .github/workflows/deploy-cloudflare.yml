@@ -36,6 +36,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Validate required secrets
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "Missing GitHub Actions secret: CLOUDFLARE_API_TOKEN" >&2
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Missing GitHub Actions secret: CLOUDFLARE_ACCOUNT_ID" >&2
+            exit 1
+          fi
+
       - name: Lint
         run: pnpm lint
 
