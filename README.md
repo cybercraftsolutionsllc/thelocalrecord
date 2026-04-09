@@ -1,6 +1,6 @@
-# thelocalrecord
+# The Local Record
 
-thelocalrecord is an independent, resident-run local government digest platform built to track public municipal sources, detect changes, and publish source-linked updates without pretending to be an official government website.
+The Local Record is an independent, resident-run local government digest platform.
 
 This repository is scaffolded as a multi-tenant foundation from day one. The first municipality is Manheim Township, Pennsylvania, exposed at `/manheimtownshippa`.
 
@@ -18,7 +18,7 @@ This repository is scaffolded as a multi-tenant foundation from day one. The fir
 - Scheduled ingestion pipeline for implemented public sources
 - Deterministic diff, classification, and risk-gating flow
 - Cloudflare Worker API with D1-backed persistence and R2 artifact retention
-- Basic review queue for items requiring manual review
+- Basic review queue for unofficial-source items
 - Corrections, editorial policy, and source inventory pages
 
 ## Repository layout
@@ -87,9 +87,9 @@ OPENAI_API_KEY="..."
 2. Raw responses are hashed and stored as fetch artifacts.
 3. Adapters normalize source items into a shared schema.
 4. The pipeline compares each normalized item against the previous stored hash.
-5. New or changed items are classified and risk-gated.
-6. Low-risk items create public entries and publications.
-7. High-risk or low-confidence items stay in `review_required`.
+5. New or changed items are classified and checked for source authority.
+6. Official-source items create public entries and publications automatically.
+7. Unofficial-source items can stay in `review_required`.
 
 Run ingest manually with:
 
@@ -113,8 +113,8 @@ Other Manheim Township sources are registered in the source inventory and ready 
 
 ## Review model
 
-- Low-risk items can auto-publish.
-- Planning/zoning material, low-confidence extraction, and other nuanced topics are routed to `/review`.
+- Official township and government sources auto-publish.
+- `/review` is for unofficial-source items.
 - The public locality page only shows published entries.
 
 ## Adding another municipality later

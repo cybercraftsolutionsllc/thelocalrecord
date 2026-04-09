@@ -18,9 +18,8 @@ export default function HomePage() {
                 Follow local government updates without pretending to be local government.
               </h1>
               <p className="max-w-3xl text-lg leading-8 text-white/80">
-                thelocalrecord is the umbrella project: a citizen-run platform for source-linked,
-                audit-friendly municipal digests. Locality pages live underneath it. The homepage is
-                the product front door, not a township digest.
+                The Local Record is an independent platform for source-linked municipal digests.
+                Locality pages live underneath it.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -45,8 +44,8 @@ export default function HomePage() {
               <ul className="mt-4 space-y-3 text-sm leading-7 text-white/80">
                 <li>Fetches public municipal sources on a schedule.</li>
                 <li>Detects what changed and keeps source hashes.</li>
-                <li>Publishes only low-risk items automatically.</li>
-                <li>Routes nuanced items into human review.</li>
+                <li>Auto-publishes official-source updates.</li>
+                <li>Holds unofficial-source items for review.</li>
               </ul>
             </div>
             <div className="rounded-[1.5rem] border border-white/15 p-5">
@@ -67,7 +66,7 @@ export default function HomePage() {
             {[
               "Sources are registered per municipality, not scraped blindly.",
               "Every item is normalized, hashed, and compared against prior fetches.",
-              "Low-risk items can publish with source links. High-risk items require review.",
+              "Official-source items publish automatically with source links.",
               "Corrections stay visible and the source trail remains intact."
             ].map((line, index) => (
               <div key={line} className="flex gap-4">
@@ -129,8 +128,7 @@ export default function HomePage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Editorial posture</p>
           <h2 className="mt-3 font-serif text-3xl text-moss">Conservative by design</h2>
           <p className="mt-3 text-base leading-7 text-ink/75">
-            The system is designed to publish restrained summaries for low-risk items and avoid
-            overclaiming on planning, legal, reputational, or low-confidence materials.
+            Official sources publish automatically. Unofficial sources are where review begins.
           </p>
         </div>
         <div className="rounded-[2rem] bg-white p-6 shadow-card">

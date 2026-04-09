@@ -39,8 +39,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         <div className="rounded-[1.75rem] bg-sand p-6">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">About this digest</p>
           <ul className="mt-4 space-y-4 text-sm leading-7 text-ink/75">
-            <li>Low-risk items may publish automatically after diffing and classification.</li>
-            <li>Higher-risk planning, legal, or low-confidence items stay out of public publication.</li>
+            <li>Official township and government sources publish automatically.</li>
+            <li>Review is reserved for unofficial sources.</li>
             <li>Every public entry links to underlying sources.</li>
             <li>Corrections can be reported from the site footer and corrections page.</li>
           </ul>

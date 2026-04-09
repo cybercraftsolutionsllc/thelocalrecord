@@ -12,6 +12,10 @@ const HIGH_RISK_TERMS = [
   "land development"
 ];
 
+type EvaluateItemOptions = {
+  officialSource?: boolean;
+};
+
 export function classifyItem(item: NormalizedSourceItem): ContentDecision["classification"] {
   const haystack = `${item.title} ${item.normalizedText}`.toLowerCase();
 
@@ -66,44 +70,72 @@ export function summarizeItem(
     case "service_notice":
       return `An official township source lists "${item.title}" as a public service or infrastructure notice.`;
     case "planning_zoning":
-      return `A posted township source references planning or zoning-related material for "${item.title}". Review is required before publication.`;
+      return `A posted township source references planning or zoning-related material for "${item.title}".`;
     case "meeting_notice":
     case "unknown":
     default:
       return text
-        ? `According to the posted source, "${item.title}" appears in the latest municipal update list. ${text.slice(0, 180)}${text.length > 180 ? "..." : ""}`
+        ? `According to the posted source, "${item.title}" appears in the latest update list. ${text.slice(0, 160)}${text.length > 160 ? "..." : ""}`
         : `According to the posted source, "${item.title}" appears in the latest municipal update list.`;
   }
 }
 
-export function evaluateItem(item: NormalizedSourceItem): ContentDecision {
+function isOfficialSource(item: NormalizedSourceItem, options?: EvaluateItemOptions): boolean {
+  if (typeof options?.officialSource === "boolean") {
+    return options.officialSource;
+  }
+
+  const candidateUrls = [item.sourcePageUrl, item.sourceUrl];
+
+  return candidateUrls.some((candidateUrl) => {
+    try {
+      const hostname = new URL(candidateUrl).hostname.toLowerCase();
+
+      return (
+        hostname === "manheimtownship.org" ||
+        hostname.endsWith(".manheimtownship.org") ||
+        hostname.endsWith(".gov") ||
+        hostname.endsWith(".us")
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
+export function evaluateItem(item: NormalizedSourceItem, options?: EvaluateItemOptions): ContentDecision {
   const classification = classifyItem(item);
   const haystack = `${item.title} ${item.normalizedText}`.toLowerCase();
   const rationale: string[] = [];
+  const officialSource = isOfficialSource(item, options);
 
   let riskLevel: ContentDecision["riskLevel"] = "low";
   let reviewState: ContentDecision["reviewState"] = "auto_published";
   let autoPublishAllowed = true;
 
-  if (item.extraction.confidence < 0.75) {
-    riskLevel = "review_required";
-    reviewState = "review_required";
-    autoPublishAllowed = false;
-    rationale.push("Low extraction confidence");
-  }
+  if (officialSource) {
+    rationale.push("Official township or government source");
+  } else {
+    if (item.extraction.confidence < 0.75) {
+      riskLevel = "review_required";
+      reviewState = "review_required";
+      autoPublishAllowed = false;
+      rationale.push("Low extraction confidence");
+    }
 
-  if (classification === "planning_zoning") {
-    riskLevel = "review_required";
-    reviewState = "review_required";
-    autoPublishAllowed = false;
-    rationale.push("Planning or zoning content needs manual review");
-  }
+    if (classification === "planning_zoning") {
+      riskLevel = "review_required";
+      reviewState = "review_required";
+      autoPublishAllowed = false;
+      rationale.push("Planning or zoning content from an unofficial source");
+    }
 
-  if (HIGH_RISK_TERMS.some((term) => haystack.includes(term))) {
-    riskLevel = "review_required";
-    reviewState = "review_required";
-    autoPublishAllowed = false;
-    rationale.push("Matched high-risk land use keywords");
+    if (HIGH_RISK_TERMS.some((term) => haystack.includes(term))) {
+      riskLevel = "review_required";
+      reviewState = "review_required";
+      autoPublishAllowed = false;
+      rationale.push("Matched high-risk land use keywords on an unofficial source");
+    }
   }
 
   const summary = summarizeItem(item, classification);

@@ -2,7 +2,7 @@
 
 ## What this project is
 
-thelocalrecord is an independent resident-run digest of public municipal information.
+The Local Record is an independent resident-run digest of public municipal information.
 
 It is not an official township website and does not speak for Manheim Township.
 
@@ -15,26 +15,13 @@ It is not an official township website and does not speak for Manheim Township.
 - Do not infer outcomes from agenda items
 - Do not state that something was approved unless minutes or an official release support that claim
 
-## Auto-publish eligible in v1
+## Auto-publish in v1
 
-- Newly posted agendas
-- Meeting notices
-- Public calendar updates
-- Official alerts
-- Official news posts
-- Newly posted approved minutes
-- Public infrastructure or service notices
+- Official township and government sources publish automatically.
 
 ## Manual review required in v1
 
-- Zoning interpretations
-- Land use analysis
-- Planning commission matters with nuance
-- Budget interpretation
-- Personnel matters
-- Police incidents beyond official releases
-- Legal, political, or reputational ambiguity
-- Anything derived from PDFs with low extraction confidence
+- Manual review is reserved for unofficial sources.
 
 ## Corrections
 

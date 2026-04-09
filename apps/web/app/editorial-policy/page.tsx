@@ -17,19 +17,18 @@ export default function EditorialPolicyPage() {
           </Link>
         </div>
         <p className="mt-4 max-w-3xl text-base leading-8 text-ink/75">
-          These rules apply across the platform. Manheim Township is the current launch locality, but the
-          policy is written to carry forward as additional municipalities are added.
+          These rules apply across the platform. Manheim Township is the current launch locality.
         </p>
         <div className="mt-6 grid gap-8 lg:grid-cols-2">
           <section className="space-y-4 text-base leading-8 text-ink/75">
             <h2 className="font-serif text-2xl text-moss">Auto-publish eligible</h2>
-            <p>Newly posted agendas, meeting notices, official alerts, official news posts, approved minutes, and routine public service notices.</p>
-            <p>Summaries stay terse, factual, and source-grounded. They do not infer outcomes beyond the source material.</p>
+            <p>Official township and government sources publish automatically.</p>
+            <p>Summaries stay terse, factual, and source-grounded.</p>
           </section>
           <section className="space-y-4 text-base leading-8 text-ink/75">
             <h2 className="font-serif text-2xl text-moss">Manual review required</h2>
-            <p>Zoning and land use matters, nuanced planning materials, budget interpretation, personnel topics, and anything with low extraction confidence.</p>
-            <p>These items are routed to a review state instead of publishing automatically.</p>
+            <p>Manual review is reserved for unofficial sources.</p>
+            <p>If the source is an official township or government page, it publishes automatically.</p>
           </section>
         </div>
       </div>

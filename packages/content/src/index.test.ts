@@ -29,14 +29,14 @@ describe("evaluateItem", () => {
     expect(decision.classification).toBe("agenda_posted");
   });
 
-  it("flags planning and zoning items for review", () => {
+  it("auto-publishes official planning items even with low extraction confidence", () => {
     const item = normalizedSourceItemSchema.parse({
       municipalitySlug: "manheimtownshippa",
       sourceSlug: "agenda-center",
       externalId: "agenda-2",
       title: "Planning Commission Packet",
-      sourceUrl: "https://example.com/planning.pdf",
-      sourcePageUrl: "https://example.com/agenda",
+      sourceUrl: "https://www.manheimtownship.org/planning.pdf",
+      sourcePageUrl: "https://www.manheimtownship.org/AgendaCenter",
       normalizedText: "Rezoning hearing for a land development subdivision application",
       extraction: {
         method: "pdf",
@@ -48,6 +48,31 @@ describe("evaluateItem", () => {
     });
 
     const decision = evaluateItem(item);
+
+    expect(decision.autoPublishAllowed).toBe(true);
+    expect(decision.reviewState).toBe("auto_published");
+    expect(decision.classification).toBe("planning_zoning");
+  });
+
+  it("routes unofficial low-confidence planning items to review", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "agenda-center",
+      externalId: "agenda-3",
+      title: "Planning Commission Packet",
+      sourceUrl: "https://example.com/planning.pdf",
+      sourcePageUrl: "https://example.com/agenda",
+      normalizedText: "Rezoning hearing for a land development subdivision application",
+      extraction: {
+        method: "pdf",
+        confidence: 0.65,
+        note: "PDF extraction was partial."
+      },
+      metadata: {},
+      contentHash: hashContent("agenda-3")
+    });
+
+    const decision = evaluateItem(item, { officialSource: false });
 
     expect(decision.autoPublishAllowed).toBe(false);
     expect(decision.reviewState).toBe("review_required");

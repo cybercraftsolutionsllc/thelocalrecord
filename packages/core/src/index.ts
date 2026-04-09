@@ -185,7 +185,7 @@ export const sourceRegistry: SourceConfig[] = [
     slug: "planning-zoning",
     municipalitySlug: "manheimtownshippa",
     name: "Planning and Zoning",
-    description: "Planning and zoning materials that often require manual review.",
+    description: "Official planning and zoning materials published by the township.",
     url: "https://www.manheimtownship.org/478/Planning-Zoning",
     kind: "planning_zoning",
     implemented: false,

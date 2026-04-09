@@ -21,9 +21,8 @@ export default async function ReviewPage() {
           </Link>
         </div>
         <p className="mt-4 max-w-3xl text-base leading-8 text-ink/75">
-          This basic review view is intended for local or internal use during the MVP. It is a platform route,
-          but today it is showing only the Manheim Township launch queue. High-risk or low-confidence items
-          appear here instead of on the public locality page.
+          This queue is for unofficial-source items. During the MVP it only shows the Manheim Township
+          launch locality.
         </p>
 
         <div className="mt-8 space-y-4">

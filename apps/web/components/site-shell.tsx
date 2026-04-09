@@ -26,7 +26,7 @@ export function SiteShell({ children }: SiteShellProps) {
               <span className="rounded-full border border-moss/15 bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-moss">
                 Independent digest
               </span>
-              <span className="font-serif text-2xl text-moss">thelocalrecord</span>
+              <span className="font-serif text-2xl text-moss">The Local Record</span>
             </Link>
             <p className="max-w-2xl text-sm text-ink/70">{PLATFORM_DISCLAIMER}</p>
           </div>

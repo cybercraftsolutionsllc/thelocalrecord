@@ -17,7 +17,7 @@ const sans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "thelocalrecord",
+  title: "The Local Record",
   description: "Independent resident-run digest of local government updates."
 };
 
