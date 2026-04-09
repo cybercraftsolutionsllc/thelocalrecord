@@ -29,6 +29,11 @@
   },
   "env": {
     "preview": {
+      "vars": {
+        "NEXT_PUBLIC_SITE_URL": "https://thelocalrecord.org",
+        "INGEST_USER_AGENT": "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)",
+        "OPENAI_MODEL": "gpt-5-mini"
+      },
       "d1_databases": [
         {
           "binding": "DB",
