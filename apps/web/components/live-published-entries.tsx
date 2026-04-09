@@ -122,7 +122,7 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
   const [total, setTotal] = useState(initialEntries.length);
   const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
   const [query, setQuery] = useState("");
-  const pageSize = 10;
+  const pageSize = 18;
 
   useEffect(() => {
     if (!contentApiBase) {
@@ -208,7 +208,8 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Browse this feed</p>
                 <p className="mt-2 text-sm leading-7 text-ink/70">
-                  Filter for the kinds of updates residents usually care about first.
+                  Major notices and township updates appear first. Use the filters to focus on meetings,
+                  planning items, or specific topics.
                 </p>
               </div>
               <label className="w-full max-w-sm">

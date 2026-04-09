@@ -20,6 +20,20 @@ type PublishedRow = {
   source_name: string;
 };
 
+function publishedCategoryPrioritySql() {
+  return `CASE content_entry.category
+    WHEN 'official_alert' THEN 1
+    WHEN 'official_news' THEN 2
+    WHEN 'service_notice' THEN 3
+    WHEN 'agenda_posted' THEN 4
+    WHEN 'approved_minutes' THEN 5
+    WHEN 'planning_zoning' THEN 6
+    WHEN 'calendar_update' THEN 7
+    WHEN 'meeting_notice' THEN 8
+    ELSE 9
+  END`;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -357,8 +371,9 @@ async function createDiffAndContent(
 
 export async function listPublishedEntries(db: D1Database, slug: string, page = 1, pageSize = 10) {
   const safePage = Math.max(1, page);
-  const safePageSize = Math.min(Math.max(1, pageSize), 25);
+  const safePageSize = Math.min(Math.max(1, pageSize), 50);
   const offset = (safePage - 1) * safePageSize;
+  const feedPrioritySql = publishedCategoryPrioritySql();
   const totalRow = await db
     .prepare(
       `SELECT COUNT(DISTINCT content_entry.source_item_id) as total
@@ -383,6 +398,7 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
           content_entry.extraction_note,
           publication.published_at,
           COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
+          ${feedPrioritySql} as feed_priority,
           source.name as source_name,
           ROW_NUMBER() OVER (
             PARTITION BY content_entry.source_item_id
@@ -408,7 +424,7 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
         source_name
       FROM ranked_publications
       WHERE row_number = 1
-      ORDER BY source_material_date DESC, published_at DESC
+      ORDER BY feed_priority ASC, source_material_date DESC, published_at DESC
       LIMIT ? OFFSET ?`
     )
     .bind(slug, safePageSize, offset)
