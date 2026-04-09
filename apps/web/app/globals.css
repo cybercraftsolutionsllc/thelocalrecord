@@ -14,12 +14,12 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(250, 247, 239, 0.5), rgba(243, 239, 228, 0.66)),
+    linear-gradient(rgba(250, 247, 239, 0.24), rgba(243, 239, 228, 0.34)),
     url("/images/site-background.png"),
     url("/images/site-background.svg"),
     radial-gradient(
       circle at top left,
-      rgba(216, 233, 239, 0.42),
+      rgba(216, 233, 239, 0.24),
       transparent 32%
     ),
     linear-gradient(180deg, #faf7ef 0%, #f3efe4 100%);
@@ -37,7 +37,7 @@ body {
     no-repeat;
   background-size:
     auto,
-    cover,
+    1440px auto,
     cover,
     auto,
     auto;

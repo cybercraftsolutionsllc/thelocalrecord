@@ -24,18 +24,18 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/86 px-7 py-8 shadow-card backdrop-blur-[2px] lg:px-8 lg:py-9">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/82 px-7 py-8 shadow-card backdrop-blur-[2px] lg:px-8 lg:py-9">
         <div className="pointer-events-none absolute inset-0">
           <div
-            className="absolute inset-x-0 top-0 h-[64%] bg-cover opacity-80"
+            className="absolute inset-x-0 bottom-0 h-[46%] bg-cover opacity-[0.94]"
             style={{
               backgroundImage:
                 "url('/images/manheim-hero.png'), url('/images/manheim-hero.svg')",
-              backgroundPosition: "center 30%"
+              backgroundPosition: "center 58%"
             }}
           />
-          <div className="absolute inset-x-0 top-0 h-[74%] bg-[linear-gradient(180deg,rgba(251,247,239,0.14)_0%,rgba(250,246,238,0.42)_32%,rgba(250,246,238,0.82)_64%,rgba(250,247,239,1)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.34),transparent_28%),radial-gradient(circle_at_top_right,rgba(216,233,239,0.18),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(180,93,61,0.07),transparent_22%)]" />
+          <div className="absolute inset-x-0 bottom-[42%] h-40 bg-gradient-to-b from-transparent via-[#f8f4ea]/76 to-[#f8f4ea]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.22),transparent_24%),radial-gradient(circle_at_top_right,rgba(216,233,239,0.12),transparent_22%),linear-gradient(180deg,rgba(250,247,239,0.18)_0%,rgba(248,244,234,0.06)_28%,rgba(248,244,234,0)_46%,rgba(248,244,234,0.12)_100%)]" />
         </div>
 
         <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
@@ -43,19 +43,19 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             <span className="inline-flex rounded-full border border-white/70 bg-sky/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss shadow-sm">
               Locality digest
             </span>
-            <div className="max-w-3xl rounded-[1.75rem] bg-white/40 p-5 backdrop-blur-[2px] sm:p-6">
+            <div className="max-w-3xl rounded-[1.75rem] bg-white/72 p-5 shadow-sm backdrop-blur-sm sm:p-6">
               <div className="space-y-3">
-                <h1 className="text-balance font-serif text-4xl leading-[1.04] text-moss sm:text-5xl lg:text-[3.6rem]">
+                <h1 className="text-balance font-serif text-4xl leading-[1.02] text-moss sm:text-5xl lg:text-[3.85rem]">
                   {data.municipality.shortName}
                 </h1>
-                <p className="text-pretty max-w-3xl text-lg leading-8 text-ink/78">
+                <p className="text-pretty max-w-3xl text-lg leading-8 text-ink/82">
                   Clear local updates, the most useful source links, and enough
                   context to understand what changed without digging through
                   five township pages first.
                 </p>
               </div>
             </div>
-            <div className="max-w-3xl rounded-[1.5rem] border border-clay/20 bg-white/62 px-5 py-4 text-sm leading-7 text-ink/78 backdrop-blur-sm">
+            <div className="max-w-3xl rounded-[1.5rem] border border-clay/20 bg-white/84 px-5 py-4 text-sm leading-7 text-ink/82 shadow-sm backdrop-blur-sm">
               This digest is independent and resident-run. It links back to
               township sources, but it is not affiliated with or speaking for
               Manheim Township.
@@ -66,7 +66,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           </div>
 
           <div className="grid gap-4">
-            <div className="rounded-[1.5rem] border border-white/85 bg-white/88 p-5 shadow-sm backdrop-blur-sm">
+            <div className="rounded-[1.5rem] border border-white/85 bg-white/92 p-5 shadow-sm backdrop-blur-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">
                 What this page is for
               </p>
