@@ -15,6 +15,7 @@ body {
   min-height: 100vh;
   background:
     linear-gradient(rgba(250, 247, 239, 0.84), rgba(243, 239, 228, 0.92)),
+    url("/images/site-background.png"),
     url("/images/site-background.svg"),
     radial-gradient(
       circle at top left,
@@ -25,15 +26,18 @@ body {
   background-position:
     0 0,
     center top,
+    center top,
     left top,
     center;
   background-repeat:
     no-repeat,
     no-repeat,
     no-repeat,
+    no-repeat,
     no-repeat;
   background-size:
     auto,
+    cover,
     cover,
     auto,
     auto;

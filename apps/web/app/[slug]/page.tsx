@@ -28,7 +28,10 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         <div className="pointer-events-none absolute inset-0">
           <div
             className="absolute inset-x-0 top-0 h-[72%] bg-cover bg-center opacity-75"
-            style={{ backgroundImage: "url('/images/manheim-hero.svg')" }}
+            style={{
+              backgroundImage:
+                "url('/images/manheim-hero.png'), url('/images/manheim-hero.svg')"
+            }}
           />
           <div className="absolute inset-x-0 top-0 h-[78%] bg-gradient-to-b from-[#faf6ee]/68 via-[#faf6ee]/88 to-white" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(216,233,239,0.22),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(180,93,61,0.08),transparent_24%)]" />
