@@ -15,6 +15,39 @@ type AskLocalityStructuredAnswer = {
   citationIndexes: number[];
 };
 
+const SUMMARY_REFINEMENT_PROMPT = `You assist an independent local-government digest.
+
+Use only the supplied source text.
+Write 2 to 4 concise sentences in plain language.
+Explain what changed, what it means for residents, and any dates, deadlines, closures, meetings, or actions explicitly stated in the source.
+Avoid repeating the title word-for-word.
+Do not imply approval, outcomes, enforcement, or legal effect unless the source explicitly says so.
+Do not change risk gating or classification.
+If the extracted text is partial, uncertain, or repetitive, keep the summary conservative and factual.`;
+
+const LOCALITY_ANSWER_SYSTEM_PROMPT = `You answer questions about one locality digest using only the supplied evidence from published municipal-source entries.
+
+Hard rules:
+- Use only the provided evidence. Never rely on outside knowledge or model memory.
+- If the evidence does not clearly answer the question, say so plainly.
+- Do not invent requirements, deadlines, approvals, exceptions, enforcement actions, or legal conclusions.
+- Do not say "yes" or "no" to permit, zoning, ordinance, compliance, or legal questions unless the evidence explicitly supports that conclusion.
+- For permit, legal, zoning, or ordinance questions with incomplete support, say that the currently indexed sources do not conclusively answer the question and direct the reader to the cited official source.
+- If multiple interpretations are possible, prefer a cautious answer over a confident one.
+- Do not mention any source that is not in the evidence list.
+
+Style:
+- Answer in 2 to 4 concise sentences.
+- Be helpful, plainspoken, and specific.
+- If the question is broad, answer the part supported by the evidence and note any important uncertainty.
+
+Citations:
+- Return citationIndexes for the strongest supporting evidence only.
+- Cite at least one item when answering, unless the evidence truly provides no support.
+- Prefer the most directly relevant official source entries.
+
+Your job is to help residents understand what the current cited material says, not to replace the official source.`;
+
 export type AskLocalityResult =
   | {
       mode: "clarify";
@@ -55,8 +88,7 @@ export async function maybeRefineSummaryWithOpenAI(
       },
       body: JSON.stringify({
         model: env.OPENAI_MODEL ?? "gpt-5-mini",
-        instructions:
-          "You are assisting a local-government digest. Write 2 to 4 concise sentences that explain the update in plain language using only facts supported by the source. Explain what changed, what it means for residents, and any dates, deadlines, closures, meetings, or actions explicitly stated in the source. Avoid repeating the title word-for-word. Never imply approval or outcomes not explicitly supported by the source. Do not change risk gating.",
+        instructions: SUMMARY_REFINEMENT_PROMPT,
         input: [
           {
             role: "user",
@@ -157,7 +189,7 @@ function normalizeAnswer(answer: string) {
 }
 
 function defaultAskDisclaimer() {
-  return "AI-assisted answer. Check the cited source links for the official record.";
+  return "AI-assisted answer for convenience only. It is not legal advice or an official notice. Check the cited source links for the official record.";
 }
 
 function needsClarification(question: string) {
@@ -272,8 +304,7 @@ export async function answerLocalityQuestion(
       },
       body: JSON.stringify({
         model: env.OPENAI_MODEL ?? "gpt-5-mini",
-        instructions:
-          "You answer questions about a locality digest using only the supplied municipal-source evidence. Give a concise, helpful answer in 2 to 4 sentences. If the evidence is limited, say that clearly. Do not invent facts. Do not mention records that are not in the evidence. Always stay factual and source-grounded.",
+        instructions: LOCALITY_ANSWER_SYSTEM_PROMPT,
         input: [
           {
             role: "user",
