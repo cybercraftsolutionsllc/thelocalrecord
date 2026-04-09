@@ -20,6 +20,18 @@ type PublishedRow = {
   source_name: string;
 };
 
+export type SearchablePublishedEntry = {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  source_links_json: string;
+  published_at: string;
+  source_material_date: string | null;
+  source_name: string;
+  normalized_text: string;
+};
+
 function publishedCategoryPrioritySql() {
   return `CASE content_entry.category
     WHEN 'official_alert' THEN 1
@@ -451,4 +463,124 @@ export async function listReviewQueue(db: D1Database, slug: string) {
     .all<Record<string, string>>();
 
   return result.results ?? [];
+}
+
+function tokenizeSearchQuery(query: string) {
+  return query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((term) => term.length >= 3)
+    .slice(0, 8);
+}
+
+function scoreSearchableEntry(entry: SearchablePublishedEntry, query: string, terms: string[]) {
+  const title = entry.title.toLowerCase();
+  const summary = entry.summary.toLowerCase();
+  const body = `${entry.normalized_text} ${entry.category} ${entry.source_name}`.toLowerCase();
+  let score = 0;
+
+  if (query && title.includes(query)) {
+    score += 12;
+  }
+
+  if (query && summary.includes(query)) {
+    score += 8;
+  }
+
+  if (query && body.includes(query)) {
+    score += 5;
+  }
+
+  for (const term of terms) {
+    if (title.includes(term)) {
+      score += 4;
+    }
+
+    if (summary.includes(term)) {
+      score += 3;
+    }
+
+    if (body.includes(term)) {
+      score += 2;
+    }
+  }
+
+  if (entry.category === "official_news" || entry.category === "official_alert") {
+    score += 1;
+  }
+
+  return score;
+}
+
+export async function searchPublishedEntries(
+  db: D1Database,
+  slug: string,
+  query: string,
+  limit = 6
+) {
+  const normalizedQuery = query.trim().toLowerCase();
+  const terms = tokenizeSearchQuery(normalizedQuery);
+
+  if (!normalizedQuery || terms.length === 0) {
+    return [] as SearchablePublishedEntry[];
+  }
+
+  const result = await db
+    .prepare(
+      `WITH ranked_publications AS (
+        SELECT
+          content_entry.id,
+          content_entry.source_item_id,
+          content_entry.title,
+          content_entry.summary,
+          content_entry.category,
+          content_entry.source_links_json,
+          publication.published_at,
+          COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
+          source.name as source_name,
+          source_item.normalized_text,
+          ROW_NUMBER() OVER (
+            PARTITION BY content_entry.source_item_id
+            ORDER BY publication.published_at DESC
+          ) as row_number
+        FROM content_entry
+        INNER JOIN publication ON publication.content_entry_id = content_entry.id
+        INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+        INNER JOIN source ON source.slug = source_item.source_slug
+        WHERE content_entry.municipality_slug = ?
+      )
+      SELECT
+        id,
+        title,
+        summary,
+        category,
+        source_links_json,
+        published_at,
+        source_material_date,
+        source_name,
+        normalized_text
+      FROM ranked_publications
+      WHERE row_number = 1
+      ORDER BY published_at DESC
+      LIMIT 150`
+    )
+    .bind(slug)
+    .all<SearchablePublishedEntry>();
+
+  return (result.results ?? [])
+    .map((entry) => ({
+      entry,
+      score: scoreSearchableEntry(entry, normalizedQuery, terms)
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+
+      return right.entry.published_at.localeCompare(left.entry.published_at);
+    })
+    .slice(0, limit)
+    .map((candidate) => candidate.entry);
 }

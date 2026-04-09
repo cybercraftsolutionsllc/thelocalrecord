@@ -147,9 +147,17 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
         }
 
         const payload = normalizePayload((await response.json()) as PublishedPayload | ApiEntry[]);
+        const nextEntries = payload.entries.map(mapApiEntry);
 
         if (!cancelled) {
-          setEntries(payload.entries.map(mapApiEntry));
+          setEntries((current) => {
+            if (page === 1) {
+              return nextEntries;
+            }
+
+            const existingIds = new Set(current.map((entry) => entry.id));
+            return [...current, ...nextEntries.filter((entry) => !existingIds.has(entry.id))];
+          });
           setTotal(payload.total);
           setStatus("ready");
         }
@@ -168,6 +176,7 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
   }, [page, slug]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const loadedCount = entries.length;
   const normalizedQuery = query.trim().toLowerCase();
   const topicOptions = entries.reduce<TopicOption[]>(
     (options, entry) => {
@@ -211,6 +220,9 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
                   Major notices and township updates appear first. Use the filters to focus on meetings,
                   planning items, or specific topics.
                 </p>
+                <p className="mt-2 text-xs leading-6 text-ink/55">
+                  Showing {loadedCount} of {total} published entries.
+                </p>
               </div>
               <label className="w-full max-w-sm">
                 <span className="sr-only">Search updates</span>
@@ -251,24 +263,28 @@ export function LivePublishedEntries({ slug, initialEntries }: LivePublishedEntr
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] bg-white px-5 py-4 shadow-card">
           <p className="text-sm text-ink/70">
-            Page {page} of {totalPages}
+            Page {Math.min(page, totalPages)} of {totalPages}
           </p>
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              onClick={() => {
+                setActiveTopic("all");
+                setQuery("");
+                setPage(1);
+              }}
               disabled={page === 1}
               className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Previous
+              Reset view
             </button>
             <button
               type="button"
               onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              disabled={page >= totalPages}
+              disabled={page >= totalPages || loadedCount >= total}
               className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Next
+              Load more
             </button>
           </div>
         </div>

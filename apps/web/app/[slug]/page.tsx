@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { LocalityAskBox } from "../../components/locality-ask-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
@@ -51,6 +52,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
       <section className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
         <div className="space-y-6">
+          <LocalityAskBox slug={slug} localityName={data.municipality.shortName} />
+
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Latest updates</p>

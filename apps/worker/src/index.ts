@@ -1,8 +1,9 @@
 import { getMunicipalityBySlug, municipalities } from "@thelocalrecord/core";
 
-import { listPublishedEntries, listReviewQueue, syncRegistry } from "./d1";
+import { listPublishedEntries, listReviewQueue, searchPublishedEntries, syncRegistry } from "./d1";
 import type { WorkerEnv } from "./env";
 import { ingestMunicipality } from "./ingest";
+import { answerLocalityQuestion } from "./openai";
 
 type ExecutionContext = {
   waitUntil(promise: Promise<unknown>): void;
@@ -80,6 +81,37 @@ export default {
         return Response.json(await listPublishedEntries(env.DB, slug, page, pageSize), {
           headers: jsonHeaders
         });
+      }
+
+      if (view === "ask" && request.method === "POST") {
+        const municipality = getMunicipalityBySlug(slug);
+        const body = (await request.json().catch(() => null)) as { question?: string } | null;
+        const question = body?.question?.trim() ?? "";
+
+        if (!municipality) {
+          return Response.json({ error: "Unknown locality" }, { status: 404, headers: jsonHeaders });
+        }
+
+        if (!question) {
+          return Response.json(
+            {
+              mode: "clarify",
+              clarifyQuestion: "What do you want to ask about this locality?",
+              disclaimer: "AI-assisted answer. Check the cited source links for the official record."
+            },
+            { headers: jsonHeaders }
+          );
+        }
+
+        const matches = await searchPublishedEntries(env.DB, slug, question);
+        return Response.json(
+          await answerLocalityQuestion(env, {
+            question,
+            municipalityName: municipality.shortName,
+            matches
+          }),
+          { headers: jsonHeaders }
+        );
       }
 
       if (view === "review") {
