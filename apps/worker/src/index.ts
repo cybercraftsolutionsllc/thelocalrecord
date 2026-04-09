@@ -15,12 +15,22 @@ type ScheduledController = {
 
 const jsonHeaders = {
   "content-type": "application/json; charset=utf-8",
-  "cache-control": "no-store"
+  "cache-control": "no-store",
+  "access-control-allow-origin": "https://thelocalrecord.org",
+  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-headers": "content-type"
 };
 
 export default {
   async fetch(request: Request, env: WorkerEnv) {
     const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: jsonHeaders
+      });
+    }
 
     if (url.pathname === "/health") {
       return Response.json(
