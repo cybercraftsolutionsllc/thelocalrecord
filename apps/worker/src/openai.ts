@@ -194,6 +194,9 @@ function defaultAskDisclaimer() {
 
 function needsClarification(question: string) {
   const normalized = question.trim().toLowerCase();
+  const tokenCount = normalized
+    .split(/\s+/)
+    .filter(Boolean).length;
 
   if (normalized.length < 12) {
     return "What topic do you want to ask about? Try a meeting, road closure, ordinance, planning item, or a specific notice.";
@@ -210,7 +213,14 @@ function needsClarification(question: string) {
     "tell me more"
   ];
 
-  if (genericPatterns.some((pattern) => normalized === pattern || normalized.startsWith(`${pattern} `))) {
+  if (genericPatterns.some((pattern) => normalized === pattern)) {
+    return "Can you narrow that down to a topic like meetings, planning, roads, alerts, or a specific post title?";
+  }
+
+  if (
+    tokenCount <= 4 &&
+    genericPatterns.some((pattern) => normalized.startsWith(`${pattern} `))
+  ) {
     return "Can you narrow that down to a topic like meetings, planning, roads, alerts, or a specific post title?";
   }
 
