@@ -12,6 +12,7 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       NEXT_PUBLIC_SITE_URL: https://thelocalrecord.org
       NEXT_PUBLIC_CONTENT_API_BASE: https://thelocalrecord-api.cybercraftsolutions.workers.dev
       CORRECTIONS_EMAIL: cyber.craft@craftedcybersolutions.com
@@ -50,9 +51,7 @@ jobs:
           npx wrangler d1 execute thelocalrecord-preview --remote --file apps/worker/migrations/0001_initial.sql --config apps/worker/wrangler.jsonc
 
       - name: Upload OpenAI secret if present
-        if: ${{ secrets.OPENAI_API_KEY != '' }}
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        if: ${{ env.OPENAI_API_KEY != '' }}
         run: |
           echo "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY --config apps/worker/wrangler.jsonc --env=""
 
