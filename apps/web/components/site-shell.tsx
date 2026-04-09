@@ -10,7 +10,7 @@ type SiteShellProps = {
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/manheimtownshippa", label: "Locality" },
+  { href: "/localities", label: "Locality" },
   { href: "/about", label: "About" },
   { href: "/policy", label: "Policy" },
   { href: "/corrections", label: "Corrections" }
@@ -63,7 +63,7 @@ export function SiteShell({ children }: SiteShellProps) {
             <Link href="/policy" className="hover:text-moss">
               Policy
             </Link>
-            <Link href="/manheimtownshippa" className="hover:text-moss">
+            <Link href="/localities" className="hover:text-moss">
               Locality
             </Link>
           </div>

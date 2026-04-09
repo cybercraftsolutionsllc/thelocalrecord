@@ -24,10 +24,10 @@ export default function HomePage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/manheimtownshippa"
+                href="/localities"
                 className="rounded-full bg-sand px-6 py-3 text-sm font-semibold text-moss transition hover:bg-white"
               >
-                Open live Manheim Township page
+                Browse localities
               </Link>
               <Link
                 href="/about"
@@ -95,10 +95,10 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-start">
                   <Link
-                    href={`/${municipality.slug}`}
+                    href="/localities"
                     className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
                   >
-                    View digest
+                    Open locality selector
                   </Link>
                   <Link
                     href={`/${municipality.slug}/source-inventory`}

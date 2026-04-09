@@ -27,6 +27,14 @@ export function getHomepageData() {
   };
 }
 
+export function getLocalitiesDirectory() {
+  return municipalities.map((municipality) => ({
+    ...municipality,
+    county: municipality.slug === "manheimtownshippa" ? "Lancaster County" : "",
+    statusLabel: "Live now"
+  }));
+}
+
 function databaseEnabled() {
   return process.env.ENABLE_DATABASE === "true";
 }

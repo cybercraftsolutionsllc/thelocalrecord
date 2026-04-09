@@ -31,10 +31,10 @@ export default function AboutPage() {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/manheimtownshippa"
+            href="/localities"
             className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
           >
-            Open the live locality
+            Browse localities
           </Link>
           <Link
             href="/policy"
