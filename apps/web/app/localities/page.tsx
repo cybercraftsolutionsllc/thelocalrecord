@@ -9,7 +9,7 @@ export default function LocalitiesPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
-      <section className="rounded-[2rem] border border-white/75 bg-white/94 px-7 py-8 shadow-card backdrop-blur-sm lg:px-8 lg:py-9">
+      <section className="rounded-[2rem] border border-white/75 bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div className="space-y-4">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -25,7 +25,7 @@ export default function LocalitiesPage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-clay/20 bg-[#fbf8f2]/92 p-5 text-sm leading-7 text-ink/75 backdrop-blur-sm">
+          <div className="rounded-[1.75rem] border border-clay/20 bg-[#fbf8f2] p-5 text-sm leading-7 text-ink/75">
             This selector page is platform-wide. Each locality keeps its own
             public digest and source pages underneath its own slug.
           </div>
@@ -36,7 +36,7 @@ export default function LocalitiesPage() {
         <LocalitiesMap activeSlug={activeLocality?.slug ?? ""} />
 
         <div className="space-y-4">
-          <div className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
+          <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
               Live localities
             </p>
@@ -52,7 +52,7 @@ export default function LocalitiesPage() {
           {localities.map((locality) => (
             <article
               key={locality.slug}
-              className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm"
+              className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card"
             >
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">

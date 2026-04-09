@@ -24,18 +24,17 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-[#faf7ef]/94 px-7 py-8 shadow-card backdrop-blur-sm lg:px-8 lg:py-9">
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-[#faf7ef] px-7 py-8 shadow-card lg:px-8 lg:py-9">
         <div className="pointer-events-none absolute inset-0">
           <div
-            className="absolute inset-x-0 bottom-0 h-[38%] bg-cover opacity-100"
+            className="absolute inset-x-0 bottom-0 h-[32%] bg-cover opacity-[0.98]"
             style={{
               backgroundImage:
                 "url('/images/manheim-hero.png'), url('/images/manheim-hero.svg')",
-              backgroundPosition: "center 62%"
+              backgroundPosition: "center 64%"
             }}
           />
-          <div className="absolute inset-x-0 bottom-[32%] h-40 bg-gradient-to-b from-transparent via-[#faf7ef]/72 to-[#faf7ef]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(250,247,239,0.08)_0%,rgba(250,247,239,0.02)_32%,rgba(250,247,239,0)_52%,rgba(250,247,239,0.06)_100%)]" />
+          <div className="absolute inset-x-0 bottom-[28%] h-36 bg-gradient-to-b from-transparent via-[#faf7ef]/84 to-[#faf7ef]" />
         </div>
 
         <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
@@ -43,7 +42,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             <span className="inline-flex rounded-full border border-white/70 bg-sky/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-moss shadow-sm">
               Locality digest
             </span>
-            <div className="max-w-3xl rounded-[1.75rem] border border-white/70 bg-white/90 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+            <div className="max-w-3xl rounded-[1.75rem] border border-white/70 bg-white p-5 shadow-sm sm:p-6">
               <div className="space-y-3">
                 <h1 className="text-balance font-serif text-4xl leading-[1.02] text-moss sm:text-5xl lg:text-[3.85rem]">
                   {data.municipality.shortName}
@@ -55,7 +54,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                 </p>
               </div>
             </div>
-            <div className="max-w-3xl rounded-[1.5rem] border border-clay/20 bg-[#fbf8f2]/90 px-5 py-4 text-sm leading-7 text-ink/82 shadow-sm backdrop-blur-sm">
+            <div className="max-w-3xl rounded-[1.5rem] border border-clay/20 bg-[#fbf8f2] px-5 py-4 text-sm leading-7 text-ink/82 shadow-sm">
               This digest is independent and resident-run. It links back to
               township sources, but it is not affiliated with or speaking for
               Manheim Township.
@@ -66,7 +65,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           </div>
 
           <div className="grid gap-4">
-            <div className="rounded-[1.5rem] border border-white/85 bg-white/94 p-5 shadow-sm backdrop-blur-sm">
+            <div className="rounded-[1.5rem] border border-white/85 bg-white p-5 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-moss">
                 What this page is for
               </p>
@@ -87,7 +86,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
       <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
         <div className="space-y-6">
-          <div className="rounded-[1.75rem] border border-white/75 bg-white/92 px-5 py-4 shadow-card backdrop-blur-sm">
+          <div className="rounded-[1.75rem] border border-white/75 bg-white px-5 py-4 shadow-card">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -113,7 +112,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             localityName={data.municipality.shortName}
           />
 
-          <section className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
+          <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
               Locality links
             </p>
@@ -139,7 +138,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
+          <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
               How to use this page
             </p>

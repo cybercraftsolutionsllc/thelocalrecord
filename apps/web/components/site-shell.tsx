@@ -32,7 +32,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
   return (
     <div className="min-h-screen text-ink">
-      <header className="border-b border-ink/10 bg-[#fbf7ef]/92 backdrop-blur-md">
+      <header className="border-b border-ink/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
             <Link href="/" className="inline-flex flex-wrap items-center gap-3">
@@ -53,7 +53,7 @@ export function SiteShell({ children }: SiteShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full border border-ink/10 bg-[#fcfaf4]/92 px-4 py-2 text-ink/80 transition hover:border-moss/30 hover:bg-sky/40 hover:text-moss"
+                className="rounded-full border border-ink/10 bg-[#fcfaf4] px-4 py-2 text-ink/80 transition hover:border-moss/30 hover:bg-sky/40 hover:text-moss"
               >
                 {item.label}
               </Link>
@@ -64,7 +64,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
       <main>{children}</main>
 
-      <footer className="border-t border-ink/10 bg-[#fbf7ef]/92 backdrop-blur-md">
+      <footer className="border-t border-ink/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 text-sm text-ink/70 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>

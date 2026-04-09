@@ -39,7 +39,7 @@ export function UpdateCard(props: UpdateCardProps) {
       : `Published ${formatPublishedDate(props.publishedAt)}`;
 
   return (
-    <article className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm sm:p-7">
+    <article className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card sm:p-7">
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss">
           {formatCategory(props.category)}
