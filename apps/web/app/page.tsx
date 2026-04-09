@@ -68,7 +68,7 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-        <div className="self-start rounded-[2rem] bg-white p-8 shadow-card">
+        <div className="self-start rounded-[2rem] border border-white/75 bg-white/94 p-8 shadow-card backdrop-blur-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             Why it exists
           </p>
@@ -88,7 +88,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-ink/10 bg-white p-8 shadow-card">
+        <div className="rounded-[2rem] border border-white/75 bg-white/94 p-8 shadow-card backdrop-blur-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -110,7 +110,7 @@ export default function HomePage() {
             {municipalities.map((municipality) => (
               <article
                 key={municipality.slug}
-                className="rounded-[1.75rem] border border-ink/10 bg-sand/40 p-6"
+              className="rounded-[1.75rem] border border-white/75 bg-[#fbf8f2]/92 p-6 backdrop-blur-sm"
               >
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl space-y-3">
@@ -146,7 +146,7 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-3 lg:items-start">
-        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+        <div className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             For residents
           </p>
@@ -159,7 +159,7 @@ export default function HomePage() {
             official site.
           </p>
         </div>
-        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+        <div className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             Source-linked
           </p>
@@ -172,7 +172,7 @@ export default function HomePage() {
             themselves.
           </p>
         </div>
-        <div className="rounded-[2rem] bg-white p-6 shadow-card">
+        <div className="rounded-[2rem] border border-white/75 bg-white/94 p-6 shadow-card backdrop-blur-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             Growing platform
           </p>

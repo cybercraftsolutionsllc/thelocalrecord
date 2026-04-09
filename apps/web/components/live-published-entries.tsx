@@ -237,7 +237,7 @@ export function LivePublishedEntries({
   if (entries.length > 0) {
     return (
       <div className="space-y-5">
-        <div className="rounded-[2rem] bg-white p-5 shadow-card">
+        <div className="rounded-[2rem] border border-white/75 bg-white/94 p-5 shadow-card backdrop-blur-sm">
           <div className="flex flex-col gap-5">
             <div className="space-y-2">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -285,11 +285,11 @@ export function LivePublishedEntries({
           <UpdateCard key={entry.id} {...entry} />
         ))}
         {filteredEntries.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
+          <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white/94 p-8 text-ink/70 shadow-card backdrop-blur-sm">
             No entries match that filter on this page of results.
           </div>
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] bg-white px-5 py-4 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-white/75 bg-white/94 px-5 py-4 shadow-card backdrop-blur-sm">
           <p className="text-sm text-ink/70">
             Page {Math.min(page, totalPages)} of {totalPages}
           </p>
@@ -323,7 +323,7 @@ export function LivePublishedEntries({
   }
 
   return (
-    <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
+    <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white/94 p-8 text-ink/70 shadow-card backdrop-blur-sm">
       <h3 className="font-serif text-2xl text-moss">
         {status === "loading"
           ? "Loading published entries"
