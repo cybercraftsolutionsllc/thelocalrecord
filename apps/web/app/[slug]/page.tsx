@@ -7,6 +7,10 @@ type LocalityPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export function generateStaticParams() {
+  return [{ slug: "manheimtownshippa" }];
+}
+
 export default async function LocalityPage({ params }: LocalityPageProps) {
   const { slug } = await params;
   const data = await getLocalityData(slug);

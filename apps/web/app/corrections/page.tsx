@@ -1,4 +1,7 @@
 export default function CorrectionsPage() {
+  const correctionsEmail =
+    process.env.CORRECTIONS_EMAIL ?? "cyber.craft@craftedcybersolutions.com";
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <div className="rounded-[2rem] bg-white p-8 shadow-card">
@@ -7,8 +10,8 @@ export default function CorrectionsPage() {
         <div className="mt-6 space-y-4 text-base leading-8 text-ink/75">
           <p>
             If you see a broken source link, missing context, or a factual error, send a report to
-            <a className="ml-1 font-semibold text-moss" href="mailto:corrections@example.com">
-              corrections@example.com
+            <a className="ml-1 font-semibold text-moss" href={`mailto:${correctionsEmail}`}>
+              {correctionsEmail}
             </a>
             .
           </p>

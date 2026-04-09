@@ -1,5 +1,6 @@
 node_modules
 .next
+out
 coverage
 dist
 .turbo
@@ -11,3 +12,4 @@ data/*.db-journal
 packages/storage/*.db
 packages/storage/*.db-journal
 packages/storage/generated
+apps/web/out

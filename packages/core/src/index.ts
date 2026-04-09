@@ -107,7 +107,7 @@ export const municipalities: MunicipalityConfig[] = [
     disclaimer: INDEPENDENT_DISCLAIMER,
     about:
       "A citizen-run digest that tracks selected public Manheim Township sources, highlights what changed, and links back to the original records.",
-    correctionsEmail: "corrections@example.com"
+    correctionsEmail: "cyber.craft@craftedcybersolutions.com"
   })
 ];
 

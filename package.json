@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter @thelocalrecord/web dev",
     "build": "pnpm -r build",
+    "build:web": "pnpm --filter @thelocalrecord/web build",
     "lint": "pnpm -r lint",
     "test": "vitest run",
     "format": "prettier --write .",
@@ -13,6 +14,7 @@
     "db:push": "pnpm --filter @thelocalrecord/storage prisma:push",
     "db:seed": "pnpm --filter @thelocalrecord/storage seed",
     "ingest:run": "pnpm --filter @thelocalrecord/ingest ingest",
+    "deploy:pages": "wrangler pages deploy apps/web/out --project-name thelocalrecord-web",
     "postinstall": "pnpm db:generate"
   },
   "devDependencies": {
@@ -29,6 +31,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.29.1",
-    "vitest": "^3.1.1"
+    "vitest": "^3.1.1",
+    "wrangler": "^4.41.1"
   }
 }

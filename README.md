@@ -72,7 +72,7 @@ pnpm db:seed
 DATABASE_URL="file:./localrecord.db"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 INGEST_USER_AGENT="thelocalrecord-bot/0.1 (+https://github.com/your-org/thelocalrecord)"
-CORRECTIONS_EMAIL="corrections@example.com"
+CORRECTIONS_EMAIL="cyber.craft@craftedcybersolutions.com"
 ```
 
 ## Ingestion flow

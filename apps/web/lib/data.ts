@@ -1,9 +1,4 @@
 import { getMunicipalityBySlug, getSourcesForMunicipality, municipalities } from "@thelocalrecord/core";
-import {
-  getMunicipalityWithSources,
-  getPublishedEntriesByMunicipality,
-  getReviewQueueByMunicipality
-} from "@thelocalrecord/storage";
 
 type PublicEntry = {
   id: string;
@@ -31,6 +26,10 @@ export function getHomepageData() {
   };
 }
 
+function databaseEnabled() {
+  return process.env.ENABLE_DATABASE === "true";
+}
+
 export async function getLocalityData(slug: string) {
   const municipalityConfig = getMunicipalityBySlug(slug);
 
@@ -38,7 +37,7 @@ export async function getLocalityData(slug: string) {
     return null;
   }
 
-  if (!process.env.DATABASE_URL) {
+  if (!databaseEnabled()) {
     return {
       municipality: {
         ...municipalityConfig,
@@ -49,6 +48,10 @@ export async function getLocalityData(slug: string) {
   }
 
   try {
+    const { getMunicipalityWithSources, getPublishedEntriesByMunicipality } = await import(
+      "@thelocalrecord/storage"
+    );
+
     const [municipality, publishedEntries] = await Promise.all([
       getMunicipalityWithSources(slug),
       getPublishedEntriesByMunicipality(slug)
@@ -82,11 +85,12 @@ export async function getLocalityData(slug: string) {
 }
 
 export async function getReviewData(slug: string) {
-  if (!process.env.DATABASE_URL) {
+  if (!databaseEnabled()) {
     return [] satisfies ReviewEntry[];
   }
 
   try {
+    const { getReviewQueueByMunicipality } = await import("@thelocalrecord/storage");
     const reviewEntries = await getReviewQueueByMunicipality(slug);
 
     return reviewEntries.map((entry) => ({
