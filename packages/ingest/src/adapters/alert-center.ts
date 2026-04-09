@@ -63,7 +63,8 @@ export function extractAlertDetail(html: string) {
   return {
     detailText,
     publishedAt,
-    publishedText
+    publishedText,
+    attachments: [] as string[]
   };
 }
 

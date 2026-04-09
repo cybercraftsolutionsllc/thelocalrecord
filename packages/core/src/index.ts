@@ -155,7 +155,7 @@ export const sourceRegistry: SourceConfig[] = [
     description: "Public meeting and event calendar.",
     url: "https://www.manheimtownship.org/Calendar.aspx",
     kind: "calendar",
-    implemented: false,
+    implemented: true,
     fetchStrategy: "html",
     publicCategory: "Calendar"
   },
@@ -166,7 +166,7 @@ export const sourceRegistry: SourceConfig[] = [
     description: "Machine-readable event feed endpoint.",
     url: "https://www.manheimtownship.org/iCalendar.aspx",
     kind: "calendar",
-    implemented: false,
+    implemented: true,
     fetchStrategy: "ical",
     publicCategory: "Calendar"
   },
@@ -177,7 +177,7 @@ export const sourceRegistry: SourceConfig[] = [
     description: "General township page source inventory entry.",
     url: "https://www.manheimtownship.org/1322/View",
     kind: "page",
-    implemented: false,
+    implemented: true,
     fetchStrategy: "html",
     publicCategory: "Public information"
   },
@@ -188,7 +188,7 @@ export const sourceRegistry: SourceConfig[] = [
     description: "Official planning and zoning materials published by the township.",
     url: "https://www.manheimtownship.org/478/Planning-Zoning",
     kind: "planning_zoning",
-    implemented: false,
+    implemented: true,
     fetchStrategy: "html",
     publicCategory: "Planning and zoning"
   }

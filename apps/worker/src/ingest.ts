@@ -2,10 +2,14 @@ import { evaluateItem } from "@thelocalrecord/content";
 import { getMunicipalityBySlug, getSourcesForMunicipality, hashContent } from "@thelocalrecord/core";
 import {
   extractAlertDetail,
+  parseCalendarPage,
+  parseIcalendarDirectory,
   extractNewsFlashDetail,
   parseAgendaCenter,
   parseAlertCenter,
-  parseNewsFlash
+  parseNewsFlash,
+  parsePlanningZoningPage,
+  parseViewPage
 } from "@thelocalrecord/ingest/adapters";
 import type { NormalizedSourceItem } from "@thelocalrecord/core";
 
@@ -27,6 +31,7 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
     itemsSeen: 0,
     diffEventsCreated: 0
   };
+  const seenCrossSourceKeys = new Set<string>();
 
   try {
     for (const source of getSourcesForMunicipality(slug).filter((entry) => entry.implemented)) {
@@ -66,15 +71,18 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
         mimeType: contentType
       });
 
-      const items = await enrichItemsWithDetails(
-        env,
-        selectAdapter(source.slug, body, source.url),
-        source.slug
-      );
+      const selectedItems = await selectAdapter(env, source.slug, body, source.url);
+      const items = await enrichItemsWithDetails(env, selectedItems, source.slug);
       stats.sourcesFetched += 1;
       stats.itemsSeen += items.length;
 
       for (const item of items) {
+        const duplicateKey = buildCrossSourceDuplicateKey(item);
+
+        if (duplicateKey && seenCrossSourceKeys.has(duplicateKey)) {
+          continue;
+        }
+
         const ruleDecision = evaluateItem(item);
         const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
         const diffEventId = await persistNormalizedItem(env.DB, {
@@ -82,6 +90,10 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
           decision,
           fetchRunId
         });
+
+        if (duplicateKey) {
+          seenCrossSourceKeys.add(duplicateKey);
+        }
 
         if (diffEventId) {
           stats.diffEventsCreated += 1;
@@ -133,7 +145,9 @@ async function enrichItemsWithDetails(
 
         const html = await response.text();
         const detail =
-          sourceSlug === "township-news" ? extractNewsFlashDetail(html) : extractAlertDetail(html);
+          sourceSlug === "township-news"
+            ? extractNewsFlashDetail(html)
+            : extractAlertDetail(html);
 
         const normalizedText = [item.normalizedText, detail.detailText].filter(Boolean).join(" ").trim();
         const metadata = {
@@ -158,7 +172,12 @@ async function enrichItemsWithDetails(
   );
 }
 
-function selectAdapter(sourceSlug: string, body: string, sourceUrl: string) {
+async function selectAdapter(
+  env: WorkerEnv,
+  sourceSlug: string,
+  body: string,
+  sourceUrl: string
+) {
   switch (sourceSlug) {
     case "agenda-center":
       return parseAgendaCenter(body, sourceUrl);
@@ -166,6 +185,14 @@ function selectAdapter(sourceSlug: string, body: string, sourceUrl: string) {
       return parseNewsFlash(body, sourceUrl);
     case "alert-center":
       return parseAlertCenter(body, sourceUrl);
+    case "calendar":
+      return parseCalendarPage(body, sourceUrl);
+    case "icalendar":
+      return parseIcalendarDirectory(body, sourceUrl, fetch, env.INGEST_USER_AGENT);
+    case "view-page":
+      return parseViewPage(body, sourceUrl);
+    case "planning-zoning":
+      return parsePlanningZoningPage(body, sourceUrl);
     default:
       return [];
   }
@@ -174,4 +201,18 @@ function selectAdapter(sourceSlug: string, body: string, sourceUrl: string) {
 function buildArtifactKey(municipalitySlug: string, sourceSlug: string, fetchRunId: string) {
   const datePath = new Date().toISOString().slice(0, 10);
   return `${municipalitySlug}/${sourceSlug}/${datePath}/${fetchRunId}.html`;
+}
+
+function buildCrossSourceDuplicateKey(item: NormalizedSourceItem) {
+  if (!["calendar", "icalendar"].includes(item.sourceSlug)) {
+    return null;
+  }
+
+  const sourceDate = item.eventDate ?? item.publishedAt;
+
+  if (!sourceDate) {
+    return null;
+  }
+
+  return `${item.title.toLowerCase()}|${sourceDate.slice(0, 10)}`;
 }

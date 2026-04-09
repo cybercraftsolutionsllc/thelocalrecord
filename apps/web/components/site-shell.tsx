@@ -11,9 +11,9 @@ type SiteShellProps = {
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/manheimtownshippa", label: "Locality" },
+  { href: "/about", label: "About" },
   { href: "/policy", label: "Policy" },
-  { href: "/corrections", label: "Corrections" },
-  { href: "/review", label: "Review queue" }
+  { href: "/corrections", label: "Corrections" }
 ];
 
 export function SiteShell({ children }: SiteShellProps) {
@@ -54,14 +54,17 @@ export function SiteShell({ children }: SiteShellProps) {
             <p>Locality pages carry municipality-specific independence language and source-linked updates.</p>
           </div>
           <div className="flex flex-wrap gap-4">
+            <Link href="/about" className="hover:text-moss">
+              About
+            </Link>
             <Link href="/corrections" className="hover:text-moss">
               Report an issue
             </Link>
             <Link href="/policy" className="hover:text-moss">
               Policy
             </Link>
-            <Link href="/source-inventory" className="hover:text-moss">
-              Source inventory
+            <Link href="/manheimtownshippa" className="hover:text-moss">
+              Locality
             </Link>
           </div>
         </div>

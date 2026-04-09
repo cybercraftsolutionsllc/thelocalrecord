@@ -27,6 +27,14 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
     return "official_news";
   }
 
+  if (item.sourceSlug === "calendar" || item.sourceSlug === "icalendar") {
+    return "calendar_update";
+  }
+
+  if (item.sourceSlug === "planning-zoning") {
+    return "planning_zoning";
+  }
+
   if (/minutes/i.test(item.title)) {
     return "approved_minutes";
   }

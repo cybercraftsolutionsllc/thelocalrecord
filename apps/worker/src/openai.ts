@@ -18,6 +18,10 @@ export async function maybeRefineSummaryWithOpenAI(
     return baseDecision;
   }
 
+  if (!["township-news", "alert-center"].includes(item.sourceSlug)) {
+    return baseDecision;
+  }
+
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

@@ -30,10 +30,10 @@ export default function HomePage() {
                 Open live Manheim Township page
               </Link>
               <Link
-                href="/source-inventory"
+                href="/about"
                 className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Browse source inventory
+                Learn about the project
               </Link>
             </div>
           </div>
@@ -42,10 +42,9 @@ export default function HomePage() {
             <div className="rounded-[1.5rem] bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">What the platform does</p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-white/80">
-                <li>Fetches public municipal sources on a schedule.</li>
-                <li>Detects what changed and keeps source hashes.</li>
-                <li>Auto-publishes official-source updates.</li>
-                <li>Holds unofficial-source items for review.</li>
+                <li>Puts important local updates in one readable place.</li>
+                <li>Helps residents scan meetings, notices, and planning items faster.</li>
+                <li>Links every entry back to the original source.</li>
               </ul>
             </div>
             <div className="rounded-[1.5rem] border border-white/15 p-5">
@@ -61,21 +60,17 @@ export default function HomePage() {
 
       <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[2rem] bg-white p-8 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">How the product works</p>
-          <div className="mt-6 space-y-5">
-            {[
-              "Sources are registered per municipality, not scraped blindly.",
-              "Every item is normalized, hashed, and compared against prior fetches.",
-              "Official-source items publish automatically with source links.",
-              "Corrections stay visible and the source trail remains intact."
-            ].map((line, index) => (
-              <div key={line} className="flex gap-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky text-sm font-semibold text-moss">
-                  {index + 1}
-                </div>
-                <p className="pt-1 text-base leading-7 text-ink/75">{line}</p>
-              </div>
-            ))}
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Why it exists</p>
+          <h2 className="mt-3 font-serif text-4xl text-moss">A simpler way to keep up</h2>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-ink/75">
+            Township websites often spread important information across calendars, news posts, agendas,
+            minutes, and department pages. The Local Record pulls that into a clearer digest without
+            pretending to be the township itself.
+          </p>
+          <div className="mt-6">
+            <Link href="/about" className="text-sm font-semibold text-moss">
+              Read more about the project
+            </Link>
           </div>
         </div>
 
@@ -85,9 +80,6 @@ export default function HomePage() {
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Live localities</p>
               <h2 className="mt-2 font-serif text-4xl text-moss">Current rollout</h2>
             </div>
-            <Link href="/review" className="text-sm font-semibold text-moss">
-              Review queue
-            </Link>
           </div>
 
           <div className="mt-6 grid gap-5">
@@ -123,26 +115,27 @@ export default function HomePage() {
 
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-[2rem] bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Transparency</p>
-          <h2 className="mt-3 font-serif text-3xl text-moss">Source first</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">For residents</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">Easy to scan</h2>
           <p className="mt-3 text-base leading-7 text-ink/75">
-            Each public entry is supposed to trace back to the original municipal record, with enough
-            metadata to inspect what changed and when it was fetched.
+            The goal is to make meetings, notices, and township updates easier to follow without making
+            people hunt through multiple sections of an official site.
           </p>
         </div>
         <div className="rounded-[2rem] bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Editorial posture</p>
-          <h2 className="mt-3 font-serif text-3xl text-moss">Conservative by design</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Source-linked</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">Read the original</h2>
           <p className="mt-3 text-base leading-7 text-ink/75">
-            Official sources publish automatically. Unofficial sources are where review begins.
+            Every public entry points back to the underlying source material so readers can check the
+            original notice, agenda, post, or document themselves.
           </p>
         </div>
         <div className="rounded-[2rem] bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Operations</p>
-          <h2 className="mt-3 font-serif text-3xl text-moss">Multi-tenant foundation</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">Growing platform</p>
+          <h2 className="mt-3 font-serif text-3xl text-moss">One locality at a time</h2>
           <p className="mt-3 text-base leading-7 text-ink/75">
-            Manheim Township is the first launch. The architecture is already organized to support more
-            municipalities under separate slugs as the source registry grows.
+            Manheim Township is the first launch. More locality pages can be added over time without
+            turning the homepage into a specific township site.
           </p>
         </div>
       </section>
