@@ -25,12 +25,12 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
       <section className="overflow-hidden rounded-[2.5rem] bg-moss text-white shadow-card">
-        <div className="grid gap-8 px-7 py-8 lg:grid-cols-[1.12fr_0.88fr] lg:items-start lg:px-10 lg:py-11">
-          <div className="space-y-5">
+        <div className="grid gap-8 px-7 py-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:px-10 lg:py-11">
+          <div className="flex h-full flex-col">
             <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-sky">
               Locality digest
             </span>
-            <div className="space-y-4">
+            <div className="mt-5 space-y-4">
               <h1 className="text-balance max-w-4xl font-serif text-4xl leading-[1.04] text-sand sm:text-5xl lg:text-[3.8rem]">
                 {data.municipality.shortName}
               </h1>
@@ -40,17 +40,14 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                 township pages first.
               </p>
             </div>
-            <div className="max-w-3xl rounded-[1.5rem] border border-white/15 bg-white/10 px-5 py-4 text-sm leading-7 text-white/82">
+            <div className="mt-8 max-w-3xl rounded-[1.5rem] border border-white/15 bg-white/10 px-5 py-4 text-sm leading-7 text-white/82">
               This digest is independent and resident-run. It links back to
               township sources, but it is not affiliated with or speaking for
               Manheim Township.
             </div>
-            <div className="flex flex-wrap gap-3 pt-1">
-              <LocalitySubnav slug={slug} currentSuffix="" tone="dark" />
-            </div>
           </div>
 
-          <div className="grid gap-4 self-start rounded-[2rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+          <div className="flex h-full flex-col justify-between gap-5 rounded-[2rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/6 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">
                 What this page is for
@@ -65,6 +62,9 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                   watches.
                 </li>
               </ul>
+            </div>
+            <div className="pt-1">
+              <LocalitySubnav slug={slug} currentSuffix="" tone="dark" />
             </div>
           </div>
         </div>
