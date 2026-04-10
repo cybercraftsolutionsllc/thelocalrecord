@@ -39,6 +39,12 @@ type PublishedPayload = {
   pageSize: number;
 };
 
+type SearchPayload = {
+  entries: ApiEntry[];
+  total: number;
+  query: string;
+};
+
 type TopicOption = {
   key: EntryTopicKey;
   label: string;
@@ -140,9 +146,13 @@ export function LivePublishedEntries({
   initialEntries
 }: LivePublishedEntriesProps) {
   const [entries, setEntries] = useState(initialEntries);
+  const [searchEntries, setSearchEntries] = useState<PublicEntry[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
     "idle"
   );
+  const [searchStatus, setSearchStatus] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialEntries.length);
   const [feedView, setFeedView] = useState<FeedViewKey>("events_of_note");
@@ -206,11 +216,64 @@ export function LivePublishedEntries({
     };
   }, [page, slug]);
 
+  useEffect(() => {
+    if (!contentApiBase) {
+      return;
+    }
+
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < 3) {
+      setSearchEntries([]);
+      setSearchStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    setSearchStatus("loading");
+
+    const timeout = setTimeout(() => {
+      void (async () => {
+        try {
+          const response = await fetch(
+            `${contentApiBase}/api/localities/${slug}/search?q=${encodeURIComponent(trimmedQuery)}&limit=24`,
+            {
+              cache: "no-store"
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to search published entries");
+          }
+
+          const payload = (await response.json()) as SearchPayload;
+          const nextEntries = payload.entries.map(mapApiEntry);
+
+          if (!cancelled) {
+            setSearchEntries(nextEntries);
+            setSearchStatus("ready");
+          }
+        } catch {
+          if (!cancelled) {
+            setSearchStatus("error");
+          }
+        }
+      })();
+    }, 220);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [query, slug]);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const loadedCount = entries.length;
   const normalizedQuery = query.trim().toLowerCase();
-  const notableEntries = entries.filter(isResidentFacingEntry);
-  const topicOptions = entries.reduce<TopicOption[]>(
+  const searchActive = normalizedQuery.length >= 3;
+  const visiblePool = searchActive ? searchEntries : entries;
+  const notableVisibleEntries = visiblePool.filter(isResidentFacingEntry);
+  const topicOptions = visiblePool.reduce<TopicOption[]>(
     (options, entry) => {
       const topic = getEntryTopic(entry);
       const existing = options.find((option) => option.key === topic);
@@ -223,13 +286,15 @@ export function LivePublishedEntries({
 
       return options;
     },
-    [{ key: "all", label: entryTopicLabels.all, count: entries.length }]
+    [{ key: "all", label: entryTopicLabels.all, count: visiblePool.length }]
   );
   const baseEntries =
-    normalizedQuery || activeTopic !== "all" || feedView === "all_records"
-      ? entries
-      : notableEntries;
-  const filteredEntries = entries.filter((entry) => {
+    searchActive
+      ? visiblePool
+      : activeTopic !== "all" || feedView === "all_records"
+        ? visiblePool
+        : notableVisibleEntries;
+  const filteredEntries = visiblePool.filter((entry) => {
     if (!baseEntries.some((candidate) => candidate.id === entry.id)) {
       return false;
     }
@@ -246,7 +311,7 @@ export function LivePublishedEntries({
     }
 
     const haystack =
-      `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel}`.toLowerCase();
+      `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel} ${entry.topicText ?? ""}`.toLowerCase();
     return haystack.includes(normalizedQuery);
   });
 
@@ -265,8 +330,9 @@ export function LivePublishedEntries({
                 and code records when you need them.
               </p>
               <p className="text-xs leading-6 text-ink/55">
-                Showing {filteredEntries.length} of {loadedCount} loaded records
-                ({total} total).
+                {searchActive
+                  ? `Showing ${filteredEntries.length} search results for "${query.trim()}".`
+                  : `Showing ${filteredEntries.length} of ${loadedCount} loaded records (${total} total).`}
               </p>
             </div>
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -280,8 +346,9 @@ export function LivePublishedEntries({
                         ? "bg-moss text-white"
                         : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
                     }`}
+                    disabled={searchActive}
                   >
-                    Events of note ({notableEntries.length})
+                    Events of note ({notableVisibleEntries.length})
                   </button>
                   <button
                     type="button"
@@ -291,8 +358,9 @@ export function LivePublishedEntries({
                         ? "bg-moss text-white"
                         : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
                     }`}
+                    disabled={searchActive}
                   >
-                    All records ({entries.length})
+                    All records ({visiblePool.length})
                   </button>
                 </div>
 
@@ -332,12 +400,18 @@ export function LivePublishedEntries({
         ))}
         {filteredEntries.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
-            No entries match that filter on this page of results.
+            {searchActive
+              ? searchStatus === "loading"
+                ? "Searching the full locality record..."
+                : 'No matching records yet. Try a more specific term like "Ashford Meadows", "Planning Commission", or "Route 30".'
+              : "No entries match that filter on this page of results."}
           </div>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-white/75 bg-white px-5 py-4 shadow-card">
           <p className="text-sm text-ink/70">
-            Page {Math.min(page, totalPages)} of {totalPages}
+            {searchActive
+              ? "Search is running across the full live locality record."
+              : `Page ${Math.min(page, totalPages)} of ${totalPages}`}
           </p>
           <div className="flex gap-3">
             <button
@@ -348,7 +422,7 @@ export function LivePublishedEntries({
                 setQuery("");
                 setPage(1);
               }}
-              disabled={page === 1}
+              disabled={!searchActive && page === 1}
               className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss disabled:cursor-not-allowed disabled:opacity-40"
             >
               Reset view
@@ -358,7 +432,9 @@ export function LivePublishedEntries({
               onClick={() =>
                 setPage((current) => Math.min(totalPages, current + 1))
               }
-              disabled={page >= totalPages || loadedCount >= total}
+              disabled={
+                searchActive || page >= totalPages || loadedCount >= total
+              }
               className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss disabled:cursor-not-allowed disabled:opacity-40"
             >
               Load more

@@ -141,6 +141,42 @@ export default {
         });
       }
 
+      if (view === "search") {
+        const query = url.searchParams.get("q")?.trim() ?? "";
+        const limit = Number(url.searchParams.get("limit") ?? "18");
+
+        if (!query) {
+          return Response.json(
+            {
+              entries: [],
+              total: 0,
+              query
+            },
+            { headers: jsonHeaders }
+          );
+        }
+
+        const matches = await searchPublishedEntries(env.DB, slug, query, limit);
+        return Response.json(
+          {
+            entries: matches.map((entry) => ({
+              id: entry.id,
+              title: entry.title,
+              summary: entry.summary,
+              category: entry.category,
+              source_links_json: entry.source_links_json,
+              published_at: entry.published_at,
+              source_material_date: entry.source_material_date,
+              source_name: entry.source_name,
+              topic_text: entry.normalized_text
+            })),
+            total: matches.length,
+            query
+          },
+          { headers: jsonHeaders }
+        );
+      }
+
       if (view === "ask" && request.method === "POST") {
         const municipality = getMunicipalityBySlug(slug);
         const body = (await request.json().catch(() => null)) as { question?: string } | null;
