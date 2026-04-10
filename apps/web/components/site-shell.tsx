@@ -34,18 +34,14 @@ export function SiteShell({ children }: SiteShellProps) {
     <div className="relative min-h-screen overflow-x-hidden bg-sand text-ink">
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 opacity-[0.22]"
+        className="pointer-events-none fixed inset-0 opacity-[0.14]"
         style={{
           backgroundImage:
             "url('/images/site-background.png'), url('/images/site-background.svg')",
           backgroundPosition: "center top, center top",
           backgroundRepeat: "no-repeat, no-repeat",
-          backgroundSize: "1700px auto, cover"
+          backgroundSize: "cover, cover"
         }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-[7.25rem] bottom-12 mx-auto w-[min(96vw,112rem)] rounded-[3rem] bg-[#faf7ef]/78"
       />
       <header className="border-b border-ink/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
