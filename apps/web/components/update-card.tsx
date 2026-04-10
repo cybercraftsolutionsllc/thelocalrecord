@@ -14,8 +14,69 @@ type UpdateCardProps = {
   topicText?: string;
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  official_news: "Township news",
+  official_alert: "Official alert",
+  agenda_posted: "Agenda posted",
+  approved_minutes: "Meeting minutes",
+  meeting_notice: "Meeting notice",
+  calendar_update: "Calendar update",
+  planning_zoning: "Planning item",
+  service_notice: "Service notice"
+};
+
+const CATEGORY_TONES: Record<
+  string,
+  {
+    badge: string;
+    accent: string;
+  }
+> = {
+  official_news: {
+    badge: "bg-sky text-moss",
+    accent: "bg-sky/45"
+  },
+  official_alert: {
+    badge: "bg-clay/15 text-clay",
+    accent: "bg-clay/45"
+  },
+  agenda_posted: {
+    badge: "bg-[#e8f0ea] text-moss",
+    accent: "bg-[#d4e6da]"
+  },
+  approved_minutes: {
+    badge: "bg-[#eef0e8] text-moss",
+    accent: "bg-[#dfe6d6]"
+  },
+  meeting_notice: {
+    badge: "bg-[#e8f0ea] text-moss",
+    accent: "bg-[#d4e6da]"
+  },
+  calendar_update: {
+    badge: "bg-[#eef4f6] text-moss",
+    accent: "bg-[#dbe8ec]"
+  },
+  planning_zoning: {
+    badge: "bg-[#eef0e8] text-moss",
+    accent: "bg-[#dfe6d6]"
+  },
+  service_notice: {
+    badge: "bg-[#f3ece3] text-clay",
+    accent: "bg-[#ead8c6]"
+  }
+};
+
 function formatCategory(category: string) {
-  return category.split("_").join(" ");
+  return CATEGORY_LABELS[category] ?? category.split("_").join(" ");
+}
+
+function categoryTone(category: string) {
+  return (
+    CATEGORY_TONES[category] ?? {
+      badge: "bg-sky text-moss",
+      accent: "bg-sky/45"
+    }
+  );
 }
 
 function formatPublishedDate(publishedAt: string) {
@@ -77,6 +138,7 @@ function escapeRegExp(value: string) {
 export function UpdateCard(props: UpdateCardProps) {
   const [expanded, setExpanded] = useState(false);
   const sourceLinks = Array.isArray(props.sourceLinks) ? props.sourceLinks : [];
+  const tone = categoryTone(props.category);
   const datedLabel =
     props.sourceMaterialDate && props.sourceMaterialDate !== props.publishedAt
       ? `Source date ${formatPublishedDate(props.sourceMaterialDate)}`
@@ -89,21 +151,40 @@ export function UpdateCard(props: UpdateCardProps) {
   const canExpand = expandedExcerpt.length > 0;
 
   return (
-    <article className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card sm:p-7">
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss">
-          {formatCategory(props.category)}
+    <article className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white p-6 shadow-card sm:p-7">
+      <div
+        aria-hidden="true"
+        className={`absolute left-0 top-0 h-full w-1.5 ${tone.accent}`}
+      />
+
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
+          >
+            {formatCategory(props.category)}
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
+            {props.sourceLabel}
+          </span>
+        </div>
+        <span className="rounded-full border border-ink/10 bg-sand/35 px-3 py-1 text-xs font-semibold text-ink/60">
+          {datedLabel}
         </span>
-        <span className="text-sm text-ink/60">{datedLabel}</span>
       </div>
 
       <h3 className="text-balance font-serif text-[2rem] leading-tight text-moss">
         {props.title}
       </h3>
-      <p className="mt-4 text-base leading-8 text-ink/80">{props.summary}</p>
+      <p className="mt-4 max-w-4xl text-base leading-8 text-ink/82">
+        {props.summary}
+      </p>
+      <p className="mt-3 text-sm leading-6 text-ink/55">
+        From {props.sourceLabel}
+      </p>
 
       {canExpand ? (
-        <div className="mt-4 rounded-[1.5rem] border border-moss/10 bg-sand/35 px-4 py-4">
+        <div className="mt-5 rounded-[1.5rem] border border-moss/10 bg-sand/35 px-4 py-4">
           <button
             type="button"
             onClick={() => setExpanded((current) => !current)}
@@ -118,16 +199,26 @@ export function UpdateCard(props: UpdateCardProps) {
       ) : null}
 
       {props.extractionNote ? (
-        <p className="mt-5 rounded-2xl border border-clay/20 bg-clay/5 px-4 py-3 text-sm leading-7 text-ink/75">
-          Extraction note: {props.extractionNote}
-        </p>
+        <div className="mt-5 rounded-[1.5rem] border border-clay/20 bg-clay/5 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+            Extraction note
+          </p>
+          <p className="mt-2 text-sm leading-7 text-ink/75">
+            {props.extractionNote}
+          </p>
+        </div>
       ) : null}
 
-      <div className="mt-6 rounded-[1.5rem] border border-ink/10 bg-sand/50 p-4">
-        <p className="text-sm font-semibold text-ink">
-          Source: {props.sourceLabel}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-3 text-sm">
+      <div className="mt-6 rounded-[1.5rem] border border-ink/10 bg-sand/45 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
+              Source trail
+            </p>
+            <p className="mt-1 text-sm font-semibold text-ink">{props.sourceLabel}</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3 text-sm">
           {sourceLinks.map((link) => (
             <a
               key={`${props.title}-${link.url}`}
