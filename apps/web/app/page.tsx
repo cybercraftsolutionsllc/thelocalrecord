@@ -110,7 +110,7 @@ export default function HomePage() {
             {municipalities.map((municipality) => (
               <article
                 key={municipality.slug}
-              className="rounded-[1.75rem] border border-white/75 bg-[#fbf8f2] p-6"
+                className="rounded-[1.75rem] border border-white/75 bg-[#fbf8f2] p-6"
               >
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl space-y-3">
@@ -126,10 +126,10 @@ export default function HomePage() {
                   </div>
                   <div className="flex flex-wrap gap-3 lg:max-w-[18rem] lg:justify-end">
                     <Link
-                      href="/localities"
+                      href={`/${municipality.slug}`}
                       className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
                     >
-                      Open locality selector
+                      Open digest
                     </Link>
                     <Link
                       href={`/${municipality.slug}/source-inventory`}
@@ -151,12 +151,11 @@ export default function HomePage() {
             For residents
           </p>
           <h2 className="text-balance mt-3 font-serif text-3xl leading-tight text-moss">
-            Easy to scan
+            Start with what matters
           </h2>
           <p className="text-pretty mt-3 text-base leading-7 text-ink/75">
-            The goal is to make meetings, notices, and township updates easier
-            to follow without making people hunt through multiple sections of an
-            official site.
+            The feed is designed to surface meetings, alerts, planning items,
+            and other local changes people are most likely to care about first.
           </p>
         </div>
         <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
@@ -164,7 +163,7 @@ export default function HomePage() {
             Source-linked
           </p>
           <h2 className="text-balance mt-3 font-serif text-3xl leading-tight text-moss">
-            Read the original
+            Check the original
           </h2>
           <p className="text-pretty mt-3 text-base leading-7 text-ink/75">
             Every public entry points back to the underlying source material so
@@ -174,15 +173,15 @@ export default function HomePage() {
         </div>
         <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-            Growing platform
+            Deeper when needed
           </p>
           <h2 className="text-balance mt-3 font-serif text-3xl leading-tight text-moss">
-            One locality at a time
+            Search across the locality
           </h2>
           <p className="text-pretty mt-3 text-base leading-7 text-ink/75">
-            Manheim Township is the first launch. More locality pages can be
-            added over time without turning the homepage into a specific
-            township site.
+            Projects, development names, and ordinance questions can be traced
+            across multiple records instead of staying buried in minutes or
+            archive pages.
           </p>
         </div>
       </section>

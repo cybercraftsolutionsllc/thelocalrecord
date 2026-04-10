@@ -82,6 +82,20 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
           Ask about a project, meeting, notice, ordinance, or planning item and
           get a source-linked answer.
         </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {["Ashford Meadows", "Planning Commission", "Route 30", "Codified code"].map(
+            (example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setQuestion(example)}
+                className="rounded-full border border-moss/10 bg-sand/35 px-3 py-2 text-xs font-semibold text-moss transition hover:bg-sky"
+              >
+                {example}
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       <form className="relative mt-5 space-y-4" onSubmit={handleSubmit}>

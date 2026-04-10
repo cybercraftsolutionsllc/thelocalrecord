@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { PublicEntry } from "../lib/data";
 import { contentApiBase } from "../lib/public-config";
 import {
+  entryTopicDisplayOrder,
   entryTopicLabels,
   getEntryTopic,
   type EntryTopicKey
@@ -52,6 +53,13 @@ type TopicOption = {
 };
 
 type FeedViewKey = "events_of_note" | "all_records";
+
+const quickSearchSuggestions = [
+  "Ashford Meadows",
+  "Planning Commission",
+  "Route 30",
+  "Codified code"
+];
 
 function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
   if (Array.isArray(payload)) {
@@ -273,7 +281,7 @@ export function LivePublishedEntries({
   const searchActive = normalizedQuery.length >= 3;
   const visiblePool = searchActive ? searchEntries : entries;
   const notableVisibleEntries = visiblePool.filter(isResidentFacingEntry);
-  const topicOptions = visiblePool.reduce<TopicOption[]>(
+  const unsortedTopicOptions = visiblePool.reduce<TopicOption[]>(
     (options, entry) => {
       const topic = getEntryTopic(entry);
       const existing = options.find((option) => option.key === topic);
@@ -288,6 +296,9 @@ export function LivePublishedEntries({
     },
     [{ key: "all", label: entryTopicLabels.all, count: visiblePool.length }]
   );
+  const topicOptions = entryTopicDisplayOrder
+    .map((key) => unsortedTopicOptions.find((option) => option.key === key))
+    .filter((option): option is TopicOption => Boolean(option && option.count > 0));
   const baseEntries =
     searchActive
       ? visiblePool
@@ -378,6 +389,22 @@ export function LivePublishedEntries({
                   className="w-full rounded-full border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30"
                 />
               </label>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/50">
+                  Common searches
+                </span>
+                {quickSearchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setQuery(suggestion)}
+                    className="rounded-full border border-moss/10 bg-white px-3 py-2 text-sm text-moss transition hover:bg-sky"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
 
               <div className="flex flex-wrap gap-3">
                 {topicOptions.map((option) => (

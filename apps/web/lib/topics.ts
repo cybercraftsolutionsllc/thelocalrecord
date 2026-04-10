@@ -19,6 +19,17 @@ export const entryTopicLabels: Record<EntryTopicKey, string> = {
   minutes_and_agendas: "Minutes & agendas"
 };
 
+export const entryTopicDisplayOrder: EntryTopicKey[] = [
+  "all",
+  "housing_and_growth",
+  "land_development",
+  "events_and_meetings",
+  "alerts_and_closures",
+  "township_news",
+  "minutes_and_agendas",
+  "permits_and_code"
+];
+
 function includesAny(value: string, patterns: string[]) {
   return patterns.some((pattern) => value.includes(pattern));
 }

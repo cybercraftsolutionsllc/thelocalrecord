@@ -33,8 +33,6 @@ export default function LocalitiesPage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <LocalitiesMap activeSlug={activeLocality?.slug ?? ""} />
-
         <div className="space-y-4">
           <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -86,6 +84,8 @@ export default function LocalitiesPage() {
             </article>
           ))}
         </div>
+
+        <LocalitiesMap activeSlug={activeLocality?.slug ?? ""} />
       </section>
     </div>
   );

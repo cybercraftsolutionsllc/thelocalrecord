@@ -14,7 +14,7 @@ const PLATFORM_DISCLAIMER =
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/localities", label: "Locality" },
+  { href: "/localities", label: "Localities" },
   { href: "/about", label: "About" },
   { href: "/policy", label: "Policy" },
   { href: "/corrections", label: "Corrections" }
@@ -89,7 +89,7 @@ export function SiteShell({ children }: SiteShellProps) {
               { href: "/about", label: "About" },
               { href: "/corrections", label: "Report an issue" },
               { href: "/policy", label: "Policy" },
-              { href: "/localities", label: "Locality" }
+              { href: "/localities", label: "Localities" }
             ]
               .filter((item) => item.href !== normalizedPathname)
               .map((item) => (

@@ -50,17 +50,18 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           <div className="flex h-full flex-col justify-between gap-5 rounded-[2rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/6 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">
-                What this page is for
+                Use this page
               </p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-white/80">
                 <li>
-                  Track the newest local notices, meetings, and planning items.
+                  Start with the latest items residents are most likely to care
+                  about.
+                </li>
+                <li>
+                  Use search when you want a project, address, ordinance, or
+                  meeting name.
                 </li>
                 <li>Open the original source when you want the full record.</li>
-                <li>
-                  Use the source inventory to see exactly what this digest
-                  watches.
-                </li>
               </ul>
             </div>
             <div className="pt-1">
@@ -78,11 +79,11 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         <aside className="space-y-6 lg:sticky lg:top-24">
           <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-              Start here
+              Helpful links
             </p>
             <p className="mt-3 text-sm leading-7 text-ink/70">
-              Use the source-linked feed first, then open the original record
-              or ask a more specific question when you need detail.
+              Use the digest first, then jump into the source trail, reporting,
+              or policy when you need more context.
             </p>
             <div className="mt-5 grid gap-3">
               <Link
@@ -108,7 +109,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
           <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-              How to use this page
+              What to expect
             </p>
             <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
               <li>
