@@ -70,40 +70,21 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">
-        <div className="space-y-6">
-          <div className="rounded-[1.75rem] border border-white/75 bg-white px-5 py-4 shadow-card">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                  Latest updates
-                </p>
-                <h2 className="mt-2 font-serif text-3xl text-moss">
-                  Events of note
-                </h2>
-                <p className="mt-2 text-sm leading-7 text-ink/68">
-                  Start with the local items residents are most likely to care
-                  about, then search or filter for deeper records when you need
-                  them.
-                </p>
-              </div>
-            </div>
-          </div>
-
+      <section className="grid gap-6 lg:grid-cols-[1.34fr_0.66fr] lg:items-start">
+        <div className="min-w-0">
           <LivePublishedEntries slug={slug} initialEntries={data.entries} />
         </div>
 
-        <aside className="space-y-6">
-          <LocalityAskBox
-            slug={slug}
-            localityName={data.municipality.shortName}
-          />
-
+        <aside className="space-y-6 lg:sticky lg:top-24">
           <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-              Locality links
+              Start here
             </p>
-            <div className="mt-4 grid gap-3">
+            <p className="mt-3 text-sm leading-7 text-ink/70">
+              Use the source-linked feed first, then open the original record
+              or ask a more specific question when you need detail.
+            </p>
+            <div className="mt-5 grid gap-3">
               <Link
                 href={`/${slug}/source-inventory`}
                 className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-4 text-sm font-semibold text-moss transition hover:bg-sky/40"
@@ -131,12 +112,12 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
             </p>
             <ul className="mt-4 space-y-3 text-sm leading-7 text-ink/75">
               <li>
-                Published entries are meant to be quick to scan, not a
+                Events of note are meant to be quick to scan, not a
                 substitute for the source.
               </li>
               <li>
-                Use the filters to narrow to meetings, alerts, planning items,
-                or township news.
+                Use search for projects, addresses, ordinances, or development
+                names that may span multiple records.
               </li>
               <li>
                 If a question matters legally or financially, open the cited
@@ -144,6 +125,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
               </li>
             </ul>
           </section>
+
+          <LocalityAskBox slug={slug} />
         </aside>
       </section>
     </div>

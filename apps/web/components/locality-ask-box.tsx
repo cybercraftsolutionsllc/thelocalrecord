@@ -6,7 +6,6 @@ import { contentApiBase } from "../lib/public-config";
 
 type LocalityAskBoxProps = {
   slug: string;
-  localityName: string;
 };
 
 type AskResponse =
@@ -27,7 +26,7 @@ type AskResponse =
       }>;
     };
 
-export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
+export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [result, setResult] = useState<AskResponse | null>(null);
@@ -79,11 +78,9 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
           Ask this locality
         </p>
-        <h2 className="text-balance font-serif text-[1.85rem] leading-tight text-moss">
-          {localityName} Q&amp;A
-        </h2>
         <p className="text-sm leading-7 text-ink/70">
-          Ask about notices, meetings, ordinances, alerts, or planning items.
+          Ask about a project, meeting, notice, ordinance, or planning item and
+          get a source-linked answer.
         </p>
       </div>
 
@@ -94,7 +91,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             rows={3}
-            placeholder="What changed with the codified code notice?"
+            placeholder="What changed with Ashford Meadows?"
             className="w-full rounded-[1.5rem] border border-ink/10 bg-sand/35 px-4 py-4 text-sm leading-7 text-ink outline-none transition focus:border-moss/30 focus:bg-white"
           />
         </label>
@@ -108,8 +105,7 @@ export function LocalityAskBox({ slug, localityName }: LocalityAskBoxProps) {
             {status === "loading" ? "Thinking..." : "Ask"}
           </button>
           <p className="text-xs leading-6 text-ink/55">
-            Source-grounded and AI-assisted. Check the cited source before
-            relying on it.
+            Source-grounded and AI-assisted. Best for specific questions.
           </p>
         </div>
       </form>

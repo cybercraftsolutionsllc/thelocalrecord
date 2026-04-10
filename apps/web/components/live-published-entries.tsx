@@ -318,79 +318,82 @@ export function LivePublishedEntries({
   if (entries.length > 0) {
     return (
       <div className="space-y-5">
-        <div className="rounded-[2rem] border border-white/75 bg-white p-5 shadow-card">
-          <div className="flex flex-col gap-5">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                Browse local updates
-              </p>
-              <p className="text-sm leading-7 text-ink/70">
-                The default view favors meetings, news, alerts, and notable
-                planning items. Search and filters still reach the deeper permit
-                and code records when you need them.
-              </p>
-              <p className="text-xs leading-6 text-ink/55">
+        <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
+          <div className="space-y-5">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-2xl space-y-2">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                  Latest updates
+                </p>
+                <h2 className="font-serif text-[2.15rem] leading-tight text-moss">
+                  Events of note
+                </h2>
+                <p className="text-sm leading-7 text-ink/70">
+                  Start with the most relevant local changes, then search or
+                  filter for deeper records when you need them.
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-3 text-sm leading-6 text-ink/70 xl:max-w-xs">
                 {searchActive
                   ? `Showing ${filteredEntries.length} search results for "${query.trim()}".`
                   : `Showing ${filteredEntries.length} of ${loadedCount} loaded records (${total} total).`}
-              </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="w-full space-y-4">
-                <div className="flex flex-wrap gap-3">
+
+            <div className="space-y-4 rounded-[1.5rem] border border-moss/10 bg-sand/30 p-4">
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFeedView("events_of_note")}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    feedView === "events_of_note"
+                      ? "bg-moss text-white"
+                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                  }`}
+                  disabled={searchActive}
+                >
+                  Events of note ({notableVisibleEntries.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedView("all_records")}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    feedView === "all_records"
+                      ? "bg-moss text-white"
+                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                  }`}
+                  disabled={searchActive}
+                >
+                  All records ({visiblePool.length})
+                </button>
+              </div>
+
+              <label className="block">
+                <span className="sr-only">Search updates</span>
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search Ashford Meadows, roads, meetings, permits..."
+                  className="w-full rounded-full border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30"
+                />
+              </label>
+
+              <div className="flex flex-wrap gap-3">
+                {topicOptions.map((option) => (
                   <button
+                    key={option.key}
                     type="button"
-                    onClick={() => setFeedView("events_of_note")}
+                    onClick={() => setActiveTopic(option.key)}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      feedView === "events_of_note"
+                      activeTopic === option.key
                         ? "bg-moss text-white"
                         : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
                     }`}
-                    disabled={searchActive}
                   >
-                    Events of note ({notableVisibleEntries.length})
+                    {option.label} ({option.count})
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setFeedView("all_records")}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      feedView === "all_records"
-                        ? "bg-moss text-white"
-                        : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
-                    }`}
-                    disabled={searchActive}
-                  >
-                    All records ({visiblePool.length})
-                  </button>
-                </div>
-
-                <label className="block xl:max-w-sm">
-                  <span className="sr-only">Search updates</span>
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search Ashford Meadows, roads, meetings, permits..."
-                    className="w-full rounded-full border border-ink/10 bg-sand/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
-                  />
-                </label>
-
-                <div className="flex flex-wrap gap-3">
-                  {topicOptions.map((option) => (
-                    <button
-                      key={option.key}
-                      type="button"
-                      onClick={() => setActiveTopic(option.key)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                        activeTopic === option.key
-                          ? "bg-moss text-white"
-                          : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
-                      }`}
-                    >
-                      {option.label} ({option.count})
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
           </div>
