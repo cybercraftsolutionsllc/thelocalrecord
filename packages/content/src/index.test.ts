@@ -78,4 +78,55 @@ describe("evaluateItem", () => {
     expect(decision.reviewState).toBe("review_required");
     expect(decision.rationale).toContain("Low extraction confidence");
   });
+
+  it("classifies official planning FAQ content as planning_zoning and auto-publishes it", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-zoning-faq",
+      externalId: "faq-1",
+      title: "Can I keep chickens on my property?",
+      sourceUrl: "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
+      sourcePageUrl: "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
+      normalizedText:
+        "Can I keep chickens on my property? The township zoning FAQ explains how this use is regulated and when zoning approval may be required.",
+      extraction: {
+        method: "html",
+        confidence: 0.98
+      },
+      metadata: {},
+      contentHash: hashContent("faq-1")
+    });
+
+    const decision = evaluateItem(item);
+
+    expect(decision.classification).toBe("planning_zoning");
+    expect(decision.autoPublishAllowed).toBe(true);
+    expect(decision.reviewState).toBe("auto_published");
+  });
+
+  it("uses extracted minute detail in the summary when meeting minutes include project discussion", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-1",
+      title: "15 October 2025 - Planning Commission Minutes",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3535",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "15 October 2025 - Planning Commission Minutes Ashford Meadows – 2325 Lititz Pike, Lancaster, PA 17601 & 120 Kreider Ave., Lancaster, PA 17601, R-2 Residential Zoning District. Todd Kurl of RGS Associates presented the plan which proposes the subdivision and lot add-on of property to prepare land for Township dedication and PennDOT permitting, and proposed conversion of 5 existing parcels to 9 parcels for future Ashford Meadows development. Motion was made by Alex Rohrbaugh and seconded by Sandy Kime to recommend approval of the plan and modifications conditioned upon satisfaction of Township Engineer and staff review letters.",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-1")
+    });
+
+    const decision = evaluateItem(item);
+
+    expect(decision.classification).toBe("approved_minutes");
+    expect(decision.summary).toContain("According to the posted meeting minutes");
+    expect(decision.summary).toContain("Ashford Meadows");
+  });
 });

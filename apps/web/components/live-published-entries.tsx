@@ -29,6 +29,7 @@ type ApiEntry = {
   published_at: string;
   source_material_date?: string | null;
   source_name?: string;
+  topic_text?: string;
 };
 
 type PublishedPayload = {
@@ -59,21 +60,23 @@ function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
 
 function relabelSourceLink(label: string, url: string, index: number) {
   const lowerLabel = label.toLowerCase();
+  const lowerUrl = url.toLowerCase();
+  const isDocument =
+    lowerUrl.endsWith(".pdf") ||
+    lowerUrl.includes("/documentcenter/view/") ||
+    lowerUrl.includes("/archivecenter/viewfile/") ||
+    lowerUrl.includes("archive.aspx?adid=");
 
   if (lowerLabel.includes("source page")) {
     return "Listing page";
   }
 
   if (lowerLabel.includes("source item")) {
-    return url.toLowerCase().endsWith(".pdf")
-      ? "Original document"
-      : "Original post";
+    return isDocument ? "Original document" : "Original post";
   }
 
   if (index === 0) {
-    return url.toLowerCase().endsWith(".pdf")
-      ? "Original document"
-      : "Original post";
+    return isDocument ? "Original document" : "Original post";
   }
 
   return label;
@@ -125,7 +128,8 @@ function mapApiEntry(entry: ApiEntry): PublicEntry {
     sourceMaterialDate: entry.source_material_date ?? null,
     extractionNote: entry.extraction_note ?? null,
     sourceLabel: entry.source_name ?? "Official township source",
-    sourceLinks: parseSourceLinks(entry.source_links_json)
+    sourceLinks: parseSourceLinks(entry.source_links_json),
+    topicText: entry.topic_text ?? ""
   };
 }
 

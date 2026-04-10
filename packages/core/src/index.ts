@@ -182,6 +182,112 @@ export const sourceRegistry: SourceConfig[] = [
     publicCategory: "Public information"
   },
   {
+    slug: "code-compliance",
+    municipalitySlug: "manheimtownshippa",
+    name: "Code Compliance",
+    description:
+      "Official code compliance, permit, inspection, occupancy, and building-code resources.",
+    url: "https://www.manheimtownship.org/865/Code-Compliance",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Permits and code"
+  },
+  {
+    slug: "code-news",
+    municipalitySlug: "manheimtownshippa",
+    name: "Code Department News and Information",
+    description: "Official code compliance department news posts and notices.",
+    url: "https://www.manheimtownship.org/CivicAlerts.aspx?CID=8",
+    kind: "news_flash",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Permits and code"
+  },
+  {
+    slug: "permit-faq",
+    municipalitySlug: "manheimtownshippa",
+    name: "Permit and Code Compliance FAQs",
+    description: "Official FAQs covering permits, occupancy, roofing, and code questions.",
+    url: "https://www.manheimtownship.org/Faq.aspx?TID=49",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Permits and code"
+  },
+  {
+    slug: "planning-zoning-faq",
+    municipalitySlug: "manheimtownshippa",
+    name: "Planning and Zoning FAQs",
+    description:
+      "Official FAQs covering zoning, signs, beekeeping, home occupations, and related land-use questions.",
+    url: "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Planning and zoning"
+  },
+  {
+    slug: "comprehensive-plan",
+    municipalitySlug: "manheimtownshippa",
+    name: "Comprehensive Plan Homepage",
+    description:
+      "Official comprehensive plan documents, dashboard updates, and implementation materials.",
+    url: "https://www.manheimtownship.org/64/Comprehensive-Plan-Homepage",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Planning and zoning"
+  },
+  {
+    slug: "planning-commission-agendas",
+    municipalitySlug: "manheimtownshippa",
+    name: "Planning Commission Agendas Archive",
+    description:
+      "Official planning commission agenda archive for pending development and zoning discussions.",
+    url: "https://www.manheimtownship.org/Archive.aspx?AMID=80",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Agendas and minutes"
+  },
+  {
+    slug: "planning-commission-minutes",
+    municipalitySlug: "manheimtownshippa",
+    name: "Planning Commission Minutes Archive",
+    description:
+      "Official planning commission minutes archive with project discussion and action records.",
+    url: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Agendas and minutes"
+  },
+  {
+    slug: "planning-commission",
+    municipalitySlug: "manheimtownshippa",
+    name: "Planning Commission",
+    description:
+      "Official board page with planning commission meeting information, member details, and archives.",
+    url: "https://www.manheimtownship.org/882/Planning-Commission",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Planning and zoning"
+  },
+  {
+    slug: "zoning-hearing-board",
+    municipalitySlug: "manheimtownshippa",
+    name: "Zoning Hearing Board",
+    description:
+      "Official board page with zoning hearing board meeting information, archives, and member details.",
+    url: "https://www.manheimtownship.org/886/Zoning-Hearing-Board",
+    kind: "page",
+    implemented: true,
+    fetchStrategy: "html",
+    publicCategory: "Planning and zoning"
+  },
+  {
     slug: "planning-zoning",
     municipalitySlug: "manheimtownshippa",
     name: "Planning and Zoning",

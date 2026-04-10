@@ -1,19 +1,36 @@
 import { evaluateItem } from "@thelocalrecord/content";
-import { getMunicipalityBySlug, getSourcesForMunicipality, hashContent } from "@thelocalrecord/core";
 import {
-  extractAlertDetail,
+  getMunicipalityBySlug,
+  getSourcesForMunicipality,
+  hashContent,
+  type NormalizedSourceItem
+} from "@thelocalrecord/core";
+import { enrichSourceItemsWithFetchedDetails } from "@thelocalrecord/ingest/detail-enrichment";
+import {
   parseCalendarPage,
+  parseCodeCompliancePage,
+  parseComprehensivePlanPage,
+  parseFaqPage,
   parseIcalendarDirectory,
-  extractNewsFlashDetail,
   parseAgendaCenter,
   parseAlertCenter,
   parseNewsFlash,
+  parsePlanningZoningFaqPage,
+  parsePlanningCommissionPage,
   parsePlanningZoningPage,
+  parseZoningHearingBoardPage,
   parseViewPage
 } from "@thelocalrecord/ingest/adapters";
-import type { NormalizedSourceItem } from "@thelocalrecord/core";
 
-import { attachArtifactRecord, completeFetchRun, createFetchRun, persistNormalizedItem, syncRegistry } from "./d1";
+import {
+  attachArtifactRecord,
+  completeFetchRun,
+  createFetchRun,
+  findExistingSourceItem,
+  persistNormalizedItem,
+  syncRegistry,
+  touchSourceItem
+} from "./d1";
 import type { WorkerEnv } from "./env";
 import { maybeRefineSummaryWithOpenAI } from "./openai";
 
@@ -72,7 +89,10 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
       });
 
       const selectedItems = await selectAdapter(env, source.slug, body, source.url);
-      const items = await enrichItemsWithDetails(env, selectedItems, source.slug);
+      const items = await enrichSourceItemsWithFetchedDetails(selectedItems, source.slug, {
+        fetchImpl: fetch,
+        userAgent: env.INGEST_USER_AGENT
+      });
       stats.sourcesFetched += 1;
       stats.itemsSeen += items.length;
 
@@ -80,6 +100,18 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
         const duplicateKey = buildCrossSourceDuplicateKey(item);
 
         if (duplicateKey && seenCrossSourceKeys.has(duplicateKey)) {
+          continue;
+        }
+
+        const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+
+        if (existing?.content_hash === item.contentHash) {
+          await touchSourceItem(env.DB, existing.id);
+
+          if (duplicateKey) {
+            seenCrossSourceKeys.add(duplicateKey);
+          }
+
           continue;
         }
 
@@ -116,60 +148,63 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
   }
 }
 
-async function enrichItemsWithDetails(
+export async function importMunicipalityItems(
   env: WorkerEnv,
-  items: NormalizedSourceItem[],
-  sourceSlug: string
+  slug: string,
+  items: NormalizedSourceItem[]
 ) {
-  if (!["township-news", "alert-center"].includes(sourceSlug)) {
-    return items;
+  const municipality = getMunicipalityBySlug(slug);
+
+  if (!municipality) {
+    throw new Error(`Unknown municipality slug: ${slug}`);
   }
 
-  return Promise.all(
-    items.map(async (item) => {
-      if (item.sourceUrl === item.sourcePageUrl) {
-        return item;
+  await syncRegistry(env.DB);
+  const fetchRunId = await createFetchRun(env.DB, slug);
+  const stats = {
+    sourcesFetched: 0,
+    itemsSeen: items.length,
+    diffEventsCreated: 0
+  };
+
+  try {
+    const sourceSlugs = new Set(items.map((item) => item.sourceSlug));
+    stats.sourcesFetched = sourceSlugs.size;
+
+    for (const item of items) {
+      const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+
+      if (existing?.content_hash === item.contentHash) {
+        await touchSourceItem(env.DB, existing.id);
+        continue;
       }
 
-      try {
-        const response = await fetch(item.sourceUrl, {
-          headers: {
-            "user-agent":
-              env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
-          }
-        });
+      const ruleDecision = evaluateItem(item);
+      const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+      const diffEventId = await persistNormalizedItem(env.DB, {
+        item,
+        decision,
+        fetchRunId
+      });
 
-        if (!response.ok) {
-          return item;
-        }
-
-        const html = await response.text();
-        const detail =
-          sourceSlug === "township-news"
-            ? extractNewsFlashDetail(html)
-            : extractAlertDetail(html);
-
-        const normalizedText = [item.normalizedText, detail.detailText].filter(Boolean).join(" ").trim();
-        const metadata = {
-          ...item.metadata,
-          ...(detail.publishedText ? { detailPublishedText: detail.publishedText } : {})
-        };
-        const publishedAt = detail.publishedAt ?? item.publishedAt;
-
-        return {
-          ...item,
-          normalizedText,
-          metadata,
-          publishedAt,
-          contentHash: hashContent(
-            `detail-v2|${item.title}|${item.sourceUrl}|${publishedAt ?? ""}|${normalizedText}`
-          )
-        };
-      } catch {
-        return item;
+      if (diffEventId) {
+        stats.diffEventsCreated += 1;
       }
-    })
-  );
+    }
+
+    await completeFetchRun(env.DB, fetchRunId, "completed", stats);
+    return stats;
+  } catch (error) {
+    await completeFetchRun(
+      env.DB,
+      fetchRunId,
+      "failed",
+      stats,
+      error instanceof Error ? error.message : "Unknown import failure"
+    );
+
+    throw error;
+  }
 }
 
 async function selectAdapter(
@@ -187,6 +222,20 @@ async function selectAdapter(
       return parseAlertCenter(body, sourceUrl);
     case "calendar":
       return parseCalendarPage(body, sourceUrl);
+    case "code-compliance":
+      return parseCodeCompliancePage(body, sourceUrl);
+    case "code-news":
+      return parseNewsFlash(body, sourceUrl, "code-news");
+    case "permit-faq":
+      return parseFaqPage(body, sourceUrl);
+    case "planning-zoning-faq":
+      return parsePlanningZoningFaqPage(body, sourceUrl);
+    case "comprehensive-plan":
+      return parseComprehensivePlanPage(body, sourceUrl);
+    case "planning-commission":
+      return parsePlanningCommissionPage(body, sourceUrl);
+    case "zoning-hearing-board":
+      return parseZoningHearingBoardPage(body, sourceUrl);
     case "icalendar":
       return parseIcalendarDirectory(body, sourceUrl, fetch, env.INGEST_USER_AGENT);
     case "view-page":
@@ -204,6 +253,17 @@ function buildArtifactKey(municipalitySlug: string, sourceSlug: string, fetchRun
 }
 
 function buildCrossSourceDuplicateKey(item: NormalizedSourceItem) {
+  if (
+    [
+      "view-page",
+      "planning-zoning",
+      "code-compliance",
+      "comprehensive-plan"
+    ].includes(item.sourceSlug)
+  ) {
+    return `resource|${item.sourceUrl.toLowerCase()}`;
+  }
+
   if (!["calendar", "icalendar"].includes(item.sourceSlug)) {
     return null;
   }

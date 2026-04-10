@@ -15,8 +15,21 @@ import {
 } from "@thelocalrecord/storage";
 
 import { parseAgendaCenter } from "./adapters/agenda-center";
+import {
+  parsePlanningCommissionAgendasArchive,
+  parsePlanningCommissionMinutesArchive
+} from "./adapters/archive-page";
 import { parseAlertCenter } from "./adapters/alert-center";
+import { parseCodeCompliancePage } from "./adapters/code-compliance";
+import { parseComprehensivePlanPage } from "./adapters/comprehensive-plan";
+import { parseFaqPage } from "./adapters/faq-page";
 import { parseNewsFlash } from "./adapters/news-flash";
+import {
+  parsePlanningZoningFaqPage,
+  parsePlanningCommissionPage,
+  parseZoningHearingBoardPage
+} from "./adapters/resource-page";
+import { enrichSourceItemsWithFetchedDetails } from "./detail-enrichment";
 
 type AdapterResult = {
   itemCount: number;
@@ -122,7 +135,10 @@ async function ingestSource(args: {
     mimeType: response.headers.get("content-type") ?? undefined
   });
 
-  const items = selectAdapter(args.sourceSlug, body, args.sourceUrl);
+  const selectedItems = selectAdapter(args.sourceSlug, body, args.sourceUrl);
+  const items = await enrichSourceItemsWithFetchedDetails(selectedItems, args.sourceSlug, {
+    userAgent: process.env.INGEST_USER_AGENT
+  });
   let changeCount = 0;
 
   for (const item of items) {
@@ -152,8 +168,26 @@ function selectAdapter(sourceSlug: string, body: string, sourceUrl: string) {
       return parseAgendaCenter(body, sourceUrl);
     case "township-news":
       return parseNewsFlash(body, sourceUrl);
+    case "code-news":
+      return parseNewsFlash(body, sourceUrl, "code-news");
     case "alert-center":
       return parseAlertCenter(body, sourceUrl);
+    case "code-compliance":
+      return parseCodeCompliancePage(body, sourceUrl);
+    case "permit-faq":
+      return parseFaqPage(body, sourceUrl);
+    case "planning-zoning-faq":
+      return parsePlanningZoningFaqPage(body, sourceUrl);
+    case "comprehensive-plan":
+      return parseComprehensivePlanPage(body, sourceUrl);
+    case "planning-commission-agendas":
+      return parsePlanningCommissionAgendasArchive(body, sourceUrl);
+    case "planning-commission-minutes":
+      return parsePlanningCommissionMinutesArchive(body, sourceUrl);
+    case "planning-commission":
+      return parsePlanningCommissionPage(body, sourceUrl);
+    case "zoning-hearing-board":
+      return parseZoningHearingBoardPage(body, sourceUrl);
     default:
       return [];
   }

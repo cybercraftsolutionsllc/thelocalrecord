@@ -8,7 +8,11 @@ import {
   type NormalizedSourceItem
 } from "@thelocalrecord/core";
 
-export function parseNewsFlash(html: string, sourcePageUrl: string): NormalizedSourceItem[] {
+export function parseNewsFlash(
+  html: string,
+  sourcePageUrl: string,
+  sourceSlug = "township-news"
+): NormalizedSourceItem[] {
   const $ = load(html);
   const items = $("a.article-title-link")
     .toArray()
@@ -33,7 +37,7 @@ export function parseNewsFlash(html: string, sourcePageUrl: string): NormalizedS
 
       return normalizedSourceItemSchema.parse({
         municipalitySlug: "manheimtownshippa",
-        sourceSlug: "township-news",
+        sourceSlug,
         externalId: sourceUrl,
         title,
         sourceUrl,

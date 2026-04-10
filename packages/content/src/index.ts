@@ -27,12 +27,26 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
     return "official_news";
   }
 
+  if (item.sourceSlug === "code-news") {
+    return "official_news";
+  }
+
   if (item.sourceSlug === "calendar" || item.sourceSlug === "icalendar") {
     return "calendar_update";
   }
 
-  if (item.sourceSlug === "planning-zoning") {
+  if (
+    item.sourceSlug === "planning-zoning" ||
+    item.sourceSlug === "comprehensive-plan" ||
+    item.sourceSlug === "planning-zoning-faq" ||
+    item.sourceSlug === "planning-commission" ||
+    item.sourceSlug === "zoning-hearing-board"
+  ) {
     return "planning_zoning";
+  }
+
+  if (item.sourceSlug === "code-compliance" || item.sourceSlug === "permit-faq") {
+    return "service_notice";
   }
 
   if (/minutes/i.test(item.title)) {
@@ -48,6 +62,10 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
   }
 
   if (/road|water|trash|utility|closure|service/i.test(haystack)) {
+    return "service_notice";
+  }
+
+  if (/permit|code compliance|building code|certificate of use|occupancy|inspection|stormwater management plan|faq|ucc|icc/i.test(haystack)) {
     return "service_notice";
   }
 
@@ -67,13 +85,17 @@ export function summarizeItem(
 
   switch (classification) {
     case "agenda_posted":
-      return item.eventDate
-        ? `According to the posted agenda listing, this item is scheduled for ${formatIsoDate(item.eventDate)}.`
-        : `According to the posted agenda listing, this item is available from the township agenda portal.`;
+      return detail
+        ? `According to the posted agenda, ${detail}`
+        : item.eventDate
+          ? `According to the posted agenda listing, this item is scheduled for ${formatIsoDate(item.eventDate)}.`
+          : `According to the posted agenda listing, this item is available from the township agenda portal.`;
     case "approved_minutes":
-      return item.eventDate
-        ? `According to the posted minutes listing, this record is tied to ${formatIsoDate(item.eventDate)}.`
-        : `According to the posted minutes listing, this record is available through the township agenda portal.`;
+      return detail
+        ? `According to the posted meeting minutes, ${detail}`
+        : item.eventDate
+          ? `According to the posted minutes listing, this record is tied to ${formatIsoDate(item.eventDate)}.`
+          : `According to the posted minutes listing, this record is available through the township agenda portal.`;
     case "official_alert":
       return detail
         ? `According to the township alert, ${detail}`

@@ -18,6 +18,7 @@ type PublishedRow = {
   published_at: string;
   source_material_date: string | null;
   source_name: string;
+  topic_text: string;
 };
 
 export type SearchablePublishedEntry = {
@@ -48,6 +49,18 @@ function publishedCategoryPrioritySql() {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+const STALE_FETCH_RUN_MINUTES = 45;
+
+export class ActiveFetchRunError extends Error {
+  constructor(
+    readonly fetchRunId: string,
+    readonly startedAt: string
+  ) {
+    super(`Fetch run ${fetchRunId} is already running for this municipality.`);
+    this.name = "ActiveFetchRunError";
+  }
 }
 
 export async function syncRegistry(db: D1Database) {
@@ -127,6 +140,9 @@ async function upsertSource(db: D1Database, source: SourceConfig, now: string) {
 }
 
 export async function createFetchRun(db: D1Database, municipalitySlug: string) {
+  await expireStaleFetchRuns(db, municipalitySlug);
+  await assertNoActiveFetchRun(db, municipalitySlug);
+
   const id = crypto.randomUUID();
   await db
     .prepare(
@@ -136,6 +152,48 @@ export async function createFetchRun(db: D1Database, municipalitySlug: string) {
     .run();
 
   return id;
+}
+
+async function assertNoActiveFetchRun(db: D1Database, municipalitySlug: string) {
+  const active = await db
+    .prepare(
+      `SELECT id, started_at
+      FROM fetch_run
+      WHERE municipality_slug = ? AND status = ?
+      ORDER BY started_at DESC
+      LIMIT 1`
+    )
+    .bind(municipalitySlug, "running")
+    .first<{ id: string; started_at: string }>();
+
+  if (active) {
+    throw new ActiveFetchRunError(active.id, active.started_at);
+  }
+}
+
+async function expireStaleFetchRuns(db: D1Database, municipalitySlug: string) {
+  const cutoff = new Date(Date.now() - STALE_FETCH_RUN_MINUTES * 60 * 1000).toISOString();
+
+  await db
+    .prepare(
+      `UPDATE fetch_run
+      SET status = ?, completed_at = ?, error_message = ?, stats_json = COALESCE(stats_json, ?)
+      WHERE municipality_slug = ? AND status = ? AND started_at < ?`
+    )
+    .bind(
+      "failed",
+      nowIso(),
+      `Marked failed after exceeding ${STALE_FETCH_RUN_MINUTES} minutes without completion.`,
+      JSON.stringify({
+        sourcesFetched: 0,
+        itemsSeen: 0,
+        diffEventsCreated: 0
+      }),
+      municipalitySlug,
+      "running",
+      cutoff
+    )
+    .run();
 }
 
 export async function completeFetchRun(
@@ -187,7 +245,7 @@ export async function attachArtifactRecord(
     .run();
 }
 
-async function findExistingSourceItem(
+export async function findExistingSourceItem(
   db: D1Database,
   sourceSlug: string,
   externalId: string
@@ -196,6 +254,15 @@ async function findExistingSourceItem(
     .prepare("SELECT id, content_hash FROM source_item WHERE source_slug = ? AND external_id = ?")
     .bind(sourceSlug, externalId)
     .first<{ id: string; content_hash: string }>();
+}
+
+export async function touchSourceItem(db: D1Database, sourceItemId: string) {
+  const now = nowIso();
+
+  await db
+    .prepare("UPDATE source_item SET last_seen_at = ?, updated_at = ? WHERE id = ?")
+    .bind(now, now, sourceItemId)
+    .run();
 }
 
 export async function persistNormalizedItem(
@@ -412,6 +479,7 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
           COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
           ${feedPrioritySql} as feed_priority,
           source.name as source_name,
+          substr(source_item.normalized_text, 1, 4000) as topic_text,
           ROW_NUMBER() OVER (
             PARTITION BY content_entry.source_item_id
             ORDER BY publication.published_at DESC
@@ -433,7 +501,8 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
         extraction_note,
         published_at,
         source_material_date,
-        source_name
+        source_name,
+        topic_text
       FROM ranked_publications
       WHERE row_number = 1
       ORDER BY feed_priority ASC, source_material_date DESC, published_at DESC
@@ -466,11 +535,52 @@ export async function listReviewQueue(db: D1Database, slug: string) {
 }
 
 function tokenizeSearchQuery(query: string) {
+  const stopWords = new Set([
+    "a",
+    "an",
+    "and",
+    "are",
+    "about",
+    "currently",
+    "do",
+    "for",
+    "from",
+    "how",
+    "i",
+    "if",
+    "in",
+    "indexed",
+    "is",
+    "it",
+    "local",
+    "locality",
+    "manheim",
+    "municipal",
+    "municipality",
+    "of",
+    "on",
+    "or",
+    "records",
+    "say",
+    "says",
+    "tell",
+    "that",
+    "the",
+    "their",
+    "there",
+    "these",
+    "this",
+    "township",
+    "what",
+    "which",
+    "with"
+  ]);
+
   return query
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
-    .filter((term) => term.length >= 3)
+    .filter((term) => term.length >= 3 && !stopWords.has(term))
     .slice(0, 8);
 }
 
@@ -506,11 +616,92 @@ function scoreSearchableEntry(entry: SearchablePublishedEntry, query: string, te
     }
   }
 
+  if (isHousingIntent(query, terms)) {
+    if (isHousingOrGrowthEntry(title, summary, body)) {
+      score += 10;
+    }
+
+    if (entry.category === "planning_zoning") {
+      score += 4;
+    }
+  }
+
+  if (isDevelopmentIntent(query, terms)) {
+    if (entry.category === "planning_zoning") {
+      score += 5;
+    }
+
+    if (isDevelopmentEntry(title, summary, body)) {
+      score += 6;
+    }
+  }
+
   if (entry.category === "official_news" || entry.category === "official_alert") {
     score += 1;
   }
 
   return score;
+}
+
+const HOUSING_TERMS = [
+  "housing",
+  "residential",
+  "dwelling",
+  "dwelling unit",
+  "apartment",
+  "apartments",
+  "townhome",
+  "townhomes",
+  "multifamily",
+  "multi family",
+  "single-family",
+  "single family",
+  "subdivision",
+  "homebuilding",
+  "home construction",
+  "senior living",
+  "affordable housing",
+  "accessory dwelling unit"
+];
+
+const DEVELOPMENT_TERMS = [
+  "development",
+  "land development",
+  "subdivision",
+  "rezoning",
+  "variance",
+  "conditional use",
+  "planning",
+  "zoning",
+  "hearing",
+  "ordinance amendment",
+  "site plan"
+];
+
+function isHousingIntent(query: string, terms: string[]) {
+  return includesPhraseOrTerm(query, terms, HOUSING_TERMS);
+}
+
+function isDevelopmentIntent(query: string, terms: string[]) {
+  return includesPhraseOrTerm(query, terms, DEVELOPMENT_TERMS);
+}
+
+function includesPhraseOrTerm(query: string, terms: string[], patterns: string[]) {
+  return patterns.some((pattern) => {
+    return query.includes(pattern) || terms.includes(pattern);
+  });
+}
+
+function isHousingOrGrowthEntry(title: string, summary: string, body: string) {
+  return includesInAny([title, summary, body], HOUSING_TERMS);
+}
+
+function isDevelopmentEntry(title: string, summary: string, body: string) {
+  return includesInAny([title, summary, body], DEVELOPMENT_TERMS);
+}
+
+function includesInAny(values: string[], patterns: string[]) {
+  return values.some((value) => patterns.some((pattern) => value.includes(pattern)));
 }
 
 export async function searchPublishedEntries(
@@ -563,7 +754,7 @@ export async function searchPublishedEntries(
       FROM ranked_publications
       WHERE row_number = 1
       ORDER BY published_at DESC
-      LIMIT 150`
+      LIMIT 250`
     )
     .bind(slug)
     .all<SearchablePublishedEntry>();

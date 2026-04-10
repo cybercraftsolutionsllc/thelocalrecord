@@ -18,6 +18,18 @@ type AskLocalityStructuredAnswer = {
   citationIndexes: number[];
 };
 
+type AskEvidenceEntry = {
+  index: number;
+  title: string;
+  summary: string;
+  category: string;
+  sourceName: string;
+  sourceMaterialDate: string | null;
+  publishedAt: string;
+  sourceLinks: Array<{ label: string; url: string }>;
+  evidenceExcerpt: string;
+};
+
 const SUMMARY_REFINEMENT_PROMPT = `You assist an independent local-government digest.
 
 Use only the supplied source text.
@@ -38,6 +50,7 @@ Hard rules:
 - For permit, legal, zoning, or ordinance questions with incomplete support, say that the currently indexed sources do not conclusively answer the question and direct the reader to the cited official source.
 - If multiple interpretations are possible, prefer a cautious answer over a confident one.
 - Do not mention any source that is not in the evidence list.
+- Treat evidenceExcerpt as the strongest available project/detail context from the cited source text.
 
 Style:
 - Answer in 2 to 4 concise sentences.
@@ -50,6 +63,15 @@ Citations:
 - Prefer the most directly relevant official source entries.
 
 Your job is to help residents understand what the current cited material says, not to replace the official source.`;
+
+const SUMMARY_REFINEMENT_SOURCE_SLUGS = new Set([
+  "township-news",
+  "code-news",
+  "alert-center",
+  "code-compliance",
+  "planning-commission",
+  "zoning-hearing-board"
+]);
 
 export type AskLocalityResult =
   | {
@@ -78,7 +100,19 @@ export async function maybeRefineSummaryWithOpenAI(
     return baseDecision;
   }
 
-  if (!["township-news", "alert-center"].includes(item.sourceSlug)) {
+  if (!SUMMARY_REFINEMENT_SOURCE_SLUGS.has(item.sourceSlug)) {
+    return baseDecision;
+  }
+
+  if (item.normalizedText.length < 160) {
+    return baseDecision;
+  }
+
+  if (
+    item.sourceUrl.toLowerCase().includes("/documentcenter/view/") ||
+    item.sourceUrl.toLowerCase().endsWith(".pdf") ||
+    item.extraction.method === "pdf"
+  ) {
     return baseDecision;
   }
 
@@ -236,18 +270,23 @@ function needsClarification(question: string) {
 
 function relabelCitationLink(label: string, url: string, index: number) {
   const lowerLabel = label.toLowerCase();
-  const isPdf = url.toLowerCase().endsWith(".pdf");
+  const lowerUrl = url.toLowerCase();
+  const isDocument =
+    lowerUrl.endsWith(".pdf") ||
+    lowerUrl.includes("/documentcenter/view/") ||
+    lowerUrl.includes("/archivecenter/viewfile/") ||
+    lowerUrl.includes("archive.aspx?adid=");
 
   if (lowerLabel.includes("source page")) {
     return "Listing page";
   }
 
   if (lowerLabel.includes("source item")) {
-    return isPdf ? "Original document" : "Original post";
+    return isDocument ? "Original document" : "Original post";
   }
 
   if (index === 0) {
-    return isPdf ? "Original document" : "Original post";
+    return isDocument ? "Original document" : "Original post";
   }
 
   return label;
@@ -273,6 +312,109 @@ function parseCitationLinks(entries: SearchablePublishedEntry[]) {
       url: preferredLink.url
     };
   });
+}
+
+function compactValue(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function getRelevantEvidenceExcerpt(
+  normalizedText: string,
+  question: string,
+  summary: string
+) {
+  const compactText = compactValue(normalizedText);
+
+  if (!compactText) {
+    return compactValue(summary);
+  }
+
+  const terms = question
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((term) => term.length >= 4);
+  const sentences = compactText
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => compactValue(sentence))
+    .filter(Boolean);
+
+  const scored = sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: scoreEvidenceSentence(sentence, terms)
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, 2)
+    .sort((left, right) => left.index - right.index)
+    .map((entry) => entry.sentence)
+    .join(" ");
+
+  if (scored) {
+    return truncateEvidence(scored, 700);
+  }
+
+  return truncateEvidence(compactText, 700);
+}
+
+function scoreEvidenceSentence(sentence: string, terms: string[]) {
+  const lower = sentence.toLowerCase();
+  let score = 0;
+
+  for (const term of terms) {
+    if (lower.includes(term)) {
+      score += 3;
+    }
+  }
+
+  if (
+    /subdivision|land development|residential|housing|dwelling|apartment|townhome|planning commission|recommend approval|motion was made|waiver|modification|stormwater|rezoning|variance|conditional use/i.test(
+      sentence
+    )
+  ) {
+    score += 2;
+  }
+
+  if (sentence.length >= 60 && sentence.length <= 500) {
+    score += 1;
+  }
+
+  if (/roll call|call to order|pledge|adjournment|attendance/i.test(sentence)) {
+    score -= 2;
+  }
+
+  return score;
+}
+
+function truncateEvidence(value: string, maxLength: number) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function buildEvidenceEntries(
+  question: string,
+  matches: SearchablePublishedEntry[]
+): AskEvidenceEntry[] {
+  return matches.map((match, index) => ({
+    index,
+    title: match.title,
+    summary: match.summary,
+    category: match.category,
+    sourceName: match.source_name,
+    sourceMaterialDate: match.source_material_date,
+    publishedAt: match.published_at,
+    sourceLinks: safeParseLinks(match.source_links_json),
+    evidenceExcerpt: getRelevantEvidenceExcerpt(
+      match.normalized_text,
+      question,
+      match.summary
+    )
+  }));
 }
 
 function safeParseLinks(value: string) {
@@ -326,11 +468,12 @@ export async function answerLocalityQuestion(
   }
 
   const citations = parseCitationLinks(args.matches);
+  const evidence = buildEvidenceEntries(args.question, args.matches);
 
   if (!env.OPENAI_API_KEY) {
     return {
       mode: "answer",
-      answer: buildFallbackAnswer(args.question, args.matches),
+      answer: buildFallbackAnswer(args.question, evidence),
       citations: citations.slice(0, 3),
       disclaimer: defaultAskDisclaimer()
     };
@@ -355,16 +498,7 @@ export async function answerLocalityQuestion(
                 text: JSON.stringify({
                   municipalityName: args.municipalityName,
                   question: args.question,
-                  evidence: args.matches.map((match, index) => ({
-                    index,
-                    title: match.title,
-                    summary: match.summary,
-                    category: match.category,
-                    sourceName: match.source_name,
-                    sourceMaterialDate: match.source_material_date,
-                    publishedAt: match.published_at,
-                    sourceLinks: safeParseLinks(match.source_links_json)
-                  }))
+                  evidence
                 })
               }
             ]
@@ -437,7 +571,7 @@ export async function answerLocalityQuestion(
   } catch {
     return {
       mode: "answer",
-      answer: buildFallbackAnswer(args.question, args.matches),
+      answer: buildFallbackAnswer(args.question, evidence),
       citations: citations.slice(0, 3),
       disclaimer: defaultAskDisclaimer()
     };
@@ -446,11 +580,11 @@ export async function answerLocalityQuestion(
 
 function buildFallbackAnswer(
   question: string,
-  matches: SearchablePublishedEntry[]
+  evidence: AskEvidenceEntry[]
 ) {
-  const leadingMatches = matches.slice(0, 3);
+  const leadingMatches = evidence.slice(0, 3);
   const joined = leadingMatches
-    .map((match) => `${match.title}: ${match.summary}`)
+    .map((match) => `${match.title}: ${match.evidenceExcerpt || match.summary}`)
     .join(" ");
 
   if (joined) {

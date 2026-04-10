@@ -3,7 +3,9 @@ export type EntryTopicKey =
   | "events_and_meetings"
   | "township_news"
   | "alerts_and_closures"
+  | "housing_and_growth"
   | "land_development"
+  | "permits_and_code"
   | "minutes_and_agendas";
 
 export const entryTopicLabels: Record<EntryTopicKey, string> = {
@@ -11,7 +13,9 @@ export const entryTopicLabels: Record<EntryTopicKey, string> = {
   events_and_meetings: "Events & meetings",
   township_news: "Township news",
   alerts_and_closures: "Alerts & closures",
+  housing_and_growth: "Housing & growth",
   land_development: "Land development",
+  permits_and_code: "Permits & code",
   minutes_and_agendas: "Minutes & agendas"
 };
 
@@ -23,8 +27,43 @@ export function getEntryTopic(args: {
   title: string;
   summary: string;
   category: string;
+  sourceLabel?: string;
+  topicText?: string;
 }): EntryTopicKey {
-  const haystack = `${args.title} ${args.summary} ${args.category}`.toLowerCase();
+  const haystack = `${args.title} ${args.summary} ${args.category} ${args.sourceLabel ?? ""} ${args.topicText ?? ""}`.toLowerCase();
+
+  if (
+    includesAny(haystack, [
+      "housing",
+      "residential",
+      "dwelling unit",
+      "dwelling units",
+      "apartment",
+      "apartments",
+      "homes",
+      "new homes",
+      "townhome",
+      "townhomes",
+      "multi-family",
+      "multifamily",
+      "single-family",
+      "subdivision",
+      "subdivisions",
+      "ashford meadows",
+      "development proposal",
+      "proposed development",
+      "residential development",
+      "housing development",
+      "planned development",
+      "homebuilding",
+      "home construction",
+      "senior living",
+      "affordable housing",
+      "accessory dwelling unit"
+    ])
+  ) {
+    return "housing_and_growth";
+  }
 
   if (
     includesAny(haystack, [
@@ -32,6 +71,10 @@ export function getEntryTopic(args: {
       "variance",
       "conditional use",
       "land development",
+      "development plan",
+      "preliminary/final",
+      "preliminary plan",
+      "final plan",
       "subdivision",
       "planning",
       "zoning",
@@ -39,6 +82,24 @@ export function getEntryTopic(args: {
     ])
   ) {
     return "land_development";
+  }
+
+  if (
+    includesAny(haystack, [
+      "permit",
+      "permits",
+      "code compliance",
+      "building code",
+      "occupancy",
+      "stormwater management plan",
+      "code enforcement",
+      "rental housing",
+      "ucc",
+      "icc",
+      "inspection"
+    ])
+  ) {
+    return "permits_and_code";
   }
 
   if (

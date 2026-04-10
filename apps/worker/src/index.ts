@@ -1,8 +1,14 @@
-import { getMunicipalityBySlug, municipalities } from "@thelocalrecord/core";
+import { getMunicipalityBySlug, municipalities, normalizedSourceItemSchema } from "@thelocalrecord/core";
 
-import { listPublishedEntries, listReviewQueue, searchPublishedEntries, syncRegistry } from "./d1";
+import {
+  ActiveFetchRunError,
+  listPublishedEntries,
+  listReviewQueue,
+  searchPublishedEntries,
+  syncRegistry
+} from "./d1";
 import type { WorkerEnv } from "./env";
-import { ingestMunicipality } from "./ingest";
+import { importMunicipalityItems, ingestMunicipality } from "./ingest";
 import { answerLocalityQuestion } from "./openai";
 
 type ExecutionContext = {
@@ -51,8 +57,60 @@ export default {
 
     if (url.pathname === "/admin/run" && request.method === "POST") {
       const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
-      const stats = await ingestMunicipality(env, slug);
-      return Response.json({ ok: true, slug, stats }, { headers: jsonHeaders });
+      try {
+        const stats = await ingestMunicipality(env, slug);
+        return Response.json({ ok: true, slug, stats }, { headers: jsonHeaders });
+      } catch (error) {
+        if (error instanceof ActiveFetchRunError) {
+          return Response.json(
+            {
+              ok: false,
+              slug,
+              error: "ingest_already_running",
+              fetchRunId: error.fetchRunId,
+              startedAt: error.startedAt
+            },
+            { status: 409, headers: jsonHeaders }
+          );
+        }
+
+        throw error;
+      }
+    }
+
+    if (url.pathname === "/admin/import" && request.method === "POST") {
+      const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
+      const payload = (await request.json().catch(() => null)) as
+        | { items?: unknown }
+        | null;
+      const parsedItems = normalizedSourceItemSchema.array().safeParse(payload?.items ?? []);
+
+      if (!parsedItems.success) {
+        return Response.json(
+          { ok: false, error: "invalid_items" },
+          { status: 400, headers: jsonHeaders }
+        );
+      }
+
+      try {
+        const stats = await importMunicipalityItems(env, slug, parsedItems.data);
+        return Response.json({ ok: true, slug, stats }, { headers: jsonHeaders });
+      } catch (error) {
+        if (error instanceof ActiveFetchRunError) {
+          return Response.json(
+            {
+              ok: false,
+              slug,
+              error: "ingest_already_running",
+              fetchRunId: error.fetchRunId,
+              startedAt: error.startedAt
+            },
+            { status: 409, headers: jsonHeaders }
+          );
+        }
+
+        throw error;
+      }
     }
 
     if (url.pathname.startsWith("/api/localities/")) {
@@ -128,7 +186,15 @@ export default {
         await syncRegistry(env.DB);
 
         for (const municipality of municipalities) {
-          await ingestMunicipality(env, municipality.slug);
+          try {
+            await ingestMunicipality(env, municipality.slug);
+          } catch (error) {
+            if (error instanceof ActiveFetchRunError) {
+              continue;
+            }
+
+            throw error;
+          }
         }
       })()
     );

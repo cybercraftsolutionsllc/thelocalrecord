@@ -10,6 +10,7 @@ type PublicEntry = {
   extractionNote?: string | null;
   sourceLabel: string;
   sourceLinks: Array<{ label: string; url: string }>;
+  topicText?: string;
 };
 
 type ReviewEntry = {
