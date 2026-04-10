@@ -45,6 +45,8 @@ type TopicOption = {
   count: number;
 };
 
+type FeedViewKey = "events_of_note" | "all_records";
+
 function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
   if (Array.isArray(payload)) {
     return {
@@ -143,6 +145,7 @@ export function LivePublishedEntries({
   );
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialEntries.length);
+  const [feedView, setFeedView] = useState<FeedViewKey>("events_of_note");
   const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
   const [query, setQuery] = useState("");
   const pageSize = 18;
@@ -206,6 +209,7 @@ export function LivePublishedEntries({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const loadedCount = entries.length;
   const normalizedQuery = query.trim().toLowerCase();
+  const notableEntries = entries.filter(isResidentFacingEntry);
   const topicOptions = entries.reduce<TopicOption[]>(
     (options, entry) => {
       const topic = getEntryTopic(entry);
@@ -221,7 +225,15 @@ export function LivePublishedEntries({
     },
     [{ key: "all", label: entryTopicLabels.all, count: entries.length }]
   );
+  const baseEntries =
+    normalizedQuery || activeTopic !== "all" || feedView === "all_records"
+      ? entries
+      : notableEntries;
   const filteredEntries = entries.filter((entry) => {
+    if (!baseEntries.some((candidate) => candidate.id === entry.id)) {
+      return false;
+    }
+
     const matchesTopic =
       activeTopic === "all" || getEntryTopic(entry) === activeTopic;
 
@@ -245,42 +257,72 @@ export function LivePublishedEntries({
           <div className="flex flex-col gap-5">
             <div className="space-y-2">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                Browse this feed
+                Browse local updates
               </p>
               <p className="text-sm leading-7 text-ink/70">
-                Major notices and township updates appear first. Use the filters
-                to focus on meetings, planning items, or specific topics.
+                The default view favors meetings, news, alerts, and notable
+                planning items. Search and filters still reach the deeper permit
+                and code records when you need them.
               </p>
               <p className="text-xs leading-6 text-ink/55">
-                Showing {loadedCount} of {total} published entries.
+                Showing {filteredEntries.length} of {loadedCount} loaded records
+                ({total} total).
               </p>
             </div>
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <label className="w-full xl:max-w-sm">
-                <span className="sr-only">Search updates</span>
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search updates, roads, meetings, ordinances..."
-                  className="w-full rounded-full border border-ink/10 bg-sand/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
-                />
-              </label>
-              <div className="flex flex-wrap gap-3">
-                {topicOptions.map((option) => (
+              <div className="w-full space-y-4">
+                <div className="flex flex-wrap gap-3">
                   <button
-                    key={option.key}
                     type="button"
-                    onClick={() => setActiveTopic(option.key)}
+                    onClick={() => setFeedView("events_of_note")}
                     className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                      activeTopic === option.key
+                      feedView === "events_of_note"
                         ? "bg-moss text-white"
                         : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
                     }`}
                   >
-                    {option.label} ({option.count})
+                    Events of note ({notableEntries.length})
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setFeedView("all_records")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      feedView === "all_records"
+                        ? "bg-moss text-white"
+                        : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                    }`}
+                  >
+                    All records ({entries.length})
+                  </button>
+                </div>
+
+                <label className="block xl:max-w-sm">
+                  <span className="sr-only">Search updates</span>
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search Ashford Meadows, roads, meetings, permits..."
+                    className="w-full rounded-full border border-ink/10 bg-sand/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+                  />
+                </label>
+
+                <div className="flex flex-wrap gap-3">
+                  {topicOptions.map((option) => (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() => setActiveTopic(option.key)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        activeTopic === option.key
+                          ? "bg-moss text-white"
+                          : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                      }`}
+                    >
+                      {option.label} ({option.count})
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -301,6 +343,7 @@ export function LivePublishedEntries({
             <button
               type="button"
               onClick={() => {
+                setFeedView("events_of_note");
                 setActiveTopic("all");
                 setQuery("");
                 setPage(1);
@@ -340,4 +383,27 @@ export function LivePublishedEntries({
       </p>
     </div>
   );
+}
+
+function isResidentFacingEntry(entry: PublicEntry) {
+  const topic = getEntryTopic(entry);
+  const haystack =
+    `${entry.title} ${entry.summary} ${entry.sourceLabel} ${entry.topicText ?? ""}`.toLowerCase();
+
+  if (
+    topic === "permits_and_code" &&
+    /permit|inspection|fee schedule|code compliance|faq|electrical|plumbing|deck|patio|fireworks|complaints|occupancy|rental housing/.test(
+      haystack
+    )
+  ) {
+    return false;
+  }
+
+  if (entry.category === "service_notice") {
+    return /road|closure|detour|utility|water|trash|trail|park|project|meeting|notice|workshop|survey|alert|traffic/.test(
+      haystack
+    );
+  }
+
+  return true;
 }

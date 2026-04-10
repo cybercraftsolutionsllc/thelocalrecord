@@ -79,11 +79,12 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                   Latest updates
                 </p>
                 <h2 className="mt-2 font-serif text-3xl text-moss">
-                  Published entries
+                  Events of note
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-ink/68">
-                  Browse the latest public updates first, then drill into the
-                  original documents when you need the full record.
+                  Start with the local items residents are most likely to care
+                  about, then search or filter for deeper records when you need
+                  them.
                 </p>
               </div>
             </div>

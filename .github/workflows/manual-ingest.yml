@@ -12,9 +12,9 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL != '' && secrets.DATABASE_URL || 'file:../../../data/manual-ingest.db' }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL != '' && vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
-      INGEST_USER_AGENT: ${{ vars.INGEST_USER_AGENT != '' && vars.INGEST_USER_AGENT || 'thelocalrecord-bot/0.1 (+https://thelocalrecord.org)' }}
+      CONTENT_API_BASE: https://thelocalrecord-api.cybercraftsolutions.workers.dev
+      INGEST_USER_AGENT: thelocalrecord-bot/0.1 (+https://thelocalrecord.org)
+      MUNICIPALITY_SLUG: ${{ github.event.inputs.municipality_slug }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,10 +33,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Prepare database
+      - name: Run live source ingest
         run: |
-          pnpm db:push
-          pnpm db:seed
+          curl --fail --show-error --silent \
+            -X POST \
+            "${CONTENT_API_BASE}/admin/run?slug=${MUNICIPALITY_SLUG}"
 
-      - name: Run ingest
-        run: pnpm --filter @thelocalrecord/ingest ingest --slug=${{ github.event.inputs.municipality_slug }}
+      - name: Import planning archive PDFs
+        run: pnpm --filter @thelocalrecord/ingest import:planning-commission

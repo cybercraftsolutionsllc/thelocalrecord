@@ -37,12 +37,12 @@ function publishedCategoryPrioritySql() {
   return `CASE content_entry.category
     WHEN 'official_alert' THEN 1
     WHEN 'official_news' THEN 2
-    WHEN 'service_notice' THEN 3
-    WHEN 'agenda_posted' THEN 4
-    WHEN 'approved_minutes' THEN 5
-    WHEN 'planning_zoning' THEN 6
-    WHEN 'calendar_update' THEN 7
-    WHEN 'meeting_notice' THEN 8
+    WHEN 'approved_minutes' THEN 3
+    WHEN 'planning_zoning' THEN 4
+    WHEN 'meeting_notice' THEN 5
+    WHEN 'calendar_update' THEN 6
+    WHEN 'agenda_posted' THEN 7
+    WHEN 'service_notice' THEN 8
     ELSE 9
   END`;
 }
