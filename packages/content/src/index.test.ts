@@ -129,4 +129,30 @@ describe("evaluateItem", () => {
     expect(decision.summary).toContain("According to the posted meeting minutes");
     expect(decision.summary).toContain("Ashford Meadows");
   });
+
+  it("prefers substantive project discussion over procedural minute language", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-2",
+      title: "18 February 2026 - Planning Commission Minutes",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3640",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "18 February 2026 - Planning Commission Minutes Meeting Minutes for the 2/18/2026 Planning Commission Meeting Motion was made by Sandy Kime and seconded by Nathan Van Name to approve the minutes of the January 21, 2026, meeting. Motion carried 3-0 with 3 abstentions. Preliminary Subdivision & Land Development Plan for Ashford Meadows - R-2 Residential Zoning District. Todd Kurl of RGS Associates Inc. presented the plan which proposes 117 lots, with 111 lots being single family residential, and 6 being open space lots. The site is located at 120 Kreider Avenue, Lancaster, PA 17601 & 2325 Lititz Pike, Lancaster, PA 17601. Motion was made by Sandy Kime and seconded by Nathan van Name to table the plan. Motion carried 6-0.",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-2")
+    });
+
+    const decision = evaluateItem(item);
+
+    expect(decision.summary).toContain("Ashford Meadows");
+    expect(decision.summary).toContain("117 lots");
+    expect(decision.summary).not.toContain("approve the minutes");
+  });
 });

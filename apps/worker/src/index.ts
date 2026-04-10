@@ -8,7 +8,11 @@ import {
   syncRegistry
 } from "./d1";
 import type { WorkerEnv } from "./env";
-import { importMunicipalityItems, ingestMunicipality } from "./ingest";
+import {
+  importMunicipalityItems,
+  ingestMunicipality,
+  resummarizeMunicipalityItems
+} from "./ingest";
 import { answerLocalityQuestion } from "./openai";
 
 type ExecutionContext = {
@@ -111,6 +115,32 @@ export default {
 
         throw error;
       }
+    }
+
+    if (url.pathname === "/admin/resummarize" && request.method === "POST") {
+      const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
+      const sourceSlugs =
+        url.searchParams
+          .get("sources")
+          ?.split(",")
+          .map((value) => value.trim())
+          .filter(Boolean) ?? [];
+
+      if (sourceSlugs.length === 0) {
+        return Response.json(
+          { ok: false, error: "missing_sources" },
+          { status: 400, headers: jsonHeaders }
+        );
+      }
+
+      return Response.json(
+        {
+          ok: true,
+          slug,
+          ...(await resummarizeMunicipalityItems(env, slug, sourceSlugs))
+        },
+        { headers: jsonHeaders }
+      );
     }
 
     if (url.pathname.startsWith("/api/localities/")) {

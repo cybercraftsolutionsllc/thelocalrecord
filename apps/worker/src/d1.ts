@@ -33,6 +33,24 @@ export type SearchablePublishedEntry = {
   normalized_text: string;
 };
 
+export type StoredSourceItemRecord = {
+  id: string;
+  municipality_slug: string;
+  source_slug: string;
+  external_id: string;
+  title: string;
+  source_url: string;
+  source_page_url: string;
+  normalized_text: string;
+  published_at: string | null;
+  event_date: string | null;
+  content_hash: string;
+  metadata_json: string;
+  extraction_method: string;
+  extraction_confidence: number;
+  extraction_note: string | null;
+};
+
 function publishedCategoryPrioritySql() {
   return `CASE content_entry.category
     WHEN 'official_alert' THEN 1
@@ -636,7 +654,7 @@ function scoreSearchableEntry(entry: SearchablePublishedEntry, query: string, te
     }
   }
 
-  if (entry.category === "official_news" || entry.category === "official_alert") {
+  if (score > 0 && (entry.category === "official_news" || entry.category === "official_alert")) {
     score += 1;
   }
 
@@ -702,6 +720,96 @@ function isDevelopmentEntry(title: string, summary: string, body: string) {
 
 function includesInAny(values: string[], patterns: string[]) {
   return values.some((value) => patterns.some((pattern) => value.includes(pattern)));
+}
+
+function compactSearchText(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function splitSearchSentences(text: string) {
+  return compactSearchText(text)
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length >= 40);
+}
+
+function searchSummaryPrefix(category: string) {
+  switch (category) {
+    case "approved_minutes":
+      return "According to the posted meeting minutes, ";
+    case "agenda_posted":
+      return "According to the posted agenda, ";
+    case "meeting_notice":
+      return "According to the posted meeting notice, ";
+    case "calendar_update":
+      return "According to the public calendar listing, ";
+    case "official_alert":
+      return "According to the official alert, ";
+    default:
+      return "";
+  }
+}
+
+function scoreSearchSnippetSentence(sentence: string, query: string, terms: string[]) {
+  const lower = sentence.toLowerCase();
+  let score = 0;
+
+  if (lower.includes(query)) {
+    score += 12;
+  }
+
+  for (const term of terms) {
+    if (lower.includes(term)) {
+      score += 4;
+    }
+  }
+
+    if (
+      /presented the plan|proposes|proposed|subdivision|land development|rezoning|variance|conditional use|ordinance|hearing|single family|mixed-use|townhome|apartment|dwelling|table the plan|recommend approval/i.test(
+        sentence
+      )
+    ) {
+      score += 5;
+    }
+
+    if (/117 lots|111 lots|open space lots|rgs associates|site is located/i.test(sentence)) {
+      score += 4;
+    }
+
+    if (/approve the minutes|roll call|call to order|adjournment|members present/i.test(sentence)) {
+      score -= 6;
+    }
+
+    if (/public comment|focused discussions|no motions were made|\.\.\.\.\.\.\.\./i.test(sentence)) {
+      score -= 4;
+    }
+
+    return score;
+  }
+
+function buildSearchSnippet(entry: SearchablePublishedEntry, query: string, terms: string[]) {
+  const sentences = splitSearchSentences(entry.normalized_text);
+  const bestSentence = sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: scoreSearchSnippetSentence(sentence, query, terms)
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)[0];
+
+  if (!bestSentence) {
+    return entry.summary;
+  }
+
+  const prefix = searchSummaryPrefix(entry.category);
+  const snippet = `${prefix}${bestSentence.sentence}`;
+
+  if (snippet.length <= 320) {
+    return snippet;
+  }
+
+  return `${snippet.slice(0, 317).trimEnd()}...`;
 }
 
 export async function searchPublishedEntries(
@@ -773,5 +881,81 @@ export async function searchPublishedEntries(
       return right.entry.published_at.localeCompare(left.entry.published_at);
     })
     .slice(0, limit)
-    .map((candidate) => candidate.entry);
+    .map((candidate) => ({
+      ...candidate.entry,
+      summary: buildSearchSnippet(candidate.entry, normalizedQuery, terms)
+    }));
+}
+
+export async function listSourceItemsForMunicipality(
+  db: D1Database,
+  slug: string,
+  sourceSlugs: string[]
+) {
+  if (sourceSlugs.length === 0) {
+    return [] as StoredSourceItemRecord[];
+  }
+
+  const placeholders = sourceSlugs.map(() => "?").join(", ");
+  const result = await db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        source_slug,
+        external_id,
+        title,
+        source_url,
+        source_page_url,
+        normalized_text,
+        published_at,
+        event_date,
+        content_hash,
+        metadata_json,
+        extraction_method,
+        extraction_confidence,
+        extraction_note
+      FROM source_item
+      WHERE municipality_slug = ? AND source_slug IN (${placeholders})
+      ORDER BY COALESCE(event_date, published_at, created_at) DESC`
+    )
+    .bind(slug, ...sourceSlugs)
+    .all<StoredSourceItemRecord>();
+
+  return result.results ?? [];
+}
+
+export async function updateContentEntriesForSourceItem(
+  db: D1Database,
+  args: {
+    sourceItemId: string;
+    summary: string;
+    category: string;
+    riskLevel: string;
+    reviewState: string;
+    extractionNote?: string;
+  }
+) {
+  await db
+    .prepare(
+      `UPDATE content_entry
+      SET
+        summary = ?,
+        category = ?,
+        risk_level = ?,
+        review_state = ?,
+        extraction_note = ?,
+        updated_at = ?
+      WHERE source_item_id = ?`
+    )
+    .bind(
+      args.summary,
+      args.category,
+      args.riskLevel,
+      args.reviewState,
+      args.extractionNote ?? null,
+      nowIso(),
+      args.sourceItemId
+    )
+    .run();
 }

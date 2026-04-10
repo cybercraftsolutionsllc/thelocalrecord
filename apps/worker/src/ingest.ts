@@ -27,9 +27,12 @@ import {
   completeFetchRun,
   createFetchRun,
   findExistingSourceItem,
+  listSourceItemsForMunicipality,
   persistNormalizedItem,
   syncRegistry,
-  touchSourceItem
+  touchSourceItem,
+  updateContentEntriesForSourceItem,
+  type StoredSourceItemRecord
 } from "./d1";
 import type { WorkerEnv } from "./env";
 import { maybeRefineSummaryWithOpenAI } from "./openai";
@@ -207,6 +210,42 @@ export async function importMunicipalityItems(
   }
 }
 
+export async function resummarizeMunicipalityItems(
+  env: WorkerEnv,
+  slug: string,
+  sourceSlugs: string[]
+) {
+  const municipality = getMunicipalityBySlug(slug);
+
+  if (!municipality) {
+    throw new Error(`Unknown municipality slug: ${slug}`);
+  }
+
+  const storedItems = await listSourceItemsForMunicipality(env.DB, slug, sourceSlugs);
+  let updated = 0;
+
+  for (const storedItem of storedItems) {
+    const item = mapStoredSourceItemToNormalizedItem(storedItem);
+    const ruleDecision = evaluateItem(item);
+    const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+
+    await updateContentEntriesForSourceItem(env.DB, {
+      sourceItemId: storedItem.id,
+      summary: decision.summary,
+      category: decision.classification,
+      riskLevel: decision.riskLevel,
+      reviewState: decision.reviewState,
+      extractionNote: decision.extractionNote
+    });
+    updated += 1;
+  }
+
+  return {
+    sourceSlugs,
+    sourceItemsUpdated: updated
+  };
+}
+
 async function selectAdapter(
   env: WorkerEnv,
   sourceSlug: string,
@@ -275,4 +314,55 @@ function buildCrossSourceDuplicateKey(item: NormalizedSourceItem) {
   }
 
   return `${item.title.toLowerCase()}|${sourceDate.slice(0, 10)}`;
+}
+
+function mapStoredSourceItemToNormalizedItem(
+  storedItem: StoredSourceItemRecord
+): NormalizedSourceItem {
+  return {
+    municipalitySlug: storedItem.municipality_slug,
+    sourceSlug: storedItem.source_slug,
+    externalId: storedItem.external_id,
+    title: storedItem.title,
+    sourceUrl: storedItem.source_url,
+    sourcePageUrl: storedItem.source_page_url,
+    normalizedText: storedItem.normalized_text,
+    publishedAt: storedItem.published_at ?? undefined,
+    eventDate: storedItem.event_date ?? undefined,
+    extraction: {
+      method: normalizeExtractionMethod(storedItem.extraction_method),
+      confidence: storedItem.extraction_confidence,
+      note: storedItem.extraction_note ?? undefined
+    },
+    metadata: parseMetadata(storedItem.metadata_json),
+    contentHash: storedItem.content_hash
+  };
+}
+
+function normalizeExtractionMethod(
+  method: string
+): NormalizedSourceItem["extraction"]["method"] {
+  if (method === "html" || method === "pdf" || method === "ical" || method === "manual") {
+    return method;
+  }
+
+  return "manual";
+}
+
+function parseMetadata(metadataJson: string) {
+  try {
+    const parsed = JSON.parse(metadataJson) as unknown;
+
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string"
+      )
+    );
+  } catch {
+    return {};
+  }
 }

@@ -12,6 +12,52 @@ const HIGH_RISK_TERMS = [
   "land development"
 ];
 
+const DETAIL_PRIORITY_PATTERNS = [
+  "ashford meadows",
+  "wetherburn commons",
+  "richmond square",
+  "overlook north",
+  "village of olde hickory",
+  "preliminary/final",
+  "preliminary subdivision",
+  "final subdivision",
+  "land development",
+  "development plan",
+  "concept plan",
+  "residential",
+  "housing",
+  "dwelling",
+  "single family",
+  "apartment",
+  "townhome",
+  "mixed-use",
+  "presented the plan",
+  "proposes",
+  "proposed",
+  "public comment",
+  "briefing",
+  "action",
+  "recommend approval",
+  "recommend tabling",
+  "table the plan",
+  "ordinance",
+  "hearing"
+];
+
+const DETAIL_LOW_SIGNAL_PATTERNS = [
+  "roll call",
+  "call to order",
+  "pledge of allegiance",
+  "approve the minutes",
+  "approval of the minutes",
+  "adjournment",
+  "meeting was held",
+  "members present",
+  "scheduled for",
+  "next planning commission meeting",
+  "next board of commissioners meeting"
+];
+
 type EvaluateItemOptions = {
   officialSource?: boolean;
 };
@@ -135,14 +181,75 @@ function extractDetailSnippet(title: string, normalizedText: string) {
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => compactText(sentence))
     .filter((sentence) => sentence.length > 30 && sentence.toLowerCase() !== titleLower);
-
-  const snippet = sentences.slice(0, 2).join(" ");
+  const snippet = selectDetailSentences(sentences).join(" ");
 
   if (!snippet) {
     return "";
   }
 
   return snippet.length > 240 ? `${snippet.slice(0, 237)}...` : snippet;
+}
+
+function selectDetailSentences(sentences: string[]) {
+  const scored = sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: scoreDetailSentence(sentence)
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, 2)
+    .sort((left, right) => left.index - right.index)
+    .map((entry) => entry.sentence);
+
+  if (scored.length > 0) {
+    return scored;
+  }
+
+  return sentences.slice(0, 2);
+}
+
+function scoreDetailSentence(sentence: string) {
+  const lower = sentence.toLowerCase();
+  let score = 0;
+
+  if (sentence.length >= 45 && sentence.length <= 420) {
+    score += 1;
+  }
+
+  if (DETAIL_PRIORITY_PATTERNS.some((pattern) => lower.includes(pattern))) {
+    score += 5;
+  }
+
+  if (
+    /subdivision|land development|rezoning|variance|conditional use|ordinance|zoning|hearing|proposes|proposed|public comment|recommend approval|recommend tabling|table the plan|site is located/i.test(
+      sentence
+    )
+  ) {
+    score += 3;
+  }
+
+  if (
+    /single family|open space lots|mixed-use|stormwater|township dedication|penndot permitting|lot add-on|conversion of [0-9]+ existing parcels|construction of/i.test(
+      sentence
+    )
+  ) {
+    score += 2;
+  }
+
+  if (
+    /motion was made/i.test(sentence) &&
+    !/recommend approval|recommend tabling|table the plan/i.test(sentence)
+  ) {
+    score -= 3;
+  }
+
+  if (DETAIL_LOW_SIGNAL_PATTERNS.some((pattern) => lower.includes(pattern))) {
+    score -= 5;
+  }
+
+  return score;
 }
 
 function escapeRegExp(value: string) {
