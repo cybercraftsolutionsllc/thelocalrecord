@@ -330,8 +330,8 @@ export function LivePublishedEntries({
     return (
       <div className="space-y-5">
         <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
-          <div className="space-y-5">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
                   Latest updates
@@ -339,83 +339,83 @@ export function LivePublishedEntries({
                 <h2 className="font-serif text-[2.15rem] leading-tight text-moss">
                   Events of note
                 </h2>
-                <p className="text-sm leading-7 text-ink/70">
-                  Start with the most relevant local changes, then search or
-                  filter for deeper records when you need them.
+                <p className="max-w-xl text-sm leading-7 text-ink/70">
+                  Scan the biggest local items first, then narrow in when you
+                  need a project, road, ordinance, or meeting.
                 </p>
               </div>
-              <div className="rounded-[1.25rem] border border-moss/10 bg-sand/40 px-4 py-3 text-sm leading-6 text-ink/70 xl:max-w-xs">
+              <div className="text-sm leading-6 text-ink/58 lg:text-right">
                 {searchActive
                   ? `Showing ${filteredEntries.length} search results for "${query.trim()}".`
                   : `Showing ${filteredEntries.length} of ${loadedCount} loaded records (${total} total).`}
               </div>
             </div>
 
-            <div className="space-y-4 rounded-[1.5rem] border border-moss/10 bg-sand/30 p-4">
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFeedView("events_of_note")}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    feedView === "events_of_note"
-                      ? "bg-moss text-white"
-                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
-                  }`}
-                  disabled={searchActive}
-                >
-                  Events of note ({notableVisibleEntries.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedView("all_records")}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    feedView === "all_records"
-                      ? "bg-moss text-white"
-                      : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
-                  }`}
-                  disabled={searchActive}
-                >
-                  All records ({visiblePool.length})
-                </button>
+            <div className="space-y-4 border-t border-ink/8 pt-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <label className="block flex-1">
+                  <span className="sr-only">Search updates</span>
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search Ashford Meadows, roads, meetings, permits..."
+                    className="w-full rounded-full border border-ink/10 bg-sand/20 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+                  />
+                </label>
+
+                <div className="inline-flex rounded-full border border-moss/10 bg-sand/25 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setFeedView("events_of_note")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      feedView === "events_of_note"
+                        ? "bg-moss text-white shadow-sm"
+                        : "text-moss hover:bg-white"
+                    }`}
+                    disabled={searchActive}
+                  >
+                    Events of note
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedView("all_records")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      feedView === "all_records"
+                        ? "bg-moss text-white shadow-sm"
+                        : "text-moss hover:bg-white"
+                    }`}
+                    disabled={searchActive}
+                  >
+                    All records
+                  </button>
+                </div>
               </div>
 
-              <label className="block">
-                <span className="sr-only">Search updates</span>
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search Ashford Meadows, roads, meetings, permits..."
-                  className="w-full rounded-full border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30"
-                />
-              </label>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/50">
-                  Common searches
-                </span>
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-ink/50">Try:</span>
                 {quickSearchSuggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
                     onClick={() => setQuery(suggestion)}
-                    className="rounded-full border border-moss/10 bg-white px-3 py-2 text-sm text-moss transition hover:bg-sky"
+                    className="rounded-full border border-ink/10 bg-white px-3 py-1.5 text-sm text-moss transition hover:bg-sky"
                   >
                     {suggestion}
                   </button>
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 border-t border-ink/8 pt-4">
                 {topicOptions.map((option) => (
                   <button
                     key={option.key}
                     type="button"
                     onClick={() => setActiveTopic(option.key)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
                       activeTopic === option.key
                         ? "bg-moss text-white"
-                        : "border border-moss/10 bg-sky/50 text-moss hover:bg-sky"
+                        : "border border-ink/10 bg-[#f7f4ec] text-moss hover:bg-sky/65"
                     }`}
                   >
                     {option.label} ({option.count})
