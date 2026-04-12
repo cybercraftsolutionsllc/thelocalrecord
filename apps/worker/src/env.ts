@@ -8,4 +8,7 @@ export interface WorkerEnv {
   OPENAI_API_KEY?: string;
   OPENAI_MODEL?: string;
   CORRECTIONS_EMAIL?: string;
+  RESEND_API_KEY?: string;
+  NEWSLETTER_FROM_EMAIL?: string;
+  NEWSLETTER_REPLY_TO?: string;
 }

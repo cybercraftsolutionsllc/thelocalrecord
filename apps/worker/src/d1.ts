@@ -51,8 +51,52 @@ export type StoredSourceItemRecord = {
   extraction_note: string | null;
 };
 
-function publishedCategoryPrioritySql() {
-  return `CASE content_entry.category
+export type NewsletterSubscriptionRecord = {
+  id: string;
+  municipality_slug: string;
+  email: string;
+  display_name: string | null;
+  status: string;
+  frequency: string;
+  manage_token: string;
+  unsubscribe_token: string;
+  created_at: string;
+  updated_at: string;
+  confirmed_at: string | null;
+  unsubscribed_at: string | null;
+  last_sent_issue_id: string | null;
+  last_sent_at: string | null;
+};
+
+export type NewsletterDigestEntry = {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  source_links_json: string;
+  published_at: string;
+  source_material_date: string | null;
+  source_name: string;
+  topic_text: string;
+};
+
+export type NewsletterIssueRecord = {
+  id: string;
+  municipality_slug: string;
+  week_key: string;
+  period_start: string;
+  period_end: string;
+  subject: string;
+  intro: string;
+  entries_json: string;
+  status: string;
+  delivery_notes: string | null;
+  created_at: string;
+  sent_at: string | null;
+};
+
+function publishedCategoryPrioritySql(columnName = "content_entry.category") {
+  return `CASE ${columnName}
     WHEN 'official_alert' THEN 1
     WHEN 'official_news' THEN 2
     WHEN 'approved_minutes' THEN 3
@@ -958,4 +1002,430 @@ export async function updateContentEntriesForSourceItem(
       args.sourceItemId
     )
     .run();
+}
+
+export async function upsertNewsletterSubscription(
+  db: D1Database,
+  args: {
+    municipalitySlug: string;
+    email: string;
+    displayName?: string;
+  }
+) {
+  const normalizedEmail = normalizeEmailAddress(args.email);
+  const existing = await db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        email,
+        display_name,
+        status,
+        frequency,
+        manage_token,
+        unsubscribe_token,
+        created_at,
+        updated_at,
+        confirmed_at,
+        unsubscribed_at,
+        last_sent_issue_id,
+        last_sent_at
+      FROM newsletter_subscription
+      WHERE municipality_slug = ? AND email = ?`
+    )
+    .bind(args.municipalitySlug, normalizedEmail)
+    .first<NewsletterSubscriptionRecord>();
+
+  const now = nowIso();
+
+  if (existing) {
+    const displayName = args.displayName?.trim() || existing.display_name;
+
+    await db
+      .prepare(
+        `UPDATE newsletter_subscription
+        SET
+          display_name = ?,
+          status = ?,
+          updated_at = ?,
+          confirmed_at = COALESCE(confirmed_at, ?),
+          unsubscribed_at = NULL
+        WHERE id = ?`
+      )
+      .bind(displayName ?? null, "active", now, now, existing.id)
+      .run();
+
+    return {
+      ...existing,
+      display_name: displayName ?? null,
+      status: "active",
+      updated_at: now,
+      confirmed_at: existing.confirmed_at ?? now,
+      unsubscribed_at: null
+    } satisfies NewsletterSubscriptionRecord;
+  }
+
+  const created = {
+    id: crypto.randomUUID(),
+    municipality_slug: args.municipalitySlug,
+    email: normalizedEmail,
+    display_name: args.displayName?.trim() || null,
+    status: "active",
+    frequency: "weekly",
+    manage_token: crypto.randomUUID(),
+    unsubscribe_token: crypto.randomUUID(),
+    created_at: now,
+    updated_at: now,
+    confirmed_at: now,
+    unsubscribed_at: null,
+    last_sent_issue_id: null,
+    last_sent_at: null
+  } satisfies NewsletterSubscriptionRecord;
+
+  await db
+    .prepare(
+      `INSERT INTO newsletter_subscription (
+        id, municipality_slug, email, display_name, status, frequency, manage_token, unsubscribe_token,
+        created_at, updated_at, confirmed_at, unsubscribed_at, last_sent_issue_id, last_sent_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      created.id,
+      created.municipality_slug,
+      created.email,
+      created.display_name,
+      created.status,
+      created.frequency,
+      created.manage_token,
+      created.unsubscribe_token,
+      created.created_at,
+      created.updated_at,
+      created.confirmed_at,
+      created.unsubscribed_at,
+      created.last_sent_issue_id,
+      created.last_sent_at
+    )
+    .run();
+
+  return created;
+}
+
+export async function getNewsletterSubscriptionByManageToken(
+  db: D1Database,
+  manageToken: string
+) {
+  return db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        email,
+        display_name,
+        status,
+        frequency,
+        manage_token,
+        unsubscribe_token,
+        created_at,
+        updated_at,
+        confirmed_at,
+        unsubscribed_at,
+        last_sent_issue_id,
+        last_sent_at
+      FROM newsletter_subscription
+      WHERE manage_token = ?`
+    )
+    .bind(manageToken)
+    .first<NewsletterSubscriptionRecord>();
+}
+
+export async function updateNewsletterSubscriptionByManageToken(
+  db: D1Database,
+  args: {
+    manageToken: string;
+    displayName?: string;
+    status?: "active" | "unsubscribed";
+  }
+) {
+  const existing = await getNewsletterSubscriptionByManageToken(db, args.manageToken);
+
+  if (!existing) {
+    return null;
+  }
+
+  const nextStatus = args.status ?? existing.status;
+  const nextDisplayName =
+    args.displayName === undefined ? existing.display_name : args.displayName.trim() || null;
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `UPDATE newsletter_subscription
+      SET
+        display_name = ?,
+        status = ?,
+        updated_at = ?,
+        unsubscribed_at = ?,
+        confirmed_at = CASE WHEN ? = 'active' THEN COALESCE(confirmed_at, ?) ELSE confirmed_at END
+      WHERE id = ?`
+    )
+    .bind(
+      nextDisplayName,
+      nextStatus,
+      now,
+      nextStatus === "unsubscribed" ? now : null,
+      nextStatus,
+      now,
+      existing.id
+    )
+    .run();
+
+  return {
+    ...existing,
+    display_name: nextDisplayName,
+    status: nextStatus,
+    updated_at: now,
+    unsubscribed_at: nextStatus === "unsubscribed" ? now : null,
+    confirmed_at: nextStatus === "active" ? existing.confirmed_at ?? now : existing.confirmed_at
+  } satisfies NewsletterSubscriptionRecord;
+}
+
+export async function listActiveNewsletterSubscriptions(db: D1Database, municipalitySlug: string) {
+  const result = await db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        email,
+        display_name,
+        status,
+        frequency,
+        manage_token,
+        unsubscribe_token,
+        created_at,
+        updated_at,
+        confirmed_at,
+        unsubscribed_at,
+        last_sent_issue_id,
+        last_sent_at
+      FROM newsletter_subscription
+      WHERE municipality_slug = ? AND status = 'active'
+      ORDER BY created_at ASC`
+    )
+    .bind(municipalitySlug)
+    .all<NewsletterSubscriptionRecord>();
+
+  return result.results ?? [];
+}
+
+export async function listNewsletterDigestEntries(
+  db: D1Database,
+  slug: string,
+  args: {
+    startIso: string;
+    endIso: string;
+    limit?: number;
+  }
+) {
+  const limit = Math.min(Math.max(args.limit ?? 18, 1), 50);
+  const result = await db
+    .prepare(
+      `WITH ranked_publications AS (
+        SELECT
+          content_entry.id,
+          content_entry.source_item_id,
+          content_entry.title,
+          content_entry.summary,
+          content_entry.category,
+          content_entry.source_links_json,
+          publication.published_at,
+          COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
+          source.name as source_name,
+          substr(source_item.normalized_text, 1, 5000) as topic_text,
+          ROW_NUMBER() OVER (
+            PARTITION BY content_entry.source_item_id
+            ORDER BY publication.published_at DESC
+          ) as row_number
+        FROM content_entry
+        INNER JOIN publication ON publication.content_entry_id = content_entry.id
+        INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+        INNER JOIN source ON source.slug = source_item.source_slug
+        WHERE content_entry.municipality_slug = ?
+      )
+      SELECT
+        id,
+        title,
+        summary,
+        category,
+        source_links_json,
+        published_at,
+        source_material_date,
+        source_name,
+        topic_text
+      FROM ranked_publications
+      WHERE
+        row_number = 1
+        AND source_material_date >= ?
+        AND source_material_date < ?
+      ORDER BY ${publishedCategoryPrioritySql("category")} ASC, source_material_date DESC, published_at DESC
+      LIMIT ?`
+    )
+    .bind(slug, args.startIso, args.endIso, limit)
+    .all<NewsletterDigestEntry>();
+
+  return result.results ?? [];
+}
+
+export async function createOrUpdateNewsletterIssue(
+  db: D1Database,
+  args: {
+    municipalitySlug: string;
+    weekKey: string;
+    periodStart: string;
+    periodEnd: string;
+    subject: string;
+    intro: string;
+    entriesJson: string;
+    status: string;
+    deliveryNotes?: string;
+  }
+) {
+  const existing = await db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        week_key,
+        period_start,
+        period_end,
+        subject,
+        intro,
+        entries_json,
+        status,
+        delivery_notes,
+        created_at,
+        sent_at
+      FROM newsletter_issue
+      WHERE municipality_slug = ? AND week_key = ?`
+    )
+    .bind(args.municipalitySlug, args.weekKey)
+    .first<NewsletterIssueRecord>();
+
+  const now = nowIso();
+
+  if (existing) {
+    await db
+      .prepare(
+        `UPDATE newsletter_issue
+        SET
+          period_start = ?,
+          period_end = ?,
+          subject = ?,
+          intro = ?,
+          entries_json = ?,
+          status = ?,
+          delivery_notes = ?
+        WHERE id = ?`
+      )
+      .bind(
+        args.periodStart,
+        args.periodEnd,
+        args.subject,
+        args.intro,
+        args.entriesJson,
+        args.status,
+        args.deliveryNotes ?? null,
+        existing.id
+      )
+      .run();
+
+    return {
+      ...existing,
+      period_start: args.periodStart,
+      period_end: args.periodEnd,
+      subject: args.subject,
+      intro: args.intro,
+      entries_json: args.entriesJson,
+      status: args.status,
+      delivery_notes: args.deliveryNotes ?? null
+    } satisfies NewsletterIssueRecord;
+  }
+
+  const created = {
+    id: crypto.randomUUID(),
+    municipality_slug: args.municipalitySlug,
+    week_key: args.weekKey,
+    period_start: args.periodStart,
+    period_end: args.periodEnd,
+    subject: args.subject,
+    intro: args.intro,
+    entries_json: args.entriesJson,
+    status: args.status,
+    delivery_notes: args.deliveryNotes ?? null,
+    created_at: now,
+    sent_at: null
+  } satisfies NewsletterIssueRecord;
+
+  await db
+    .prepare(
+      `INSERT INTO newsletter_issue (
+        id, municipality_slug, week_key, period_start, period_end, subject, intro, entries_json,
+        status, delivery_notes, created_at, sent_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      created.id,
+      created.municipality_slug,
+      created.week_key,
+      created.period_start,
+      created.period_end,
+      created.subject,
+      created.intro,
+      created.entries_json,
+      created.status,
+      created.delivery_notes,
+      created.created_at,
+      created.sent_at
+    )
+    .run();
+
+  return created;
+}
+
+export async function markNewsletterIssueSent(
+  db: D1Database,
+  args: {
+    issueId: string;
+    status: string;
+    deliveryNotes?: string;
+  }
+) {
+  await db
+    .prepare(
+      `UPDATE newsletter_issue
+      SET status = ?, delivery_notes = ?, sent_at = ?
+      WHERE id = ?`
+    )
+    .bind(args.status, args.deliveryNotes ?? null, nowIso(), args.issueId)
+    .run();
+}
+
+export async function recordNewsletterDelivery(
+  db: D1Database,
+  args: {
+    subscriptionId: string;
+    issueId: string;
+  }
+) {
+  await db
+    .prepare(
+      `UPDATE newsletter_subscription
+      SET last_sent_issue_id = ?, last_sent_at = ?, updated_at = ?
+      WHERE id = ?`
+    )
+    .bind(args.issueId, nowIso(), nowIso(), args.subscriptionId)
+    .run();
+}
+
+function normalizeEmailAddress(value: string) {
+  return value.trim().toLowerCase();
 }

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { LocalityAskBox } from "../../components/locality-ask-box";
+import { LocalityNewsletterBox } from "../../components/locality-newsletter-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
@@ -77,6 +78,11 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24">
+          <LocalityNewsletterBox
+            slug={slug}
+            municipalityName={data.municipality.shortName}
+          />
+
           <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
               Helpful links

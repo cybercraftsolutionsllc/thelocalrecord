@@ -2,10 +2,13 @@ import { getMunicipalityBySlug, municipalities, normalizedSourceItemSchema } fro
 
 import {
   ActiveFetchRunError,
+  getNewsletterSubscriptionByManageToken,
   listPublishedEntries,
   listReviewQueue,
   searchPublishedEntries,
-  syncRegistry
+  syncRegistry,
+  updateNewsletterSubscriptionByManageToken,
+  upsertNewsletterSubscription
 } from "./d1";
 import type { WorkerEnv } from "./env";
 import {
@@ -13,6 +16,7 @@ import {
   ingestMunicipality,
   resummarizeMunicipalityItems
 } from "./ingest";
+import { generateWeeklyNewsletterIssue } from "./newsletter";
 import { answerLocalityQuestion } from "./openai";
 
 type ExecutionContext = {
@@ -131,6 +135,13 @@ export default {
 
         throw error;
       }
+    }
+
+    if (url.pathname === "/admin/newsletter/run" && request.method === "POST") {
+      const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
+      return Response.json(await generateWeeklyNewsletterIssue(env, slug), {
+        headers: jsonHeaders
+      });
     }
 
     if (url.pathname === "/admin/resummarize" && request.method === "POST") {
@@ -254,18 +265,129 @@ export default {
         );
       }
 
+      if (view === "newsletter" && request.method === "POST") {
+        const body = (await request.json().catch(() => null)) as
+          | { email?: string; displayName?: string }
+          | null;
+        const email = body?.email?.trim() ?? "";
+
+        if (!isValidEmail(email)) {
+          return Response.json(
+            { ok: false, error: "invalid_email" },
+            { status: 400, headers: jsonHeaders }
+          );
+        }
+
+        const subscription = await upsertNewsletterSubscription(env.DB, {
+          municipalitySlug: slug,
+          email,
+          displayName: body?.displayName?.trim() ?? ""
+        });
+
+        return Response.json(
+          {
+            ok: true,
+            subscription: {
+              municipalitySlug: subscription.municipality_slug,
+              email: subscription.email,
+              displayName: subscription.display_name,
+              status: subscription.status,
+              manageUrl: `${env.NEXT_PUBLIC_SITE_URL ?? "https://thelocalrecord.org"}/newsletter/manage?token=${subscription.manage_token}`
+            }
+          },
+          { headers: jsonHeaders }
+        );
+      }
+
       if (view === "review") {
         return Response.json(await listReviewQueue(env.DB, slug), { headers: jsonHeaders });
+      }
+    }
+
+    if (url.pathname === "/api/newsletter/manage") {
+      const token = url.searchParams.get("token")?.trim() ?? "";
+
+      if (!token) {
+        return Response.json(
+          { ok: false, error: "missing_token" },
+          { status: 400, headers: jsonHeaders }
+        );
+      }
+
+      const subscription = await getNewsletterSubscriptionByManageToken(env.DB, token);
+
+      if (!subscription) {
+        return Response.json(
+          { ok: false, error: "invalid_token" },
+          { status: 404, headers: jsonHeaders }
+        );
+      }
+
+      if (request.method === "GET") {
+        return Response.json(
+          {
+            ok: true,
+            subscription: {
+              municipalitySlug: subscription.municipality_slug,
+              email: subscription.email,
+              displayName: subscription.display_name,
+              status: subscription.status,
+              frequency: subscription.frequency
+            }
+          },
+          { headers: jsonHeaders }
+        );
+      }
+
+      if (request.method === "POST") {
+        const body = (await request.json().catch(() => null)) as
+          | { action?: string; displayName?: string }
+          | null;
+        const action = body?.action?.trim() ?? "";
+        const nextStatus =
+          action === "unsubscribe"
+            ? "unsubscribed"
+            : action === "resubscribe"
+              ? "active"
+              : undefined;
+
+        const updated = await updateNewsletterSubscriptionByManageToken(env.DB, {
+          manageToken: token,
+          displayName: body?.displayName,
+          status: nextStatus
+        });
+
+        return Response.json(
+          {
+            ok: true,
+            subscription: {
+              municipalitySlug: updated?.municipality_slug,
+              email: updated?.email,
+              displayName: updated?.display_name,
+              status: updated?.status,
+              frequency: updated?.frequency
+            }
+          },
+          { headers: jsonHeaders }
+        );
       }
     }
 
     return new Response("Not found", { status: 404 });
   },
 
-  scheduled(_event: ScheduledController, env: WorkerEnv, ctx: ExecutionContext) {
+  scheduled(event: ScheduledController, env: WorkerEnv, ctx: ExecutionContext) {
     ctx.waitUntil(
       (async () => {
         await syncRegistry(env.DB);
+
+        if (event.cron === "15 13 * * 1") {
+          for (const municipality of municipalities) {
+            await generateWeeklyNewsletterIssue(env, municipality.slug);
+          }
+
+          return;
+        }
 
         for (const municipality of municipalities) {
           try {
@@ -292,3 +414,7 @@ export default {
     );
   }
 };
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}

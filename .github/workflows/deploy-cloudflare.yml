@@ -58,8 +58,10 @@ jobs:
 
       - name: Apply D1 schema
         run: |
-          npx wrangler d1 execute thelocalrecord-prod --remote --file apps/worker/migrations/0001_initial.sql --config apps/worker/wrangler.jsonc
-          npx wrangler d1 execute thelocalrecord-preview --remote --file apps/worker/migrations/0001_initial.sql --config apps/worker/wrangler.jsonc
+          for migration in $(find apps/worker/migrations -maxdepth 1 -name '*.sql' | sort); do
+            npx wrangler d1 execute thelocalrecord-prod --remote --file "$migration" --config apps/worker/wrangler.jsonc
+            npx wrangler d1 execute thelocalrecord-preview --remote --file "$migration" --config apps/worker/wrangler.jsonc
+          done
 
       - name: Upload OpenAI secret if present
         if: ${{ env.OPENAI_API_KEY != '' }}
