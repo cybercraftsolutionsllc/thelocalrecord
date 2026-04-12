@@ -62,8 +62,16 @@ export default {
     if (url.pathname === "/admin/run" && request.method === "POST") {
       const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
       try {
-        const stats = await ingestMunicipality(env, slug);
-        return Response.json({ ok: true, slug, stats }, { headers: jsonHeaders });
+        const result = await ingestMunicipality(env, slug);
+        return Response.json(
+          {
+            ok: true,
+            slug,
+            stats: result.stats,
+            sourceFailures: result.sourceFailures
+          },
+          { headers: jsonHeaders }
+        );
       } catch (error) {
         if (error instanceof ActiveFetchRunError) {
           return Response.json(
@@ -97,8 +105,16 @@ export default {
       }
 
       try {
-        const stats = await importMunicipalityItems(env, slug, parsedItems.data);
-        return Response.json({ ok: true, slug, stats }, { headers: jsonHeaders });
+        const result = await importMunicipalityItems(env, slug, parsedItems.data);
+        return Response.json(
+          {
+            ok: true,
+            slug,
+            stats: result.stats,
+            sourceFailures: result.sourceFailures
+          },
+          { headers: jsonHeaders }
+        );
       } catch (error) {
         if (error instanceof ActiveFetchRunError) {
           return Response.json(
@@ -253,7 +269,17 @@ export default {
 
         for (const municipality of municipalities) {
           try {
-            await ingestMunicipality(env, municipality.slug);
+            const result = await ingestMunicipality(env, municipality.slug);
+
+            if (result.sourceFailures.length > 0) {
+              console.warn(
+                "Municipality ingest completed with source failures",
+                JSON.stringify({
+                  municipality: municipality.slug,
+                  sourceFailures: result.sourceFailures
+                })
+              );
+            }
           } catch (error) {
             if (error instanceof ActiveFetchRunError) {
               continue;

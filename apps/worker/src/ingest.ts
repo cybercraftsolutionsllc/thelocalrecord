@@ -37,6 +37,25 @@ import {
 import type { WorkerEnv } from "./env";
 import { maybeRefineSummaryWithOpenAI } from "./openai";
 
+export type IngestStats = {
+  sourcesFetched: number;
+  sourcesFailed: number;
+  itemsSeen: number;
+  diffEventsCreated: number;
+};
+
+export type IngestSourceFailure = {
+  sourceSlug: string;
+  sourceName: string;
+  sourceUrl: string;
+  message: string;
+};
+
+export type IngestResult = {
+  stats: IngestStats;
+  sourceFailures: IngestSourceFailure[];
+};
+
 export async function ingestMunicipality(env: WorkerEnv, slug: string) {
   const municipality = getMunicipalityBySlug(slug);
 
@@ -46,98 +65,123 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
 
   await syncRegistry(env.DB);
   const fetchRunId = await createFetchRun(env.DB, slug);
-  const stats = {
+  const stats: IngestStats = {
     sourcesFetched: 0,
+    sourcesFailed: 0,
     itemsSeen: 0,
     diffEventsCreated: 0
   };
+  const sourceFailures: IngestSourceFailure[] = [];
   const seenCrossSourceKeys = new Set<string>();
 
   try {
     for (const source of getSourcesForMunicipality(slug).filter((entry) => entry.implemented)) {
-      const response = await fetch(source.url, {
-        headers: {
-          "user-agent":
-            env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
-        }
-      });
+      try {
+        const response = await fetch(source.url, {
+          headers: {
+            "user-agent":
+              env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
+          }
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${source.url}: ${response.status}`);
-      }
-
-      const body = await response.text();
-      const contentType = response.headers.get("content-type") ?? "text/html; charset=utf-8";
-      const storageKey = buildArtifactKey(slug, source.slug, fetchRunId);
-
-      await env.ARTIFACTS.put(storageKey, body, {
-        httpMetadata: {
-          contentType
-        },
-        customMetadata: {
-          municipality: slug,
-          source: source.slug,
-          fetchRunId
-        }
-      });
-
-      await attachArtifactRecord(env.DB, {
-        fetchRunId,
-        sourceSlug: source.slug,
-        kind: "source_response",
-        storageKey,
-        url: source.url,
-        sha256: hashContent(body),
-        mimeType: contentType
-      });
-
-      const selectedItems = await selectAdapter(env, source.slug, body, source.url);
-      const items = await enrichSourceItemsWithFetchedDetails(selectedItems, source.slug, {
-        fetchImpl: fetch,
-        userAgent: env.INGEST_USER_AGENT
-      });
-      stats.sourcesFetched += 1;
-      stats.itemsSeen += items.length;
-
-      for (const item of items) {
-        const duplicateKey = buildCrossSourceDuplicateKey(item);
-
-        if (duplicateKey && seenCrossSourceKeys.has(duplicateKey)) {
-          continue;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${source.url}: ${response.status}`);
         }
 
-        const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+        const body = await response.text();
+        const contentType = response.headers.get("content-type") ?? "text/html; charset=utf-8";
+        const storageKey = buildArtifactKey(slug, source.slug, fetchRunId);
 
-        if (existing?.content_hash === item.contentHash) {
-          await touchSourceItem(env.DB, existing.id);
+        await env.ARTIFACTS.put(storageKey, body, {
+          httpMetadata: {
+            contentType
+          },
+          customMetadata: {
+            municipality: slug,
+            source: source.slug,
+            fetchRunId
+          }
+        });
+
+        await attachArtifactRecord(env.DB, {
+          fetchRunId,
+          sourceSlug: source.slug,
+          kind: "source_response",
+          storageKey,
+          url: source.url,
+          sha256: hashContent(body),
+          mimeType: contentType
+        });
+
+        const selectedItems = await selectAdapter(env, source.slug, body, source.url);
+        const items = await enrichSourceItemsWithFetchedDetails(selectedItems, source.slug, {
+          fetchImpl: fetch,
+          userAgent: env.INGEST_USER_AGENT
+        });
+        stats.sourcesFetched += 1;
+        stats.itemsSeen += items.length;
+
+        for (const item of items) {
+          const duplicateKey = buildCrossSourceDuplicateKey(item);
+
+          if (duplicateKey && seenCrossSourceKeys.has(duplicateKey)) {
+            continue;
+          }
+
+          const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+
+          if (existing?.content_hash === item.contentHash) {
+            await touchSourceItem(env.DB, existing.id);
+
+            if (duplicateKey) {
+              seenCrossSourceKeys.add(duplicateKey);
+            }
+
+            continue;
+          }
+
+          const ruleDecision = evaluateItem(item);
+          const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+          const diffEventId = await persistNormalizedItem(env.DB, {
+            item,
+            decision,
+            fetchRunId
+          });
 
           if (duplicateKey) {
             seenCrossSourceKeys.add(duplicateKey);
           }
 
-          continue;
+          if (diffEventId) {
+            stats.diffEventsCreated += 1;
+          }
         }
+      } catch (error) {
+        const failure = {
+          sourceSlug: source.slug,
+          sourceName: source.name,
+          sourceUrl: source.url,
+          message: error instanceof Error ? error.message : "Unknown source ingest failure"
+        };
 
-        const ruleDecision = evaluateItem(item);
-        const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
-        const diffEventId = await persistNormalizedItem(env.DB, {
-          item,
-          decision,
-          fetchRunId
-        });
-
-        if (duplicateKey) {
-          seenCrossSourceKeys.add(duplicateKey);
-        }
-
-        if (diffEventId) {
-          stats.diffEventsCreated += 1;
-        }
+        stats.sourcesFailed += 1;
+        sourceFailures.push(failure);
+        console.error("Source ingest failed", JSON.stringify(failure));
       }
     }
 
+    if (stats.sourcesFetched === 0 && sourceFailures.length > 0) {
+      const errorMessage = buildSourceFailureMessage(sourceFailures);
+
+      await completeFetchRun(env.DB, fetchRunId, "failed", stats, errorMessage);
+      throw new Error(errorMessage);
+    }
+
     await completeFetchRun(env.DB, fetchRunId, "completed", stats);
-    return stats;
+    return {
+      stats,
+      sourceFailures
+    };
   } catch (error) {
     await completeFetchRun(
       env.DB,
@@ -164,8 +208,9 @@ export async function importMunicipalityItems(
 
   await syncRegistry(env.DB);
   const fetchRunId = await createFetchRun(env.DB, slug);
-  const stats = {
+  const stats: IngestStats = {
     sourcesFetched: 0,
+    sourcesFailed: 0,
     itemsSeen: items.length,
     diffEventsCreated: 0
   };
@@ -196,7 +241,10 @@ export async function importMunicipalityItems(
     }
 
     await completeFetchRun(env.DB, fetchRunId, "completed", stats);
-    return stats;
+    return {
+      stats,
+      sourceFailures: []
+    };
   } catch (error) {
     await completeFetchRun(
       env.DB,
@@ -365,4 +413,14 @@ function parseMetadata(metadataJson: string) {
   } catch {
     return {};
   }
+}
+
+function buildSourceFailureMessage(sourceFailures: IngestSourceFailure[]) {
+  if (sourceFailures.length === 0) {
+    return "Unknown ingest failure";
+  }
+
+  return sourceFailures
+    .map((failure) => `${failure.sourceSlug}: ${failure.message}`)
+    .join("; ");
 }
