@@ -13,6 +13,9 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      NEWSLETTER_FROM_EMAIL: ${{ secrets.NEWSLETTER_FROM_EMAIL }}
+      NEWSLETTER_REPLY_TO: ${{ secrets.NEWSLETTER_REPLY_TO }}
       NEXT_PUBLIC_SITE_URL: https://thelocalrecord.org
       NEXT_PUBLIC_CONTENT_API_BASE: https://thelocalrecord-api.cybercraftsolutions.workers.dev
       CORRECTIONS_EMAIL: cyber.craft@craftedcybersolutions.com
@@ -67,6 +70,18 @@ jobs:
         if: ${{ env.OPENAI_API_KEY != '' }}
         run: |
           echo "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY --config apps/worker/wrangler.jsonc --env=""
+
+      - name: Upload newsletter secrets if present
+        run: |
+          if [ -n "$RESEND_API_KEY" ]; then
+            echo "$RESEND_API_KEY" | npx wrangler secret put RESEND_API_KEY --config apps/worker/wrangler.jsonc --env=""
+          fi
+          if [ -n "$NEWSLETTER_FROM_EMAIL" ]; then
+            echo "$NEWSLETTER_FROM_EMAIL" | npx wrangler secret put NEWSLETTER_FROM_EMAIL --config apps/worker/wrangler.jsonc --env=""
+          fi
+          if [ -n "$NEWSLETTER_REPLY_TO" ]; then
+            echo "$NEWSLETTER_REPLY_TO" | npx wrangler secret put NEWSLETTER_REPLY_TO --config apps/worker/wrangler.jsonc --env=""
+          fi
 
       - name: Deploy worker
         run: npx wrangler deploy --config apps/worker/wrangler.jsonc --env=""
