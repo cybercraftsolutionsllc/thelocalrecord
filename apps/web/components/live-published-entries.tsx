@@ -331,25 +331,9 @@ export function LivePublishedEntries({
       <div className="space-y-5">
         <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
           <div className="space-y-6">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl space-y-2">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                  Latest updates
-                </p>
-                <h2 className="font-serif text-[2.15rem] leading-tight text-moss">
-                  Events of note
-                </h2>
-                <p className="max-w-xl text-sm leading-7 text-ink/70">
-                  Scan the biggest local items first, then narrow in when you
-                  need a project, road, ordinance, or meeting.
-                </p>
-              </div>
-              <div className="text-sm leading-6 text-ink/58 lg:text-right">
-                {searchActive
-                  ? `Showing ${filteredEntries.length} search results for "${query.trim()}".`
-                  : `Showing ${filteredEntries.length} of ${loadedCount} loaded records (${total} total).`}
-              </div>
-            </div>
+            <h2 className="font-serif text-[2.15rem] leading-tight text-moss">
+              Events
+            </h2>
 
             <div className="space-y-4 border-t border-ink/8 pt-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -375,7 +359,7 @@ export function LivePublishedEntries({
                     }`}
                     disabled={searchActive}
                   >
-                    Events of note
+                    Events
                   </button>
                   <button
                     type="button"
@@ -405,6 +389,12 @@ export function LivePublishedEntries({
                   </button>
                 ))}
               </div>
+
+              {searchActive ? (
+                <p className="text-sm leading-6 text-ink/58">
+                  Showing {filteredEntries.length} search results for "{query.trim()}".
+                </p>
+              ) : null}
 
               <div className="flex flex-wrap gap-2 border-t border-ink/8 pt-4">
                 {topicOptions.map((option) => (
