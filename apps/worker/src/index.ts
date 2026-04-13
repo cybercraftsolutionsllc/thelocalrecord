@@ -45,8 +45,10 @@ const STATIC_ALLOWED_ORIGINS = new Set([
 ]);
 
 export default {
-  async fetch(request: Request, env: WorkerEnv) {
+  async fetch(request: Request, env: WorkerEnv, ctx: ExecutionContext) {
     const url = new URL(request.url);
+
+    ctx.waitUntil(runWeeklyNewsletterCatchUp(env, new Date()));
 
     if (request.method === "OPTIONS") {
       return new Response(null, {
@@ -468,6 +470,55 @@ export default {
     );
   }
 };
+
+async function runWeeklyNewsletterCatchUp(env: WorkerEnv, now: Date) {
+  if (!isWeeklyNewsletterCatchUpWindow(now)) {
+    return;
+  }
+
+  const weekKey = now.toISOString().slice(0, 10);
+
+  for (const municipality of municipalities) {
+    const lease = await consumeRateLimit(env.DB, {
+      routeKey: `newsletter_weekly_catchup:${weekKey}`,
+      identifier: `system:${municipality.slug}`,
+      limit: 1,
+      windowMinutes: 180
+    });
+
+    if (!lease.allowed) {
+      continue;
+    }
+
+    try {
+      await generateWeeklyNewsletterIssue(env, municipality.slug, now);
+    } catch (error) {
+      console.warn(
+        "Weekly newsletter catch-up failed",
+        JSON.stringify({
+          municipality: municipality.slug,
+          error: error instanceof Error ? error.message : "Unknown catch-up error"
+        })
+      );
+    }
+  }
+}
+
+function isWeeklyNewsletterCatchUpWindow(now: Date) {
+  const utcDay = now.getUTCDay();
+  const utcHour = now.getUTCHours();
+  const utcMinute = now.getUTCMinutes();
+
+  if (utcDay !== 1) {
+    return false;
+  }
+
+  if (utcHour > 13) {
+    return true;
+  }
+
+  return utcHour === 13 && utcMinute >= 15;
+}
 
 function buildJsonHeaders(request: Request, extraHeaders?: Record<string, string>) {
   const origin = getAllowedOrigin(request);
