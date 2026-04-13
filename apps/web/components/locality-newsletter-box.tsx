@@ -14,6 +14,7 @@ type SubscribeResponse = {
   status?: string;
   email?: string;
   error?: string;
+  retryAfterSeconds?: number;
 };
 
 export function LocalityNewsletterBox({
@@ -57,7 +58,18 @@ export function LocalityNewsletterBox({
 
         if (!response.ok) {
           if (payload.error === "newsletter_unavailable") {
-            throw new Error("Weekly digest email is not configured yet.");
+            throw new Error("The weekly digest is not configured yet. Try again after the next deploy.");
+          }
+
+          if (payload.error === "rate_limited") {
+            const minutes = payload.retryAfterSeconds
+              ? Math.max(1, Math.ceil(payload.retryAfterSeconds / 60))
+              : null;
+            throw new Error(
+              minutes
+                ? `Too many signup attempts from this network. Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`
+                : "Too many signup attempts right now. Try again a bit later."
+            );
           }
 
           throw new Error("Failed to subscribe");
@@ -71,8 +83,12 @@ export function LocalityNewsletterBox({
         setStatus("success");
         setEmail("");
         setDisplayName("");
-      } catch {
-        setErrorMessage("The newsletter signup did not go through. Try again in a moment.");
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "The newsletter signup did not go through. Try again in a moment."
+        );
         setStatus("error");
       }
     })();
