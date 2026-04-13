@@ -95,11 +95,24 @@ export async function generateWeeklyNewsletterIssue(
     .sort(compareNewsletterEntries);
 
   if (sourceEntries.length === 0) {
+    const emptyIssue = await createOrUpdateNewsletterIssue(env.DB, {
+      municipalitySlug,
+      weekKey,
+      periodStart: periodStart.toISOString(),
+      periodEnd: periodEnd.toISOString(),
+      subject: `${municipality.shortName}: events of note for ${formatRange(periodStart, periodEnd)}`,
+      intro: "No qualifying resident-facing items were found for this weekly digest window.",
+      entriesJson: JSON.stringify([]),
+      status: "skipped_no_entries",
+      deliveryNotes: "No qualifying entries in the weekly window."
+    });
+
     return {
       ok: true,
       municipalitySlug,
       generated: false,
       delivered: false,
+      issueId: emptyIssue.id,
       subscriptionCount: 0,
       entryCount: 0,
       deliveryNotes: "No qualifying entries in the weekly window."
