@@ -22,6 +22,8 @@ type PublishedRow = {
   topic_text: string;
 };
 
+export type PublishedEntryDetail = PublishedRow;
+
 export type SearchablePublishedEntry = {
   id: string;
   title: string;
@@ -614,6 +616,39 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
     page: safePage,
     pageSize: safePageSize
   };
+}
+
+export async function getPublishedEntryById(
+  db: D1Database,
+  slug: string,
+  entryId: string
+) {
+  const result = await db
+    .prepare(
+      `SELECT
+        content_entry.id,
+        content_entry.title,
+        content_entry.summary,
+        content_entry.category,
+        content_entry.risk_level,
+        content_entry.review_state,
+        content_entry.source_links_json,
+        content_entry.extraction_note,
+        publication.published_at,
+        COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
+        source.name as source_name,
+        substr(source_item.normalized_text, 1, 12000) as topic_text
+      FROM content_entry
+      INNER JOIN publication ON publication.content_entry_id = content_entry.id
+      INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+      INNER JOIN source ON source.slug = source_item.source_slug
+      WHERE content_entry.municipality_slug = ? AND content_entry.id = ?
+      LIMIT 1`
+    )
+    .bind(slug, entryId)
+    .first<PublishedEntryDetail>();
+
+  return result ?? null;
 }
 
 export async function listReviewQueue(db: D1Database, slug: string) {

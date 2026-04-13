@@ -4,6 +4,7 @@ import {
   ActiveFetchRunError,
   confirmNewsletterSubscriptionByToken,
   consumeRateLimit,
+  getPublishedEntryById,
   getNewsletterSubscriptionByConfirmationToken,
   getNewsletterSubscriptionByManageToken,
   issueNewsletterConfirmationToken,
@@ -108,7 +109,10 @@ export default {
     }
 
     if (url.pathname.startsWith("/api/localities/")) {
-      const [, , , slug, view] = url.pathname.split("/");
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      const slug = pathParts[2];
+      const view = pathParts[3];
+      const detailId = pathParts[4];
       const municipality = slug ? getMunicipalityBySlug(slug) : null;
 
       if (!slug || !municipality) {
@@ -126,6 +130,16 @@ export default {
       }
 
       if (view === "published") {
+        if (detailId) {
+          const entry = await getPublishedEntryById(env.DB, slug, detailId);
+
+          if (!entry) {
+            return jsonResponse(request, { error: "Not found" }, { status: 404 });
+          }
+
+          return jsonResponse(request, entry);
+        }
+
         const page = Number(url.searchParams.get("page") ?? "1");
         const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
         return jsonResponse(request, await listPublishedEntries(env.DB, slug, page, pageSize));

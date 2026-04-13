@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 type UpdateCardProps = {
+  id?: string;
   title: string;
   summary: string;
   category: string;
@@ -10,6 +11,7 @@ type UpdateCardProps = {
   sourceMaterialDate?: string | null;
   sourceLabel: string;
   sourceLinks: Array<{ label: string; url: string }>;
+  detailUrl?: string;
   extractionNote?: string | null;
   topicText?: string;
 };
@@ -219,6 +221,14 @@ export function UpdateCard(props: UpdateCardProps) {
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          {props.detailUrl ? (
+            <a
+              href={props.detailUrl}
+              className="rounded-full border border-moss/15 bg-moss px-3 py-2 font-semibold text-white transition hover:bg-moss/90"
+            >
+              Read item
+            </a>
+          ) : null}
           {sourceLinks.map((link) => (
             <a
               key={`${props.title}-${link.url}`}

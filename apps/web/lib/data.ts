@@ -10,6 +10,7 @@ type PublicEntry = {
   extractionNote?: string | null;
   sourceLabel: string;
   sourceLinks: Array<{ label: string; url: string }>;
+  detailUrl?: string;
   topicText?: string;
 };
 
@@ -80,7 +81,8 @@ export async function getLocalityData(slug: string) {
         publishedAt: entry.publication?.publishedAt.toISOString() ?? entry.createdAt.toISOString(),
         extractionNote: entry.extractionNote,
         sourceLabel: entry.sourceItem.source.name,
-        sourceLinks: JSON.parse(entry.sourceLinksJson) as Array<{ label: string; url: string }>
+        sourceLinks: JSON.parse(entry.sourceLinksJson) as Array<{ label: string; url: string }>,
+        detailUrl: `/${slug}/item/?id=${encodeURIComponent(entry.id)}`
       }))
     };
   } catch {

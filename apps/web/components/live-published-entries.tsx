@@ -134,7 +134,7 @@ function parseSourceLinks(value: string) {
   }
 }
 
-function mapApiEntry(entry: ApiEntry): PublicEntry {
+function mapApiEntry(entry: ApiEntry, slug: string): PublicEntry {
   return {
     id: entry.id,
     title: entry.title,
@@ -145,6 +145,7 @@ function mapApiEntry(entry: ApiEntry): PublicEntry {
     extractionNote: entry.extraction_note ?? null,
     sourceLabel: entry.source_name ?? "Official township source",
     sourceLinks: parseSourceLinks(entry.source_links_json),
+    detailUrl: `/${slug}/item/?id=${encodeURIComponent(entry.id)}`,
     topicText: entry.topic_text ?? ""
   };
 }
@@ -193,7 +194,7 @@ export function LivePublishedEntries({
         const payload = normalizePayload(
           (await response.json()) as PublishedPayload | ApiEntry[]
         );
-        const nextEntries = payload.entries.map(mapApiEntry);
+        const nextEntries = payload.entries.map((entry) => mapApiEntry(entry, slug));
 
         if (!cancelled) {
           setEntries((current) => {
@@ -255,7 +256,7 @@ export function LivePublishedEntries({
           }
 
           const payload = (await response.json()) as SearchPayload;
-          const nextEntries = payload.entries.map(mapApiEntry);
+          const nextEntries = payload.entries.map((entry) => mapApiEntry(entry, slug));
 
           if (!cancelled) {
             setSearchEntries(nextEntries);
