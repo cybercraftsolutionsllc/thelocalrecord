@@ -12,7 +12,6 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     env:
-      CONTENT_API_BASE: https://thelocalrecord-api.cybercraftsolutions.workers.dev
       INGEST_USER_AGENT: thelocalrecord-bot/0.1 (+https://thelocalrecord.org)
       MUNICIPALITY_SLUG: ${{ github.event.inputs.municipality_slug }}
     steps:
@@ -33,16 +32,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Run live source ingest
-        run: |
-          response_file="$(mktemp)"
-          status_code="$(curl --show-error --silent \
-            --output "$response_file" \
-            --write-out "%{http_code}" \
-            -X POST \
-            "${CONTENT_API_BASE}/admin/run?slug=${MUNICIPALITY_SLUG}")"
-          cat "$response_file"
-          node -e "const fs=require('fs'); const path=process.argv[1]; const status=Number(process.argv[2]); const body=JSON.parse(fs.readFileSync(path,'utf8')); if (status !== 200 || body.ok !== true) { console.error('Live ingest failed.'); process.exit(1); } if (Array.isArray(body.sourceFailures) && body.sourceFailures.length > 0) { console.warn('Live ingest completed with source failures:', body.sourceFailures); }" "$response_file" "$status_code"
-
-      - name: Import planning archive PDFs
+      - name: Check planning archive parsers
+        env:
+          DRY_RUN: "1"
         run: pnpm --filter @thelocalrecord/ingest import:planning-commission

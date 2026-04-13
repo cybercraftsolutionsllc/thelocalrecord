@@ -79,6 +79,9 @@ CORRECTIONS_EMAIL="cyber.craft@craftedcybersolutions.com"
 CLOUDFLARE_ACCOUNT_ID="..."
 CLOUDFLARE_API_TOKEN="..."
 OPENAI_API_KEY="..."
+RESEND_API_KEY="..."
+NEWSLETTER_FROM_EMAIL="weekly@thelocalrecord.org"
+NEWSLETTER_REPLY_TO="cyber.craft@craftedcybersolutions.com"
 ```
 
 ## Ingestion flow
@@ -143,8 +146,9 @@ The current production naming plan is documented in [`docs/cloudflare-setup.md`]
 ## Scheduled workflows
 
 - `ci.yml` runs lint, test, and build validation.
-- `ingest.yml` supports both manual dispatch and scheduled ingest runs.
-- `manual-ingest.yml` provides a dedicated manual trigger for parser checks and targeted runs.
+- The Worker cron runs the live hourly municipality ingest, the daily planning archive import, and the weekly newsletter issue generation.
+- `ingest.yml` runs a daily parser smoke check for the archive sources.
+- `manual-ingest.yml` provides a dedicated manual parser check trigger.
 - `deploy-cloudflare.yml` deploys the worker, applies D1 schema, and publishes the static web build.
 
 ## Phase 2 next steps

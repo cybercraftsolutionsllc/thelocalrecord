@@ -1,4 +1,5 @@
 import type { ContentDecision, MunicipalityConfig, NormalizedSourceItem, SourceConfig } from "@thelocalrecord/core";
+import { createHash } from "node:crypto";
 
 import { municipalities, sourceRegistry } from "@thelocalrecord/core";
 
@@ -68,6 +69,32 @@ export type NewsletterSubscriptionRecord = {
   last_sent_at: string | null;
 };
 
+type NewsletterTokenRecord = {
+  id: string;
+  subscription_id: string;
+  token_kind: string;
+  token_hash: string;
+  created_at: string;
+  consumed_at: string | null;
+  expires_at: string | null;
+};
+
+type RateLimitRecord = {
+  id: string;
+  route_key: string;
+  identifier: string;
+  bucket_start: string;
+  request_count: number;
+  updated_at: string;
+  expires_at: string;
+};
+
+export type RateLimitResult = {
+  allowed: boolean;
+  retryAfterSeconds: number;
+  remaining: number;
+};
+
 export type NewsletterDigestEntry = {
   id: string;
   title: string;
@@ -111,6 +138,14 @@ function publishedCategoryPrioritySql(columnName = "content_entry.category") {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function hashOpaqueToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function placeholderLegacyToken() {
+  return `legacy-disabled-${crypto.randomUUID()}`;
 }
 
 const STALE_FETCH_RUN_MINUTES = 45;
@@ -1040,6 +1075,7 @@ export async function upsertNewsletterSubscription(
 
   if (existing) {
     const displayName = args.displayName?.trim() || existing.display_name;
+    const nextStatus = existing.status === "active" ? "active" : "pending_confirm";
 
     await db
       .prepare(
@@ -1048,20 +1084,18 @@ export async function upsertNewsletterSubscription(
           display_name = ?,
           status = ?,
           updated_at = ?,
-          confirmed_at = COALESCE(confirmed_at, ?),
-          unsubscribed_at = NULL
+          unsubscribed_at = CASE WHEN ? = 'pending_confirm' THEN NULL ELSE unsubscribed_at END
         WHERE id = ?`
       )
-      .bind(displayName ?? null, "active", now, now, existing.id)
+      .bind(displayName ?? null, nextStatus, now, nextStatus, existing.id)
       .run();
 
     return {
       ...existing,
       display_name: displayName ?? null,
-      status: "active",
+      status: nextStatus,
       updated_at: now,
-      confirmed_at: existing.confirmed_at ?? now,
-      unsubscribed_at: null
+      unsubscribed_at: nextStatus === "pending_confirm" ? null : existing.unsubscribed_at
     } satisfies NewsletterSubscriptionRecord;
   }
 
@@ -1070,13 +1104,13 @@ export async function upsertNewsletterSubscription(
     municipality_slug: args.municipalitySlug,
     email: normalizedEmail,
     display_name: args.displayName?.trim() || null,
-    status: "active",
+    status: "pending_confirm",
     frequency: "weekly",
-    manage_token: crypto.randomUUID(),
-    unsubscribe_token: crypto.randomUUID(),
+    manage_token: placeholderLegacyToken(),
+    unsubscribe_token: placeholderLegacyToken(),
     created_at: now,
     updated_at: now,
-    confirmed_at: now,
+    confirmed_at: null,
     unsubscribed_at: null,
     last_sent_issue_id: null,
     last_sent_at: null
@@ -1110,10 +1144,186 @@ export async function upsertNewsletterSubscription(
   return created;
 }
 
+async function getNewsletterSubscriptionByEmail(
+  db: D1Database,
+  municipalitySlug: string,
+  email: string
+) {
+  return db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        email,
+        display_name,
+        status,
+        frequency,
+        manage_token,
+        unsubscribe_token,
+        created_at,
+        updated_at,
+        confirmed_at,
+        unsubscribed_at,
+        last_sent_issue_id,
+        last_sent_at
+      FROM newsletter_subscription
+      WHERE municipality_slug = ? AND email = ?`
+    )
+    .bind(municipalitySlug, normalizeEmailAddress(email))
+    .first<NewsletterSubscriptionRecord>();
+}
+
+async function createNewsletterTokenRecord(
+  db: D1Database,
+  args: {
+    subscriptionId: string;
+    tokenKind: "manage" | "confirm";
+    expiresAt?: string | null;
+  }
+) {
+  const rawToken = crypto.randomUUID();
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `DELETE FROM newsletter_token
+      WHERE subscription_id = ? AND token_kind = ?`
+    )
+    .bind(args.subscriptionId, args.tokenKind)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO newsletter_token (
+        id, subscription_id, token_kind, token_hash, created_at, consumed_at, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      args.subscriptionId,
+      args.tokenKind,
+      hashOpaqueToken(rawToken),
+      now,
+      null,
+      args.expiresAt ?? null
+    )
+    .run();
+
+  return rawToken;
+}
+
+async function getNewsletterTokenRecord(
+  db: D1Database,
+  args: {
+    token: string;
+    tokenKind: "manage" | "confirm";
+  }
+) {
+  return db
+    .prepare(
+      `SELECT
+        id,
+        subscription_id,
+        token_kind,
+        token_hash,
+        created_at,
+        consumed_at,
+        expires_at
+      FROM newsletter_token
+      WHERE
+        token_kind = ?
+        AND token_hash = ?
+        AND consumed_at IS NULL
+        AND (expires_at IS NULL OR expires_at > ?)`
+    )
+    .bind(args.tokenKind, hashOpaqueToken(args.token), nowIso())
+    .first<NewsletterTokenRecord>();
+}
+
+async function markNewsletterTokenConsumed(db: D1Database, tokenId: string) {
+  await db
+    .prepare(
+      `UPDATE newsletter_token
+      SET consumed_at = ?
+      WHERE id = ?`
+    )
+    .bind(nowIso(), tokenId)
+    .run();
+}
+
+export async function issueNewsletterManageToken(db: D1Database, subscriptionId: string) {
+  const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+  return createNewsletterTokenRecord(db, {
+    subscriptionId,
+    tokenKind: "manage",
+    expiresAt
+  });
+}
+
+export async function issueNewsletterConfirmationToken(
+  db: D1Database,
+  args: {
+    municipalitySlug: string;
+    email: string;
+  }
+) {
+  const subscription = await getNewsletterSubscriptionByEmail(
+    db,
+    args.municipalitySlug,
+    args.email
+  );
+
+  if (!subscription) {
+    return null;
+  }
+
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+  const token = await createNewsletterTokenRecord(db, {
+    subscriptionId: subscription.id,
+    tokenKind: "confirm",
+    expiresAt
+  });
+
+  return {
+    subscription,
+    token
+  };
+}
+
 export async function getNewsletterSubscriptionByManageToken(
   db: D1Database,
   manageToken: string
 ) {
+  const tokenRecord = await getNewsletterTokenRecord(db, {
+    token: manageToken,
+    tokenKind: "manage"
+  });
+
+  if (tokenRecord) {
+    return db
+      .prepare(
+        `SELECT
+          id,
+          municipality_slug,
+          email,
+          display_name,
+          status,
+          frequency,
+          manage_token,
+          unsubscribe_token,
+          created_at,
+          updated_at,
+          confirmed_at,
+          unsubscribed_at,
+          last_sent_issue_id,
+          last_sent_at
+        FROM newsletter_subscription
+        WHERE id = ?`
+      )
+      .bind(tokenRecord.subscription_id)
+      .first<NewsletterSubscriptionRecord>();
+  }
+
   return db
     .prepare(
       `SELECT
@@ -1136,6 +1346,91 @@ export async function getNewsletterSubscriptionByManageToken(
     )
     .bind(manageToken)
     .first<NewsletterSubscriptionRecord>();
+}
+
+export async function getNewsletterSubscriptionByConfirmationToken(
+  db: D1Database,
+  confirmationToken: string
+) {
+  const tokenRecord = await getNewsletterTokenRecord(db, {
+    token: confirmationToken,
+    tokenKind: "confirm"
+  });
+
+  if (!tokenRecord) {
+    return null;
+  }
+
+  const subscription = await db
+    .prepare(
+      `SELECT
+        id,
+        municipality_slug,
+        email,
+        display_name,
+        status,
+        frequency,
+        manage_token,
+        unsubscribe_token,
+        created_at,
+        updated_at,
+        confirmed_at,
+        unsubscribed_at,
+        last_sent_issue_id,
+        last_sent_at
+      FROM newsletter_subscription
+      WHERE id = ?`
+    )
+    .bind(tokenRecord.subscription_id)
+    .first<NewsletterSubscriptionRecord>();
+
+  if (!subscription) {
+    return null;
+  }
+
+  return {
+    subscription,
+    tokenRecord
+  };
+}
+
+export async function confirmNewsletterSubscriptionByToken(
+  db: D1Database,
+  confirmationToken: string
+) {
+  const result = await getNewsletterSubscriptionByConfirmationToken(db, confirmationToken);
+
+  if (!result) {
+    return null;
+  }
+
+  const now = nowIso();
+  await db
+    .prepare(
+      `UPDATE newsletter_subscription
+      SET
+        status = 'active',
+        updated_at = ?,
+        confirmed_at = COALESCE(confirmed_at, ?),
+        unsubscribed_at = NULL
+      WHERE id = ?`
+    )
+    .bind(now, now, result.subscription.id)
+    .run();
+
+  await markNewsletterTokenConsumed(db, result.tokenRecord.id);
+  const manageToken = await issueNewsletterManageToken(db, result.subscription.id);
+
+  return {
+    subscription: {
+      ...result.subscription,
+      status: "active",
+      updated_at: now,
+      confirmed_at: result.subscription.confirmed_at ?? now,
+      unsubscribed_at: null
+    } satisfies NewsletterSubscriptionRecord,
+    manageToken
+  };
 }
 
 export async function updateNewsletterSubscriptionByManageToken(
@@ -1215,6 +1510,114 @@ export async function listActiveNewsletterSubscriptions(db: D1Database, municipa
     .all<NewsletterSubscriptionRecord>();
 
   return result.results ?? [];
+}
+
+export async function resyncLegacyNewsletterTokens(db: D1Database) {
+  const legacySubscriptions = await db
+    .prepare(
+      `SELECT id, manage_token, unsubscribe_token
+      FROM newsletter_subscription
+      WHERE manage_token IS NOT NULL AND manage_token NOT LIKE 'legacy-disabled-%'`
+    )
+    .all<{ id: string; manage_token: string; unsubscribe_token: string }>();
+
+  for (const subscription of legacySubscriptions.results ?? []) {
+    await db
+      .prepare(
+        `INSERT OR IGNORE INTO newsletter_token (
+          id, subscription_id, token_kind, token_hash, created_at, consumed_at, expires_at
+        ) VALUES (?, ?, 'manage', ?, ?, ?, ?)`
+      )
+      .bind(
+        crypto.randomUUID(),
+        subscription.id,
+        hashOpaqueToken(subscription.manage_token),
+        nowIso(),
+        null,
+        null
+      )
+      .run();
+
+    await db
+      .prepare(
+        `UPDATE newsletter_subscription
+        SET
+          manage_token = ?,
+          unsubscribe_token = ?,
+          updated_at = ?
+        WHERE id = ?`
+      )
+      .bind(
+        placeholderLegacyToken(),
+        subscription.unsubscribe_token.startsWith("legacy-disabled-")
+          ? subscription.unsubscribe_token
+          : placeholderLegacyToken(),
+        nowIso(),
+        subscription.id
+      )
+      .run();
+  }
+}
+
+export async function consumeRateLimit(
+  db: D1Database,
+  args: {
+    routeKey: string;
+    identifier: string;
+    limit: number;
+    windowMinutes: number;
+  }
+): Promise<RateLimitResult> {
+  const now = new Date();
+  const bucketMs = args.windowMinutes * 60 * 1000;
+  const bucketStartDate = new Date(Math.floor(now.getTime() / bucketMs) * bucketMs);
+  const bucketStart = bucketStartDate.toISOString();
+  const expiresAt = new Date(bucketStartDate.getTime() + bucketMs).toISOString();
+  const id = crypto.randomUUID();
+
+  await db
+    .prepare(`DELETE FROM request_rate_limit WHERE expires_at <= ?`)
+    .bind(now.toISOString())
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO request_rate_limit (
+        id, route_key, identifier, bucket_start, request_count, updated_at, expires_at
+      ) VALUES (?, ?, ?, ?, 1, ?, ?)
+      ON CONFLICT(route_key, identifier, bucket_start) DO UPDATE SET
+        request_count = request_count + 1,
+        updated_at = excluded.updated_at,
+        expires_at = excluded.expires_at`
+    )
+    .bind(id, args.routeKey, args.identifier, bucketStart, now.toISOString(), expiresAt)
+    .run();
+
+  const record = await db
+    .prepare(
+      `SELECT
+        id,
+        route_key,
+        identifier,
+        bucket_start,
+        request_count,
+        updated_at,
+        expires_at
+      FROM request_rate_limit
+      WHERE route_key = ? AND identifier = ? AND bucket_start = ?`
+    )
+    .bind(args.routeKey, args.identifier, bucketStart)
+    .first<RateLimitRecord>();
+
+  const requestCount = record?.request_count ?? 0;
+  const remaining = Math.max(0, args.limit - requestCount);
+  const retryAfterSeconds = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now.getTime()) / 1000));
+
+  return {
+    allowed: requestCount <= args.limit,
+    retryAfterSeconds,
+    remaining
+  };
 }
 
 export async function listNewsletterDigestEntries(

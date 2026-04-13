@@ -36,6 +36,9 @@
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_PROJECT_NAME`
 - `OPENAI_API_KEY` (optional until LLM refinement is enabled)
+- `RESEND_API_KEY`
+- `NEWSLETTER_FROM_EMAIL`
+- `NEWSLETTER_REPLY_TO`
 
 ## Runtime environment variables
 
@@ -45,6 +48,9 @@
 - `INGEST_USER_AGENT=thelocalrecord-bot/0.1 (+https://thelocalrecord.org)`
 - `OPENAI_API_KEY=...`
 - `OPENAI_MODEL=gpt-5-mini`
+- `RESEND_API_KEY=...`
+- `NEWSLETTER_FROM_EMAIL=weekly@thelocalrecord.org`
+- `NEWSLETTER_REPLY_TO=cyber.craft@craftedcybersolutions.com`
 
 ## API token scopes
 
@@ -58,4 +64,6 @@
 - The current repo foundation is vendor-neutral and keeps a no-DB fallback for local repo work.
 - Production persistence is already being moved to Cloudflare-managed resources through the Worker and D1.
 - Scheduled ingest can run in the Worker via cron and deploys can stay automated through GitHub Actions.
+- The live hourly ingest, daily archive import, and weekly newsletter generation belong to the Worker cron.
+- GitHub Actions is reserved for deploys plus parser smoke checks.
 - A Worker foundation now exists in `apps/worker` for D1, R2, scheduled ingest, and OpenAI-backed summary refinement.

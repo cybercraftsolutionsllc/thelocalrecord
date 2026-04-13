@@ -13,6 +13,8 @@ import {
   parseFaqPage,
   parseIcalendarDirectory,
   parseAgendaCenter,
+  parsePlanningCommissionAgendasArchive,
+  parsePlanningCommissionMinutesArchive,
   parseAlertCenter,
   parseNewsFlash,
   parsePlanningZoningFaqPage,
@@ -258,6 +260,93 @@ export async function importMunicipalityItems(
   }
 }
 
+export async function importPlanningCommissionArchives(env: WorkerEnv, slug: string) {
+  const municipality = getMunicipalityBySlug(slug);
+
+  if (!municipality) {
+    throw new Error(`Unknown municipality slug: ${slug}`);
+  }
+
+  const archiveSources = [
+    {
+      sourceSlug: "planning-commission-agendas" as const,
+      sourceName: "Planning Commission Agendas Archive",
+      url: "https://www.manheimtownship.org/Archive.aspx?AMID=80",
+      parser: parsePlanningCommissionAgendasArchive
+    },
+    {
+      sourceSlug: "planning-commission-minutes" as const,
+      sourceName: "Planning Commission Minutes Archive",
+      url: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      parser: parsePlanningCommissionMinutesArchive
+    }
+  ];
+
+  const importedItems: NormalizedSourceItem[] = [];
+  const sourceFailures: IngestSourceFailure[] = [];
+  let sourcesFetched = 0;
+
+  for (const source of archiveSources) {
+    try {
+      const response = await fetch(source.url, {
+        headers: {
+          "user-agent":
+            env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${source.url}: ${response.status}`);
+      }
+
+      const html = await response.text();
+      const parsed = source.parser(html, source.url);
+      const enriched = await enrichSourceItemsWithFetchedDetails(parsed, source.sourceSlug, {
+        fetchImpl: fetch,
+        userAgent: env.INGEST_USER_AGENT
+      });
+
+      importedItems.push(...enriched);
+      sourcesFetched += 1;
+    } catch (error) {
+      sourceFailures.push({
+        sourceSlug: source.sourceSlug,
+        sourceName: source.sourceName,
+        sourceUrl: source.url,
+        message: error instanceof Error ? error.message : "Unknown archive import failure"
+      });
+    }
+  }
+
+  if (importedItems.length === 0) {
+    if (sourceFailures.length > 0) {
+      throw new Error(buildSourceFailureMessage(sourceFailures));
+    }
+
+    return {
+      stats: {
+        sourcesFetched: 0,
+        sourcesFailed: 0,
+        itemsSeen: 0,
+        diffEventsCreated: 0
+      },
+      sourceFailures: []
+    };
+  }
+
+  const importedResult = await importMunicipalityItems(env, slug, importedItems);
+
+  return {
+    stats: {
+      ...importedResult.stats,
+      sourcesFetched,
+      sourcesFailed: sourceFailures.length,
+      itemsSeen: importedItems.length
+    },
+    sourceFailures
+  };
+}
+
 export async function resummarizeMunicipalityItems(
   env: WorkerEnv,
   slug: string,
@@ -323,6 +412,10 @@ async function selectAdapter(
       return parsePlanningCommissionPage(body, sourceUrl);
     case "zoning-hearing-board":
       return parseZoningHearingBoardPage(body, sourceUrl);
+    case "planning-commission-agendas":
+      return parsePlanningCommissionAgendasArchive(body, sourceUrl);
+    case "planning-commission-minutes":
+      return parsePlanningCommissionMinutesArchive(body, sourceUrl);
     case "icalendar":
       return parseIcalendarDirectory(body, sourceUrl, fetch, env.INGEST_USER_AGENT);
     case "view-page":

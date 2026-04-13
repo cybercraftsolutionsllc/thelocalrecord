@@ -34,10 +34,11 @@ That is enough for repo and UI work because the app falls back when no database 
 - Scheduled ingest should log source counts and diff counts for debugging.
 - Cloudflare production requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 - Model-backed refinement is optional and requires `OPENAI_API_KEY`.
+- Weekly newsletter confirmation and delivery require `RESEND_API_KEY` and `NEWSLETTER_FROM_EMAIL`.
 
 ## Debugging source breakage
 
 - Run ingest locally for the affected municipality.
-- Or trigger `POST /admin/run?slug=...` on the Worker for a remote test.
+- Or run the local-only worker admin routes on `localhost` for a remote-equivalent test.
 - Inspect the latest source page HTML and selector assumptions in the adapter.
 - Check `artifact` hashes to confirm whether the source changed or the parser drifted.

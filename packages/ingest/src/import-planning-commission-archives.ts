@@ -7,6 +7,7 @@ import { enrichSourceItemsWithFetchedDetails } from "./detail-enrichment";
 const apiBase =
   process.env.CONTENT_API_BASE ?? "https://thelocalrecord-api.cybercraftsolutions.workers.dev";
 const slug = process.env.MUNICIPALITY_SLUG ?? "manheimtownshippa";
+const dryRun = process.env.DRY_RUN === "1";
 
 async function main() {
   const sources = [
@@ -42,6 +43,22 @@ async function main() {
       userAgent: process.env.INGEST_USER_AGENT
     });
     imported.push(...enriched);
+  }
+
+  if (dryRun) {
+    console.log(
+      JSON.stringify(
+        {
+          mode: "dry-run",
+          importedItems: imported.length,
+          sampleTitles: imported.slice(0, 5).map((item) => item.title),
+          slug
+        },
+        null,
+        2
+      )
+    );
+    return;
   }
 
   const importResponse = await fetch(`${apiBase}/admin/import?slug=${slug}`, {

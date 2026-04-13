@@ -11,12 +11,9 @@ type LocalityNewsletterBoxProps = {
 
 type SubscribeResponse = {
   ok: boolean;
-  subscription?: {
-    email: string;
-    displayName?: string | null;
-    status: string;
-    manageUrl: string;
-  };
+  status?: string;
+  email?: string;
+  error?: string;
 };
 
 export function LocalityNewsletterBox({
@@ -26,7 +23,8 @@ export function LocalityNewsletterBox({
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [manageUrl, setManageUrl] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,6 +34,8 @@ export function LocalityNewsletterBox({
     }
 
     setStatus("loading");
+    setErrorMessage("");
+    setSuccessMessage("");
 
     void (async () => {
       try {
@@ -53,15 +53,26 @@ export function LocalityNewsletterBox({
           }
         );
 
+        const payload = (await response.json()) as SubscribeResponse;
+
         if (!response.ok) {
+          if (payload.error === "newsletter_unavailable") {
+            throw new Error("Weekly digest email is not configured yet.");
+          }
+
           throw new Error("Failed to subscribe");
         }
 
-        const payload = (await response.json()) as SubscribeResponse;
-        setManageUrl(payload.subscription?.manageUrl ?? "");
+        setSuccessMessage(
+          payload.status === "confirmation_resent"
+            ? "Check your inbox for a fresh confirmation email and newsletter settings link."
+            : "Check your inbox to confirm your subscription."
+        );
         setStatus("success");
         setEmail("");
+        setDisplayName("");
       } catch {
+        setErrorMessage("The newsletter signup did not go through. Try again in a moment.");
         setStatus("error");
       }
     })();
@@ -109,20 +120,13 @@ export function LocalityNewsletterBox({
 
       {status === "success" ? (
         <div className="mt-4 rounded-[1.5rem] border border-moss/10 bg-sand/35 px-4 py-4 text-sm leading-7 text-ink/78">
-          You&apos;re on the list. Save your{" "}
-          <a
-            href={manageUrl}
-            className="font-semibold text-moss underline-offset-4 hover:underline"
-          >
-            manage subscription link
-          </a>{" "}
-          so you can unsubscribe or update your name later.
+          {successMessage}
         </div>
       ) : null}
 
       {status === "error" ? (
         <div className="mt-4 rounded-[1.5rem] border border-clay/20 bg-[#fbf8f2] px-4 py-4 text-sm leading-7 text-ink/75">
-          The newsletter signup did not go through. Try again in a moment.
+          {errorMessage}
         </div>
       ) : null}
     </section>

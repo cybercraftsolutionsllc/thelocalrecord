@@ -2,6 +2,7 @@ import { getMunicipalityBySlug } from "@thelocalrecord/core";
 
 import {
   createOrUpdateNewsletterIssue,
+  issueNewsletterManageToken,
   listActiveNewsletterSubscriptions,
   listNewsletterDigestEntries,
   markNewsletterIssueSent,
@@ -89,6 +90,9 @@ export async function generateWeeklyNewsletterIssue(
   });
 
   const subscriptions = await listActiveNewsletterSubscriptions(env.DB, municipalitySlug);
+  const pendingSubscriptions = subscriptions.filter(
+    (subscription) => subscription.last_sent_issue_id !== issue.id
+  );
 
   if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM_EMAIL) {
     await markNewsletterIssueSent(env.DB, {
@@ -103,7 +107,7 @@ export async function generateWeeklyNewsletterIssue(
       generated: true,
       delivered: false,
       issueId: issue.id,
-      subscriptionCount: subscriptions.length,
+      subscriptionCount: pendingSubscriptions.length,
       entryCount: topEntries.length,
       deliveryNotes: "Issue generated. Delivery skipped because newsletter email settings are missing."
     };
@@ -128,13 +132,27 @@ export async function generateWeeklyNewsletterIssue(
     };
   }
 
+  if (pendingSubscriptions.length === 0) {
+    return {
+      ok: true,
+      municipalitySlug,
+      generated: true,
+      delivered: true,
+      issueId: issue.id,
+      subscriptionCount: subscriptions.length,
+      entryCount: topEntries.length,
+      deliveryNotes: "Issue already delivered to current active subscribers."
+    };
+  }
+
   const baseSiteUrl = env.NEXT_PUBLIC_SITE_URL ?? "https://thelocalrecord.org";
   let deliveredCount = 0;
   const failures: string[] = [];
 
-  for (const subscription of subscriptions) {
+  for (const subscription of pendingSubscriptions) {
     try {
-      const manageUrl = `${baseSiteUrl}/newsletter/manage?token=${encodeURIComponent(subscription.manage_token)}`;
+      const manageToken = await issueNewsletterManageToken(env.DB, subscription.id);
+      const manageUrl = `${baseSiteUrl}/newsletter/manage?token=${encodeURIComponent(manageToken)}`;
       await sendResendEmail(env, {
         to: subscription.email,
         subject,
@@ -166,7 +184,7 @@ export async function generateWeeklyNewsletterIssue(
   const delivered = deliveredCount > 0;
   const deliveryNotes =
     failures.length > 0
-      ? `Delivered to ${deliveredCount}/${subscriptions.length} subscribers. ${failures.join(" | ")}`
+      ? `Delivered to ${deliveredCount}/${pendingSubscriptions.length} pending subscribers. ${failures.join(" | ")}`
       : `Delivered to ${deliveredCount} subscribers.`;
 
   await markNewsletterIssueSent(env.DB, {
@@ -181,10 +199,46 @@ export async function generateWeeklyNewsletterIssue(
     generated: true,
     delivered,
     issueId: issue.id,
-    subscriptionCount: subscriptions.length,
+    subscriptionCount: pendingSubscriptions.length,
     entryCount: topEntries.length,
     deliveryNotes
   };
+}
+
+export async function sendNewsletterConfirmationEmail(
+  env: WorkerEnv,
+  args: {
+    email: string;
+    municipalityName: string;
+    confirmUrl: string;
+  }
+) {
+  if (!env.RESEND_API_KEY || !env.NEWSLETTER_FROM_EMAIL) {
+    throw new Error("newsletter_email_unavailable");
+  }
+
+  await sendResendEmail(env, {
+    to: args.email,
+    subject: `Confirm your ${args.municipalityName} weekly digest`,
+    html: `
+      <div style="background:#f6f0e5;padding:32px 16px;font-family:Arial,sans-serif;">
+        <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;padding:32px;border:1px solid #ece6d9;">
+          <p style="margin:0 0 10px 0;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#9b5c3f;font-weight:700;">Confirm email</p>
+          <h1 style="margin:0 0 16px 0;font-size:34px;line-height:1.08;color:#214d46;font-family:Georgia,serif;">Finish your weekly digest signup</h1>
+          <p style="margin:0 0 20px 0;font-size:16px;line-height:1.8;color:#32433f;">Confirm this email address to start receiving a weekly source-linked roundup for ${escapeHtml(args.municipalityName)}.</p>
+          <a href="${escapeAttribute(args.confirmUrl)}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#214d46;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;">Confirm subscription</a>
+          <p style="margin:20px 0 0 0;font-size:13px;line-height:1.7;color:#5d6b67;">If you did not request this, you can ignore this email.</p>
+        </div>
+      </div>
+    `,
+    text: [
+      `Finish your ${args.municipalityName} weekly digest signup.`,
+      "",
+      `Confirm subscription: ${args.confirmUrl}`,
+      "",
+      "If you did not request this, you can ignore this email."
+    ].join("\n")
+  });
 }
 
 function isResidentFacingNewsletterEntry(entry: NewsletterDigestEntry) {
@@ -256,20 +310,24 @@ function renderNewsletterHtml(args: {
   manageUrl: string;
 }) {
   const entryMarkup = args.entries
-    .map(
-      (entry) => `
+    .map((entry) => {
+      const sourceMeta = entry.sourceMaterialDate
+        ? `Source: ${escapeHtml(entry.sourceName)} · ${escapeHtml(formatDate(entry.sourceMaterialDate))}`
+        : `Source: ${escapeHtml(entry.sourceName)}`;
+
+      return `
         <li style="margin:0 0 24px 0;padding:0;">
           <p style="margin:0 0 6px 0;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#9b5c3f;font-weight:700;">${escapeHtml(entry.categoryLabel)}</p>
           <h2 style="margin:0 0 8px 0;font-size:24px;line-height:1.2;color:#214d46;font-family:Georgia,serif;">${escapeHtml(entry.title)}</h2>
           <p style="margin:0 0 8px 0;font-size:15px;line-height:1.7;color:#32433f;">${escapeHtml(entry.summary)}</p>
-          <p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:#5d6b67;">Source: ${escapeHtml(entry.sourceName)}${entry.sourceMaterialDate ? ` · ${escapeHtml(formatDate(entry.sourceMaterialDate))}` : ""}</p>
+          <p style="margin:0 0 8px 0;font-size:13px;line-height:1.6;color:#5d6b67;">${sourceMeta}</p>
           ${
             entry.sourceUrl
               ? `<a href="${escapeAttribute(entry.sourceUrl)}" style="display:inline-block;padding:10px 16px;border-radius:999px;border:1px solid #d7ddd8;color:#214d46;text-decoration:none;font-size:14px;font-weight:600;">Open source</a>`
               : ""
           }
-        </li>`
-    )
+        </li>`;
+    })
     .join("");
 
   return `
