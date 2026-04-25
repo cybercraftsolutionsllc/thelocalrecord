@@ -4,44 +4,40 @@ Date: 2026-04-25
 
 ## What Was Wrong
 
-The main product workflow was still too close to a content site. Several buttons
-named destinations instead of actions, and a few controls exposed internal
-implementation language instead of resident outcomes.
+The product still asked residents to understand the site structure before they
+could get value. "Dashboard," "records," and "source inventory" are useful to
+builders, but a resident wants to know whether something affects their property,
+street, commute, meeting, park, or permit.
 
-## Fixes Made
+## Workflow Fixes
 
-1. Replaced developer-facing language.
-   The locality hero no longer says "API"; it now treats the live data as a
-   resident-facing source feed.
+1. Search became the first action.
+   The homepage now starts with "Run local scan" and sends residents directly
+   into the Manheim record with a query.
 
-2. Reworked locality navigation around user intent.
-   The locality nav now points to concrete jobs: search records, ask a question,
-   get email updates, trace sources, and report an issue.
+2. The locality page starts with resident intent.
+   The hero and lookup panel ask what affects a property, street, or
+   neighborhood instead of asking users to browse a digest.
 
-3. Made atlas cards honest.
-   Atlas cards now explicitly say they search records instead of behaving like
-   unlabeled map buttons.
+3. Results explain what to do next.
+   Active searches now show likely impact, latest source date, best source lane,
+   top matches, and a plain next action.
 
-4. Removed disabled-control dead ends.
-   Search mode now shows a clear search state and a clear action instead of
-   disabled view toggles. Pagination actions only render when they can do
-   something useful.
+4. Buttons name actions.
+   Locality navigation now uses check an area, ask the record, watch updates,
+   trace sources, and fix a detail.
 
-5. Made example questions do the work.
-   The ask box examples now submit source-grounded questions instead of only
-   filling the textarea and leaving the user to guess the next step.
+5. The map became a workflow aid.
+   The old conceptual atlas was demoted into resident scan examples and a
+   four-step "search, scan, source, watch" path.
 
-6. Tightened record-card actions.
-   The internal detail link now says "Open full digest record" instead of the
-   vague "Read item."
+6. Result cards became verification tools.
+   Cards now label resident impact and group actions under "Verify this record."
 
 ## Remaining Workflow Risks
 
-- The app still needs dedicated project pages for recurring issues. Search is
-  useful, but a resident tracking Ashford Meadows or Route 30 should eventually
-  land on a dossier with timeline, latest action, next meeting, and source list.
-- The conceptual atlas is an orientation aid, not a true GIS map. A production
-  community map should be backed by official parcel or GIS data before claiming
-  boundaries or exact locations.
-- Newsletter signup is still a standard email capture flow. It will be more
-  useful once users can choose topics or watchlist terms.
+- Address search is still text search against public records, not official
+  parcel/GIS matching.
+- Search results depend on the live content API after the static shell loads.
+- Newsletter signup is still broad; topic and location watchlists should come
+  next.

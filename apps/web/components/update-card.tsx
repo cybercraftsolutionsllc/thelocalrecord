@@ -145,6 +145,29 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function getResidentSignal(props: UpdateCardProps) {
+  const haystack =
+    `${props.title} ${props.summary} ${props.category} ${props.topicText ?? ""}`.toLowerCase();
+
+  if (/closure|detour|traffic|route|road|bridge|alert/.test(haystack)) {
+    return "Travel impact";
+  }
+
+  if (/ordinance|hearing|agenda|minutes|commission|board|meeting|notice/.test(haystack)) {
+    return "Decision to watch";
+  }
+
+  if (/permit|code|zoning|inspection|occupancy|variance/.test(haystack)) {
+    return "Property rules";
+  }
+
+  if (/park|trail|recreation|program|festival|volunteer/.test(haystack)) {
+    return "Community amenity";
+  }
+
+  return "Local update";
+}
+
 export function UpdateCard(props: UpdateCardProps) {
   const [expanded, setExpanded] = useState(false);
   const sourceLinks = Array.isArray(props.sourceLinks) ? props.sourceLinks : [];
@@ -161,40 +184,42 @@ export function UpdateCard(props: UpdateCardProps) {
   const canExpand = expandedExcerpt.length > 0;
 
   return (
-    <article className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white p-6 shadow-card sm:p-7">
+    <article className="relative overflow-hidden rounded-[1.25rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
       <div
         aria-hidden="true"
         className={`absolute left-0 top-0 h-full w-1.5 ${tone.accent}`}
       />
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
           >
             {formatCategory(props.category)}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
-            {props.sourceLabel}
+          <span className="rounded-full border border-ink/10 bg-[#f8f6ef] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#183f47]">
+            {getResidentSignal(props)}
           </span>
         </div>
-        <span className="rounded-full border border-ink/10 bg-sand/35 px-3 py-1 text-xs font-semibold text-ink/60">
+        <span className="rounded-full border border-ink/10 bg-sand/35 px-3 py-1 text-xs font-semibold text-ink/62">
           {datedLabel}
         </span>
       </div>
 
-      <h3 className="text-balance font-serif text-[2rem] leading-tight text-moss">
+      <h3 className="text-balance font-serif text-2xl leading-tight text-moss sm:text-[1.85rem]">
         {props.title}
       </h3>
-      <p className="mt-4 max-w-4xl text-base leading-8 text-ink/82">
+      <p className="mt-3 max-w-4xl text-base leading-8 text-ink/82">
         {props.summary}
       </p>
-      <p className="mt-3 text-sm leading-6 text-ink/55">
-        From {props.sourceLabel}
-      </p>
+      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink/48">
+        <span>{props.sourceLabel}</span>
+        <span aria-hidden="true">/</span>
+        <span>source-linked</span>
+      </div>
 
       {canExpand ? (
-        <div className="mt-5 rounded-[1.5rem] border border-moss/10 bg-sand/35 px-4 py-4">
+        <div className="mt-5 rounded-[1rem] border border-moss/10 bg-sand/35 px-4 py-4">
           <button
             type="button"
             onClick={() => setExpanded((current) => !current)}
@@ -211,7 +236,7 @@ export function UpdateCard(props: UpdateCardProps) {
       ) : null}
 
       {props.extractionNote ? (
-        <div className="mt-5 rounded-[1.5rem] border border-clay/20 bg-clay/5 px-4 py-3">
+        <div className="mt-5 rounded-[1rem] border border-clay/20 bg-clay/5 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
             Extraction note
           </p>
@@ -221,11 +246,11 @@ export function UpdateCard(props: UpdateCardProps) {
         </div>
       ) : null}
 
-      <div className="mt-6 rounded-[1.5rem] border border-ink/10 bg-sand/45 p-4">
+      <div className="mt-6 rounded-[1rem] border border-ink/10 bg-sand/45 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
-              Source trail
+              Verify this record
             </p>
             <p className="mt-1 text-sm font-semibold text-ink">
               {props.sourceLabel}
@@ -236,9 +261,9 @@ export function UpdateCard(props: UpdateCardProps) {
           {props.detailUrl ? (
             <a
               href={props.detailUrl}
-              className="rounded-full border border-moss/15 bg-moss px-3 py-2 font-semibold text-white transition hover:bg-moss/90"
+              className="rounded-[0.8rem] border border-moss/15 bg-moss px-3 py-2 font-semibold text-white transition hover:bg-moss/90"
             >
-              Open full digest record
+              Open record details
             </a>
           ) : null}
           {sourceLinks.map((link) => (
@@ -247,7 +272,7 @@ export function UpdateCard(props: UpdateCardProps) {
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-moss/15 bg-white px-3 py-2 text-moss transition hover:bg-sky"
+              className="rounded-[0.8rem] border border-moss/15 bg-white px-3 py-2 text-moss transition hover:bg-sky"
             >
               {link.label}
             </a>

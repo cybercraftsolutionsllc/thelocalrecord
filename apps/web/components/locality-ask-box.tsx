@@ -28,20 +28,20 @@ type AskResponse =
 
 const askExamples = [
   {
-    label: "Ashford Meadows",
-    question: "What changed with Ashford Meadows?"
+    label: "My property",
+    question: "What local records should I check for my property or street?"
   },
   {
-    label: "Planning Commission",
-    question: "What Planning Commission records should I review next?"
+    label: "Ashford Meadows",
+    question: "What changed with Ashford Meadows?"
   },
   {
     label: "Route 30",
     question: "What should residents know about Route 30?"
   },
   {
-    label: "Codified code",
-    question: "Where can I find the codified code records?"
+    label: "Next meeting",
+    question: "What meeting or agenda records should I review next?"
   }
 ];
 
@@ -98,11 +98,11 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
     >
       <div className="relative space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-          Ask this locality
+          Ask the local record
         </p>
         <p className="text-sm leading-7 text-ink/70">
-          Ask about a project, meeting, notice, ordinance, or planning item and
-          get a source-linked answer.
+          Ask about a property clue, project, meeting, notice, ordinance, or
+          planning item and get a source-linked answer.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {askExamples.map((example) => (

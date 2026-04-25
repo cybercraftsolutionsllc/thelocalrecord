@@ -1,56 +1,54 @@
-# Product Audit: Community Utility Overhaul
+# Product Audit: Resident-First Revamp
 
 Date: 2026-04-25
 
 ## Audit Summary
 
-The Local Record has a stronger data foundation than public product surface. The
-Manheim Township feed already contains enough material to be useful, but the
-previous UI presented it mostly as a digest stream. Residents are more likely to
-arrive with a specific question: what changed with a project, when is the next
-meeting, where is the source document, or which township page should they trust.
+The Local Record should not feel like a government-news reader. The useful
+product is a resident console: type a property clue, street, project, route,
+park, meeting, or permit topic and quickly learn what the local record says,
+what changed, which source verifies it, and what to watch next.
 
-The overhaul moves the public experience toward a civic workbench: briefing,
-watchlists, place context, source pulse, search, and official-source trails.
+This pass moves the public experience toward that model. Search is now the
+front door. The homepage and locality page both lead with a plain resident
+question: "What is happening near this property?"
 
-## Key Findings
+## Product Direction
 
-1. The homepage explained the idea, but not the product.
-   The first screen now makes The Local Record itself the main signal and routes
-   directly to the Manheim dashboard.
+1. Property-first, not feed-first.
+   Residents arrive with a place or issue. The new first action is to run a
+   local scan by address, street, project, road, park, or meeting.
 
-2. The locality page had useful records but weak resident orientation.
-   The new civic briefing summarizes loaded records, source count, upcoming
-   dated items, topical pulse, source pulse, and watchlist searches.
+2. Instant local scan.
+   The Manheim page summarizes matching records by likely impact, latest source
+   date, strongest source lane, top matches, topics, and source pulse.
 
-3. The map was too abstract to help a resident.
-   The new community atlas connects recurring feed concepts to familiar local
-   anchors such as the municipal office, Route 30 / 222, Overlook Park, the
-   Ashford Meadows area, and Richmond Square. It is explicitly labeled as
-   conceptual rather than an official boundary or parcel map.
+3. Source trail before decisions.
+   Result cards now frame each item as a resident signal and push verification:
+   open the digest record, then open the official source.
 
-4. Source inventory read like internal implementation status.
-   The source page now frames coverage by resident questions and active coverage
-   lanes, while preserving the official source list.
+4. Simple language.
+   Navigation and calls to action now use resident jobs: check an area, ask the
+   record, watch updates, trace sources, and fix a detail.
 
-5. Visual hierarchy leaned soft and generic.
-   The homepage now uses the existing Manheim visual asset as a real hero
-   background, reduces decorative gradient treatment, and sharpens calls to
-   action around actual community use.
+5. Honest limits.
+   The product does not claim official parcel lookup. It is a resident-friendly
+   scan of source-linked public records until true parcel/GIS data is added.
 
-## Implemented Direction
+## Implemented This Pass
 
-- Keep the source-linked, independent editorial model.
-- Put search and source trails at the center of the experience.
-- Use the first locality as a working civic dashboard, not just a launch card.
-- Make project/place watchlists visible without hard-coding unsupported claims.
-- Treat map graphics as orientation aids unless they are backed by official GIS
-  or parcel data.
+- Rebuilt the homepage around a direct local scan form.
+- Moved the Manheim page from dashboard-first to lookup/results-first.
+- Reworked the briefing into a resident lookup panel with quick checks.
+- Added instant scan summaries for active searches.
+- Reframed the atlas into a "how residents use it" workflow.
+- Simplified result card labels around resident impact and verification.
+- Updated navigation and ask-box language to match the new workflow.
 
 ## Next High-Value Work
 
-- Add a lightweight project dossier page for recurring terms like Ashford
-  Meadows, Route 30 / 222, Richmond Square, and the parks plan.
-- Add source health and last-seen timestamps to the public source inventory.
-- Add a small "new since last visit" layer using local storage before adding
-  user accounts.
+- Add true property or parcel lookup backed by official GIS or tax parcel data.
+- Add topic watchlists per resident, starting with local storage before accounts.
+- Add dedicated project dossiers for recurring issues like Ashford Meadows,
+  Route 30 / 222, Richmond Square, parks planning, and library board activity.
+- Add "new since last visit" on phone so repeat users know what changed.

@@ -57,9 +57,9 @@ type FeedViewKey = "events_of_note" | "all_records";
 
 const quickSearchSuggestions = [
   "Ashford Meadows",
-  "Planning Commission",
   "Route 30",
-  "Codified code"
+  "605 Granite Run Drive",
+  "zoning hearing"
 ];
 
 function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
@@ -165,6 +165,7 @@ export function LivePublishedEntries({
   >("idle");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialEntries.length);
+  const [searchTotal, setSearchTotal] = useState(0);
   const [feedView, setFeedView] = useState<FeedViewKey>("events_of_note");
   const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
   const [query, setQuery] = useState("");
@@ -323,6 +324,7 @@ export function LivePublishedEntries({
 
     if (trimmedQuery.length < 3) {
       setSearchEntries([]);
+      setSearchTotal(0);
       setSearchStatus("idle");
       return;
     }
@@ -351,6 +353,7 @@ export function LivePublishedEntries({
 
           if (!cancelled) {
             setSearchEntries(nextEntries);
+            setSearchTotal(payload.total);
             setSearchStatus("ready");
           }
         } catch {
@@ -410,7 +413,7 @@ export function LivePublishedEntries({
       return false;
     }
 
-    if (!normalizedQuery) {
+    if (!normalizedQuery || searchActive) {
       return true;
     }
 
@@ -424,27 +427,31 @@ export function LivePublishedEntries({
       <div id="records" className="space-y-5 scroll-mt-24">
         <CommunityBriefing
           entries={visiblePool}
-          total={total}
-          status={status}
+          total={searchActive ? searchTotal : total}
+          status={searchActive ? searchStatus : status}
           searchActive={searchActive}
+          query={query}
           onClearSearch={resetView}
           onSearch={applySearch}
         />
 
-        <div className="rounded-[1.5rem] border border-white/75 bg-white p-6 shadow-card">
+        <div
+          id="record-results"
+          className="scroll-mt-24 rounded-[1.5rem] border border-white/75 bg-white p-6 shadow-card"
+        >
           <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                  Record workbench
+                  Instant results
                 </p>
                 <h2 className="mt-2 font-serif text-[2.15rem] leading-tight text-moss">
-                  Search, filter, and open the source trail
+                  What is going on in this locale
                 </h2>
               </div>
               <p className="max-w-sm text-sm leading-6 text-ink/58">
-                Use this when you want the official source behind a project,
-                date, ordinance, address, or meeting.
+                Scan the full record by property clue, street, project, date,
+                ordinance, or meeting. Then open the source before acting.
               </p>
             </div>
 
@@ -456,15 +463,15 @@ export function LivePublishedEntries({
                     type="search"
                     value={query}
                     onChange={(event) => handleQueryChange(event.target.value)}
-                    placeholder="Search Ashford Meadows, roads, meetings, permits..."
-                    className="w-full rounded-full border border-ink/10 bg-sand/20 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+                    placeholder="Refine by address, street, development, road, permit..."
+                    className="w-full rounded-[1rem] border border-ink/10 bg-sand/20 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
                   />
                 </label>
 
                 {searchActive ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-clay/20 bg-clay/10 px-4 py-2 text-sm font-semibold text-clay">
-                      Searching all records
+                      Checking live records
                     </span>
                     <button
                       type="button"
@@ -503,7 +510,7 @@ export function LivePublishedEntries({
               </div>
 
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-ink/50">Quick searches:</span>
+                <span className="text-ink/50">Try:</span>
                 {quickSearchSuggestions.map((suggestion) => (
                   <button
                     key={suggestion}
@@ -520,7 +527,7 @@ export function LivePublishedEntries({
                 <p className="text-sm leading-6 text-ink/58">
                   {searchStatus === "loading"
                     ? `Searching the full live record for "${query.trim()}".`
-                    : `Showing ${filteredEntries.length} search results for "${query.trim()}".`}
+                    : `Showing ${filteredEntries.length} local matches for "${query.trim()}".`}
                 </p>
               ) : null}
 
@@ -551,7 +558,7 @@ export function LivePublishedEntries({
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
-                : 'No matching records yet. Try a more specific term like "Ashford Meadows", "Planning Commission", or "Route 30".'
+                : 'No matching records yet. Try a nearby street, project name, road number, board, or park.'
               : "No entries match that filter on this page of results."}
           </div>
         ) : null}

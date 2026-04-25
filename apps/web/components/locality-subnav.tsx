@@ -7,12 +7,12 @@ type LocalitySubnavProps = {
 };
 
 const items = [
-  { suffix: "", label: "Dashboard" },
-  { suffix: "#records", label: "Search records" },
-  { suffix: "#ask", label: "Ask a question" },
-  { suffix: "#newsletter", label: "Email updates" },
+  { suffix: "", label: "Overview" },
+  { suffix: "#records", label: "Check an area" },
+  { suffix: "#ask", label: "Ask the record" },
+  { suffix: "#newsletter", label: "Watch updates" },
   { suffix: "/source-inventory", label: "Trace sources" },
-  { suffix: "/corrections", label: "Report an issue" }
+  { suffix: "/corrections", label: "Fix a detail" }
 ];
 
 export function LocalitySubnav({

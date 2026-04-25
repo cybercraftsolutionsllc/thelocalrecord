@@ -32,38 +32,47 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   );
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 lg:gap-12">
-      <section className="overflow-hidden rounded-[1.75rem] bg-moss text-white shadow-card">
-        <div className="grid gap-8 px-7 py-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:px-10 lg:py-11">
+    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 lg:gap-10 lg:py-10">
+      <section className="overflow-hidden rounded-[1.25rem] bg-[#183f47] text-white shadow-card">
+        <div className="grid gap-7 px-5 py-6 sm:px-7 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:px-9 lg:py-9">
           <div className="flex h-full flex-col">
-            <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-sky">
-              Manheim Township civic record
+            <span className="inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#aee4ef]">
+              Manheim Township local record
             </span>
             <div className="mt-5 space-y-4">
-              <h1 className="text-balance max-w-4xl font-serif text-4xl leading-[1.04] text-sand sm:text-5xl lg:text-[3.8rem]">
-                A usable community dashboard for {data.municipality.shortName}
+              <h1 className="text-balance max-w-4xl font-serif text-4xl leading-[1.02] text-white sm:text-5xl lg:text-[4.2rem]">
+                Check what affects your property, street, and neighborhood.
               </h1>
               <p className="text-pretty max-w-3xl text-lg leading-8 text-white/82">
-                Follow meetings, planning items, public notices, road impacts,
-                parks, ordinances, and source documents without having to know
-                which township page published the update first.
+                Search local records for {data.municipality.shortName}: roads,
+                planning items, permits, public notices, meetings, parks, and
+                official source documents.
               </p>
             </div>
-            <div className="mt-8 max-w-3xl rounded-[1rem] border border-white/15 bg-white/10 px-5 py-4 text-sm leading-7 text-white/82">
-              This digest is independent and resident-run. It links back to
-              township sources, but it is not affiliated with or speaking for
-              Manheim Township.
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="#records"
+                className="rounded-[0.9rem] bg-[#f5c76b] px-5 py-3 text-center text-sm font-bold text-[#173238] transition hover:bg-white"
+              >
+                Check my area
+              </Link>
+              <Link
+                href={`/${slug}?q=Ashford%20Meadows#records`}
+                className="rounded-[0.9rem] border border-white/20 bg-white/10 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/16"
+              >
+                Try Ashford Meadows
+              </Link>
             </div>
           </div>
 
-          <div className="flex h-full flex-col justify-between gap-5 rounded-[1.25rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+          <div className="flex h-full flex-col justify-between gap-5 rounded-[1.1rem] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-[0.85rem] border border-white/10 bg-white/10 px-3 py-3">
                 <p className="font-serif text-3xl leading-none text-sand">
                   {activeSources.length}
                 </p>
                 <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-sky">
-                  Tracked
+                  Sources
                 </p>
               </div>
               <div className="rounded-[0.85rem] border border-white/10 bg-white/10 px-3 py-3">
@@ -71,7 +80,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                   {sourceCategories.size}
                 </p>
                 <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-sky">
-                  Topics
+                  Lanes
                 </p>
               </div>
               <div className="rounded-[0.85rem] border border-white/10 bg-white/10 px-3 py-3">
@@ -90,14 +99,13 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
               </p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-white/80">
                 <li>
-                  What changed with a project, ordinance, meeting, or public
-                  notice?
+                  Does a record mention my address, street, route, or project?
                 </li>
                 <li>
-                  What is coming up next, and where is the source document?
+                  What is next, and which official source verifies it?
                 </li>
                 <li>
-                  Which topics keep surfacing across separate township pages?
+                  What should I watch before a meeting, closure, or decision?
                 </li>
               </ul>
             </div>
@@ -107,8 +115,6 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           </div>
         </div>
       </section>
-
-      <CommunityAtlas slug={slug} />
 
       <section className="grid gap-6 lg:grid-cols-[1.34fr_0.66fr] lg:items-start">
         <div className="min-w-0">
@@ -173,6 +179,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           <LocalityAskBox slug={slug} />
         </aside>
       </section>
+
+      <CommunityAtlas slug={slug} />
     </div>
   );
 }

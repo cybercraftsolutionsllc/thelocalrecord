@@ -13,11 +13,11 @@ const PLATFORM_DISCLAIMER =
   "Independent resident-run digest platform. Not an official municipal website.";
 
 const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/localities", label: "Localities" },
+  { href: "/", label: "Check" },
+  { href: "/manheimtownshippa", label: "Manheim" },
   { href: "/about", label: "About" },
-  { href: "/policy", label: "Policy" },
-  { href: "/corrections", label: "Corrections" }
+  { href: "/policy", label: "Rules" },
+  { href: "/corrections", label: "Fix a detail" }
 ];
 
 export function SiteShell({ children }: SiteShellProps) {
@@ -44,17 +44,17 @@ export function SiteShell({ children }: SiteShellProps) {
         }}
       />
       <header className="border-b border-ink/10 bg-[#fbf7ef]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
             <Link href="/" className="inline-flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-moss/15 bg-sky/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-moss">
-                Independent digest
+              <span className="rounded-full border border-moss/15 bg-sky/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
+                Resident record
               </span>
-              <span className="font-serif text-[2rem] leading-none text-moss">
+              <span className="font-serif text-[1.75rem] leading-none text-moss">
                 The Local Record
               </span>
             </Link>
-            <p className="max-w-2xl text-sm leading-6 text-ink/68">
+            <p className="max-w-2xl text-xs leading-5 text-ink/62 sm:text-sm sm:leading-6">
               {PLATFORM_DISCLAIMER}
             </p>
           </div>
