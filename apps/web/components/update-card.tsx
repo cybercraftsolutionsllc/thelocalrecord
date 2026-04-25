@@ -92,7 +92,8 @@ function formatPublishedDate(publishedAt: string) {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric"
+      year: "numeric",
+      timeZone: "UTC"
     }).format(date);
   } catch {
     return date.toISOString().slice(0, 10);
@@ -103,7 +104,11 @@ function compactValue(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function buildExpandedExcerpt(title: string, summary: string, topicText?: string) {
+function buildExpandedExcerpt(
+  title: string,
+  summary: string,
+  topicText?: string
+) {
   const compactTopic = compactValue(topicText ?? "");
 
   if (!compactTopic) {
@@ -118,7 +123,10 @@ function buildExpandedExcerpt(title: string, summary: string, topicText?: string
     .trim();
   let candidate = withoutTitle || compactTopic;
 
-  if (normalizedSummary && candidate.toLowerCase().startsWith(normalizedSummary.toLowerCase())) {
+  if (
+    normalizedSummary &&
+    candidate.toLowerCase().startsWith(normalizedSummary.toLowerCase())
+  ) {
     candidate = candidate.slice(normalizedSummary.length).trim();
   }
 
@@ -195,7 +203,9 @@ export function UpdateCard(props: UpdateCardProps) {
             {expanded ? "Show less" : "Read more from the source text"}
           </button>
           {expanded ? (
-            <p className="mt-3 text-sm leading-7 text-ink/78">{expandedExcerpt}</p>
+            <p className="mt-3 text-sm leading-7 text-ink/78">
+              {expandedExcerpt}
+            </p>
           ) : null}
         </div>
       ) : null}
@@ -217,7 +227,9 @@ export function UpdateCard(props: UpdateCardProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
               Source trail
             </p>
-            <p className="mt-1 text-sm font-semibold text-ink">{props.sourceLabel}</p>
+            <p className="mt-1 text-sm font-semibold text-ink">
+              {props.sourceLabel}
+            </p>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
@@ -226,7 +238,7 @@ export function UpdateCard(props: UpdateCardProps) {
               href={props.detailUrl}
               className="rounded-full border border-moss/15 bg-moss px-3 py-2 font-semibold text-white transition hover:bg-moss/90"
             >
-              Read item
+              Open full digest record
             </a>
           ) : null}
           {sourceLinks.map((link) => (

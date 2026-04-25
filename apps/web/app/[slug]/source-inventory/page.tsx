@@ -21,8 +21,27 @@ export default async function LocalitySourceInventoryPage({
     notFound();
   }
 
-  const activeSources = data.municipality.sources.filter((source) => source.implemented);
-  const plannedSources = data.municipality.sources.filter((source) => !source.implemented);
+  const activeSources = data.municipality.sources.filter(
+    (source) => source.implemented
+  );
+  const plannedSources = data.municipality.sources.filter(
+    (source) => !source.implemented
+  );
+  const categoryCounts = activeSources.reduce<
+    Array<{ label: string; count: number }>
+  >((counts, source) => {
+    const existing = counts.find(
+      (item) => item.label === source.publicCategory
+    );
+
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.push({ label: source.publicCategory, count: 1 });
+    }
+
+    return counts;
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -49,13 +68,17 @@ export default async function LocalitySourceInventoryPage({
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Active sources
             </p>
-            <p className="mt-2 font-serif text-3xl text-moss">{activeSources.length}</p>
+            <p className="mt-2 font-serif text-3xl text-moss">
+              {activeSources.length}
+            </p>
           </div>
           <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Planned sources
             </p>
-            <p className="mt-2 font-serif text-3xl text-moss">{plannedSources.length}</p>
+            <p className="mt-2 font-serif text-3xl text-moss">
+              {plannedSources.length}
+            </p>
           </div>
           <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
@@ -66,6 +89,39 @@ export default async function LocalitySourceInventoryPage({
             </p>
           </div>
         </div>
+
+        <section className="rounded-[1.5rem] border border-moss/10 bg-[#f9f7f0] p-5">
+          <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+                Coverage lanes
+              </p>
+              <h2 className="mt-2 font-serif text-3xl leading-tight text-moss">
+                What this source set can answer
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-ink/70">
+                The digest is strongest when a resident searches for a project,
+                meeting, ordinance, public notice, park item, road impact, or
+                planning document and then opens the original source trail.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {categoryCounts.map((category) => (
+                <div
+                  key={category.label}
+                  className="rounded-[1rem] border border-ink/10 bg-white px-4 py-4"
+                >
+                  <p className="font-semibold text-moss">{category.label}</p>
+                  <p className="mt-2 text-sm leading-6 text-ink/62">
+                    {category.count} active source
+                    {category.count === 1 ? "" : "s"} feeding the locality
+                    record.
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         <div className="space-y-6">
           <section className="space-y-4">
@@ -84,7 +140,9 @@ export default async function LocalitySourceInventoryPage({
                   className="rounded-[1.5rem] border border-ink/10 p-5"
                 >
                   <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="font-serif text-2xl text-moss">{source.name}</h3>
+                    <h3 className="font-serif text-2xl text-moss">
+                      {source.name}
+                    </h3>
                     <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
                       {source.publicCategory}
                     </span>
@@ -125,7 +183,9 @@ export default async function LocalitySourceInventoryPage({
                     className="rounded-[1.5rem] border border-ink/10 p-5"
                   >
                     <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="font-serif text-2xl text-moss">{source.name}</h3>
+                      <h3 className="font-serif text-2xl text-moss">
+                        {source.name}
+                      </h3>
                       <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
                         {source.publicCategory}
                       </span>

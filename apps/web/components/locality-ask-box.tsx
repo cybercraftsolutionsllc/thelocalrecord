@@ -26,21 +26,40 @@ type AskResponse =
       }>;
     };
 
+const askExamples = [
+  {
+    label: "Ashford Meadows",
+    question: "What changed with Ashford Meadows?"
+  },
+  {
+    label: "Planning Commission",
+    question: "What Planning Commission records should I review next?"
+  },
+  {
+    label: "Route 30",
+    question: "What should residents know about Route 30?"
+  },
+  {
+    label: "Codified code",
+    question: "Where can I find the codified code records?"
+  }
+];
+
 export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [result, setResult] = useState<AskResponse | null>(null);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const trimmed = question.trim();
+  function askQuestion(nextQuestion: string) {
+    const trimmed = nextQuestion.trim();
+    setQuestion(trimmed);
 
     if (!trimmed || !contentApiBase) {
       return;
     }
 
     setStatus("loading");
+    setResult(null);
 
     void (async () => {
       try {
@@ -67,13 +86,16 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
     })();
   }
 
-  return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-[-3rem] top-[-3rem] h-24 w-24 rounded-full bg-sky/45 blur-2xl" />
-        <div className="absolute bottom-[-2rem] left-[-2rem] h-20 w-20 rounded-full bg-clay/10 blur-2xl" />
-      </div>
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    askQuestion(question);
+  }
 
+  return (
+    <section
+      id="ask"
+      className="relative scroll-mt-24 overflow-hidden rounded-[1.5rem] border border-white/75 bg-white p-6 shadow-card"
+    >
       <div className="relative space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
           Ask this locality
@@ -83,18 +105,17 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
           get a source-linked answer.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          {["Ashford Meadows", "Planning Commission", "Route 30", "Codified code"].map(
-            (example) => (
-              <button
-                key={example}
-                type="button"
-                onClick={() => setQuestion(example)}
-                className="rounded-full border border-moss/10 bg-sand/35 px-3 py-2 text-xs font-semibold text-moss transition hover:bg-sky"
-              >
-                {example}
-              </button>
-            )
-          )}
+          {askExamples.map((example) => (
+            <button
+              key={example.label}
+              type="button"
+              onClick={() => askQuestion(example.question)}
+              disabled={status === "loading"}
+              className="rounded-full border border-moss/10 bg-sand/35 px-3 py-2 text-xs font-semibold text-moss transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Ask: {example.label}
+            </button>
+          ))}
         </div>
       </div>
 
