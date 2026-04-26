@@ -67,7 +67,15 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
       />
 
       <section className="min-w-0">
-        <LivePublishedEntries slug={slug} initialEntries={data.entries} />
+        <LivePublishedEntries
+          slug={slug}
+          initialEntries={data.entries}
+          trackedSources={activeSources.map((source) => ({
+            name: source.name,
+            publicCategory: source.publicCategory,
+            url: source.url
+          }))}
+        />
       </section>
 
       <LocalityNewsletterBox

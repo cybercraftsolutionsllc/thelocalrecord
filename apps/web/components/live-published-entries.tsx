@@ -17,6 +17,11 @@ import { UpdateCard } from "./update-card";
 type LivePublishedEntriesProps = {
   slug: string;
   initialEntries: PublicEntry[];
+  trackedSources?: Array<{
+    name: string;
+    publicCategory: string;
+    url: string;
+  }>;
 };
 
 type ApiEntry = {
@@ -54,13 +59,6 @@ type TopicOption = {
 };
 
 type FeedViewKey = "events_of_note" | "all_records";
-
-const quickSearchSuggestions = [
-  "land development",
-  "Route 30",
-  "road closure",
-  "zoning hearing"
-];
 
 function normalizePayload(payload: PublishedPayload | ApiEntry[]) {
   if (Array.isArray(payload)) {
@@ -153,7 +151,8 @@ function mapApiEntry(entry: ApiEntry, slug: string): PublicEntry {
 
 export function LivePublishedEntries({
   slug,
-  initialEntries
+  initialEntries,
+  trackedSources = []
 }: LivePublishedEntriesProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [searchEntries, setSearchEntries] = useState<PublicEntry[]>([]);
@@ -198,33 +197,6 @@ export function LivePublishedEntries({
       window.history.replaceState(null, "", url);
     }
   }, []);
-
-  function handleQueryChange(nextQuery: string) {
-    setQuery(nextQuery);
-
-    const trimmedQuery = nextQuery.trim();
-
-    if (trimmedQuery.length >= 3) {
-      setFeedView("all_records");
-      setActiveTopic("all");
-      setPage(1);
-
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("q", trimmedQuery);
-        url.hash = "records";
-        window.history.replaceState(null, "", url);
-      }
-
-      return;
-    }
-
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("q");
-      window.history.replaceState(null, "", url);
-    }
-  }
 
   useEffect(() => {
     const urlQuery = new URLSearchParams(window.location.search)
@@ -427,6 +399,7 @@ export function LivePublishedEntries({
       <div id="records" className="space-y-4 scroll-mt-24">
         <CommunityBriefing
           entries={visiblePool}
+          trackedSources={trackedSources}
           total={searchActive ? searchTotal : total}
           status={searchActive ? searchStatus : status}
           searchActive={searchActive}
@@ -441,87 +414,61 @@ export function LivePublishedEntries({
         >
           <div className="space-y-5">
             <div>
-              <p className="text-sm font-semibold text-moss">Results</p>
+              <p className="text-sm font-semibold text-moss">
+                {searchActive ? "Search results" : "Browse records"}
+              </p>
               <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
                 Local records
               </h2>
+              <p className="mt-2 text-sm leading-6 text-ink/62">
+                {searchActive
+                  ? "The search above ran across the live locality record."
+                  : "Use the filters below to move through the record without starting a second search."}
+              </p>
             </div>
 
             <div className="space-y-4 border-t border-ink/8 pt-5">
-              <div className="space-y-4">
-                <label className="block">
-                  <span className="sr-only">Search updates</span>
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => handleQueryChange(event.target.value)}
-                    placeholder="Refine by address, street, development, road, permit..."
-                    className="w-full rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-moss"
-                  />
-                </label>
-
-                {searchActive ? (
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <span className="rounded-md border border-clay/20 px-3 py-2 text-sm font-semibold text-clay">
-                      Checking live records
-                    </span>
-                    <button
-                      type="button"
-                      onClick={resetView}
-                      className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-                    >
-                      Clear search
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex rounded-lg border border-ink/10 bg-sand p-1">
-                    <button
-                      type="button"
-                      onClick={() => setFeedView("events_of_note")}
-                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-                        feedView === "events_of_note"
-                          ? "bg-white text-moss shadow-sm"
-                          : "text-ink/58 hover:text-moss"
-                      }`}
-                    >
-                      Highlights
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFeedView("all_records")}
-                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-                        feedView === "all_records"
-                          ? "bg-white text-moss shadow-sm"
-                          : "text-ink/58 hover:text-moss"
-                      }`}
-                    >
-                      All records
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-ink/50">Try:</span>
-                {quickSearchSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => applySearch(suggestion)}
-                    className="rounded-md border border-ink/10 px-3 py-1.5 text-sm text-ink/68 transition hover:border-moss/25 hover:text-moss"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-
               {searchActive ? (
-                <p className="text-sm leading-6 text-ink/58">
-                  {searchStatus === "loading"
-                    ? `Searching the full live record for "${query.trim()}".`
-                    : `Showing ${filteredEntries.length} local matches for "${query.trim()}".`}
-                </p>
-              ) : null}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <span className="rounded-md border border-clay/20 px-3 py-2 text-sm font-semibold text-clay">
+                    {searchStatus === "loading"
+                      ? `Searching "${query.trim()}"`
+                      : `${filteredEntries.length} matches for "${query.trim()}"`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={resetView}
+                    className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              ) : (
+                <div className="flex rounded-lg border border-ink/10 bg-sand p-1">
+                  <button
+                    type="button"
+                    onClick={() => setFeedView("events_of_note")}
+                    className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
+                      feedView === "events_of_note"
+                        ? "bg-white text-moss shadow-sm"
+                        : "text-ink/58 hover:text-moss"
+                    }`}
+                  >
+                    Highlights
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedView("all_records")}
+                    className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
+                      feedView === "all_records"
+                        ? "bg-white text-moss shadow-sm"
+                        : "text-ink/58 hover:text-moss"
+                    }`}
+                  >
+                    All records
+                  </button>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-2 border-t border-ink/8 pt-4">
                 {topicOptions.map((option) => (
