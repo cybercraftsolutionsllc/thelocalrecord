@@ -34,11 +34,16 @@
 
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_PROJECT_NAME`
 - `OPENAI_API_KEY` (optional until LLM refinement is enabled)
 - `RESEND_API_KEY`
 - `NEWSLETTER_FROM_EMAIL`
 - `NEWSLETTER_REPLY_TO`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_WEB_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
 
 ## Runtime environment variables
 
@@ -51,6 +56,12 @@
 - `RESEND_API_KEY=...`
 - `NEWSLETTER_FROM_EMAIL=weekly@thelocalrecord.org`
 - `NEWSLETTER_REPLY_TO=cyber.craft@craftedcybersolutions.com`
+- `FIREBASE_PROJECT_ID=...`
+- `FIREBASE_WEB_API_KEY=...`
+- `NEXT_PUBLIC_FIREBASE_API_KEY=...`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID=...`
+- `NEXT_PUBLIC_FIREBASE_APP_ID=...`
 
 ## API token scopes
 
@@ -58,6 +69,17 @@
 - `Workers Scripts:Edit`
 - `Account:D1:Edit`
 - `Account:R2:Edit`
+- `Account Settings:Read` (optional; helps Wrangler identify the authenticated account cleanly)
+- `Zone:DNS:Edit` (only if the workflow will manage `thelocalrecord.org` DNS)
+
+## D1 migrations
+
+Use Wrangler's migration ledger, not raw SQL replay, for deployed databases:
+
+```sh
+wrangler d1 migrations apply thelocalrecord-prod --remote --config apps/worker/wrangler.jsonc
+wrangler d1 migrations apply thelocalrecord-preview --remote --config apps/worker/wrangler.jsonc --env preview
+```
 
 ## Notes
 

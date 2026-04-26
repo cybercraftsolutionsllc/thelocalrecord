@@ -16,6 +16,12 @@ jobs:
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       NEWSLETTER_FROM_EMAIL: ${{ secrets.NEWSLETTER_FROM_EMAIL }}
       NEWSLETTER_REPLY_TO: ${{ secrets.NEWSLETTER_REPLY_TO }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
       NEXT_PUBLIC_SITE_URL: https://thelocalrecord.org
       NEXT_PUBLIC_CONTENT_API_BASE: https://thelocalrecord-api.cybercraftsolutions.workers.dev
       CORRECTIONS_EMAIL: cyber.craft@craftedcybersolutions.com
@@ -49,6 +55,22 @@ jobs:
             echo "Missing GitHub Actions secret: CLOUDFLARE_ACCOUNT_ID" >&2
             exit 1
           fi
+      - name: Validate optional Firebase secrets
+        run: |
+          if [ -n "$FIREBASE_PROJECT_ID$FIREBASE_WEB_API_KEY" ] && { [ -z "$FIREBASE_PROJECT_ID" ] || [ -z "$FIREBASE_WEB_API_KEY" ]; }; then
+            echo "Set both FIREBASE_PROJECT_ID and FIREBASE_WEB_API_KEY, or neither." >&2
+            exit 1
+          fi
+          web_count=0
+          for value in "$NEXT_PUBLIC_FIREBASE_API_KEY" "$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" "$NEXT_PUBLIC_FIREBASE_PROJECT_ID" "$NEXT_PUBLIC_FIREBASE_APP_ID"; do
+            if [ -n "$value" ]; then
+              web_count=$((web_count + 1))
+            fi
+          done
+          if [ "$web_count" -ne 0 ] && [ "$web_count" -ne 4 ]; then
+            echo "Set all NEXT_PUBLIC_FIREBASE_* web config secrets, or none." >&2
+            exit 1
+          fi
       - name: Lint
         run: pnpm lint
 
@@ -60,15 +82,19 @@ jobs:
 
       - name: Apply D1 schema
         run: |
-          for migration in $(find apps/worker/migrations -maxdepth 1 -name '*.sql' | sort); do
-            npx wrangler d1 execute thelocalrecord-prod --remote --file "$migration" --config apps/worker/wrangler.jsonc
-            npx wrangler d1 execute thelocalrecord-preview --remote --file "$migration" --config apps/worker/wrangler.jsonc
-          done
+          npx wrangler d1 migrations apply thelocalrecord-prod --remote --config apps/worker/wrangler.jsonc
+          npx wrangler d1 migrations apply thelocalrecord-preview --remote --config apps/worker/wrangler.jsonc --env preview
 
       - name: Upload OpenAI secret if present
         if: ${{ env.OPENAI_API_KEY != '' }}
         run: |
           echo "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY --config apps/worker/wrangler.jsonc --env=""
+
+      - name: Upload Firebase secrets if present
+        if: ${{ env.FIREBASE_PROJECT_ID != '' && env.FIREBASE_WEB_API_KEY != '' }}
+        run: |
+          echo "$FIREBASE_PROJECT_ID" | npx wrangler secret put FIREBASE_PROJECT_ID --config apps/worker/wrangler.jsonc --env=""
+          echo "$FIREBASE_WEB_API_KEY" | npx wrangler secret put FIREBASE_WEB_API_KEY --config apps/worker/wrangler.jsonc --env=""
 
       - name: Upload newsletter secrets if present
         run: |
