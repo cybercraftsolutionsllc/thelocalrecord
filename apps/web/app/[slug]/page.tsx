@@ -7,13 +7,14 @@ import { LocalityNewsletterBox } from "../../components/locality-newsletter-box"
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
+import { municipalities } from "@thelocalrecord/core";
 
 type LocalityPageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export function generateStaticParams() {
-  return [{ slug: "manheimtownshippa" }];
+  return municipalities.map((municipality) => ({ slug: municipality.slug }));
 }
 
 export default async function LocalityPage({ params }: LocalityPageProps) {
@@ -27,6 +28,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   const activeSources = data.municipality.sources.filter(
     (source) => source.implemented
   );
+  const coverageStatus = activeSources.length > 0 ? "Live" : "Planned";
   const sourceCategories = new Set(
     activeSources.map((source) => source.publicCategory)
   );
@@ -37,7 +39,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         <div className="grid gap-7 px-5 py-6 sm:px-7 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10 lg:px-9 lg:py-9">
           <div className="flex h-full flex-col">
             <span className="inline-flex w-fit rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#aee4ef]">
-              Manheim Township local record
+              {data.municipality.name} local record
             </span>
             <div className="mt-5 space-y-4">
               <h1 className="text-balance max-w-4xl font-serif text-4xl leading-[1.02] text-white sm:text-5xl lg:text-[4.2rem]">
@@ -85,7 +87,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
               </div>
               <div className="rounded-[0.85rem] border border-white/10 bg-white/10 px-3 py-3">
                 <p className="font-serif text-3xl leading-none text-sand">
-                  Live
+                  {coverageStatus}
                 </p>
                 <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-sky">
                   Feed
@@ -101,9 +103,7 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
                 <li>
                   Does a record mention my address, street, route, or project?
                 </li>
-                <li>
-                  What is next, and which official source verifies it?
-                </li>
+                <li>What is next, and which official source verifies it?</li>
                 <li>
                   What should I watch before a meeting, closure, or decision?
                 </li>

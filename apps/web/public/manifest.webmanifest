@@ -1,0 +1,18 @@
+{
+  "name": "The Local Record",
+  "short_name": "Local Record",
+  "description": "Resident-first local record search, saved places, and source-linked watchlists.",
+  "start_url": "/my-record",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3efe4",
+  "theme_color": "#183f47",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

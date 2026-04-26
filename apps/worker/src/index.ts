@@ -4,23 +4,31 @@ import {
   ActiveFetchRunError,
   confirmNewsletterSubscriptionByToken,
   consumeRateLimit,
+  createSavedPlace,
+  createWatchlist,
+  getResidentSnapshot,
   getPublishedEntryById,
   getNewsletterSubscriptionByConfirmationToken,
   getNewsletterSubscriptionByManageToken,
   issueNewsletterConfirmationToken,
+  listNearMeEntries,
+  listSavedPlaces,
+  listWatchlists,
   listPublishedEntries,
   listReviewQueue,
+  softDeleteSavedPlace,
+  softDeleteWatchlist,
   resyncLegacyNewsletterTokens,
   searchPublishedEntries,
   syncRegistry,
+  updateNotificationPreference,
+  upsertPushToken,
   updateNewsletterSubscriptionByManageToken,
   upsertNewsletterSubscription
 } from "./d1";
+import { authenticateResident } from "./auth";
 import type { WorkerEnv } from "./env";
-import {
-  importPlanningCommissionArchives,
-  ingestMunicipality,
-} from "./ingest";
+import { importPlanningCommissionArchives, ingestMunicipality } from "./ingest";
 import {
   generateWeeklyNewsletterIssue,
   sendNewsletterConfirmationEmail
@@ -58,22 +66,25 @@ export default {
     }
 
     if (url.pathname === "/health") {
-      return jsonResponse(
-        request,
-        {
-          ok: true,
-          service: "thelocalrecord-api",
-          municipalities: municipalities.map((municipality) => municipality.slug)
-        }
-      );
+      return jsonResponse(request, {
+        ok: true,
+        service: "thelocalrecord-api",
+        municipalities: municipalities.map((municipality) => municipality.slug)
+      });
     }
 
     if (url.pathname.startsWith("/admin/")) {
       if (!isLocalAdminRequest(url)) {
-        return new Response("Not found", { status: 404, headers: buildJsonHeaders(request) });
+        return new Response("Not found", {
+          status: 404,
+          headers: buildJsonHeaders(request)
+        });
       }
 
-      if (url.pathname === "/admin/sync-registry" && request.method === "POST") {
+      if (
+        url.pathname === "/admin/sync-registry" &&
+        request.method === "POST"
+      ) {
         await syncRegistry(env.DB);
         return jsonResponse(request, { ok: true });
       }
@@ -107,7 +118,14 @@ export default {
         }
       }
 
-      return new Response("Not found", { status: 404, headers: buildJsonHeaders(request) });
+      return new Response("Not found", {
+        status: 404,
+        headers: buildJsonHeaders(request)
+      });
+    }
+
+    if (url.pathname === "/api/me" || url.pathname.startsWith("/api/me/")) {
+      return handleResidentApi(request, env, url);
     }
 
     if (url.pathname.startsWith("/api/localities/")) {
@@ -118,7 +136,11 @@ export default {
       const municipality = slug ? getMunicipalityBySlug(slug) : null;
 
       if (!slug || !municipality) {
-        return jsonResponse(request, { error: "Unknown locality" }, { status: 404 });
+        return jsonResponse(
+          request,
+          { error: "Unknown locality" },
+          { status: 404 }
+        );
       }
 
       if (!view || view === "") {
@@ -136,7 +158,11 @@ export default {
           const entry = await getPublishedEntryById(env.DB, slug, detailId);
 
           if (!entry) {
-            return jsonResponse(request, { error: "Not found" }, { status: 404 });
+            return jsonResponse(
+              request,
+              { error: "Not found" },
+              { status: 404 }
+            );
           }
 
           return jsonResponse(request, entry);
@@ -144,7 +170,10 @@ export default {
 
         const page = Number(url.searchParams.get("page") ?? "1");
         const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
-        return jsonResponse(request, await listPublishedEntries(env.DB, slug, page, pageSize));
+        return jsonResponse(
+          request,
+          await listPublishedEntries(env.DB, slug, page, pageSize)
+        );
       }
 
       if (view === "search") {
@@ -169,13 +198,19 @@ export default {
           });
         }
 
-        const matches = await searchPublishedEntries(env.DB, slug, query, limit);
+        const matches = await searchPublishedEntries(
+          env.DB,
+          slug,
+          query,
+          limit
+        );
         return jsonResponse(request, {
           entries: matches.map((entry) => ({
             id: entry.id,
             title: entry.title,
             summary: entry.summary,
             category: entry.category,
+            impact_level: entry.impact_level,
             source_links_json: entry.source_links_json,
             published_at: entry.published_at,
             source_material_date: entry.source_material_date,
@@ -198,14 +233,17 @@ export default {
           return rateLimitResponse;
         }
 
-        const body = (await request.json().catch(() => null)) as { question?: string } | null;
+        const body = (await request.json().catch(() => null)) as {
+          question?: string;
+        } | null;
         const question = body?.question?.trim() ?? "";
 
         if (!question) {
           return jsonResponse(request, {
             mode: "clarify",
             clarifyQuestion: "What do you want to ask about this locality?",
-            disclaimer: "AI-assisted answer. Check the cited source links for the official record."
+            disclaimer:
+              "AI-assisted answer. Check the cited source links for the official record."
           });
         }
 
@@ -239,13 +277,18 @@ export default {
           );
         }
 
-        const body = (await request.json().catch(() => null)) as
-          | { email?: string; displayName?: string }
-          | null;
+        const body = (await request.json().catch(() => null)) as {
+          email?: string;
+          displayName?: string;
+        } | null;
         const email = body?.email?.trim() ?? "";
 
         if (!isValidEmail(email)) {
-          return jsonResponse(request, { ok: false, error: "invalid_email" }, { status: 400 });
+          return jsonResponse(
+            request,
+            { ok: false, error: "invalid_email" },
+            { status: 400 }
+          );
         }
 
         const subscription = await upsertNewsletterSubscription(env.DB, {
@@ -259,7 +302,11 @@ export default {
         });
 
         if (!confirmation) {
-          return jsonResponse(request, { ok: false, error: "subscription_not_found" }, { status: 500 });
+          return jsonResponse(
+            request,
+            { ok: false, error: "subscription_not_found" },
+            { status: 500 }
+          );
         }
 
         const confirmUrl = `${env.NEXT_PUBLIC_SITE_URL ?? PRIMARY_SITE_ORIGIN}/newsletter/confirm?token=${encodeURIComponent(confirmation.token)}`;
@@ -272,7 +319,10 @@ export default {
 
         return jsonResponse(request, {
           ok: true,
-          status: subscription.status === "active" ? "confirmation_resent" : "confirmation_sent",
+          status:
+            subscription.status === "active"
+              ? "confirmation_resent"
+              : "confirmation_sent",
           email: subscription.email
         });
       }
@@ -284,7 +334,10 @@ export default {
 
     if (url.pathname === "/api/newsletter/confirm") {
       const rateLimitResponse = await enforceRateLimit(request, env, {
-        routeKey: request.method === "POST" ? "newsletter_confirm_submit" : "newsletter_confirm_view",
+        routeKey:
+          request.method === "POST"
+            ? "newsletter_confirm_submit"
+            : "newsletter_confirm_view",
         limit: request.method === "POST" ? 8 : 20,
         windowMinutes: 15
       });
@@ -295,30 +348,51 @@ export default {
 
       const token = url.searchParams.get("token")?.trim() ?? "";
       if (!token) {
-        return jsonResponse(request, { ok: false, error: "missing_token" }, { status: 400 });
+        return jsonResponse(
+          request,
+          { ok: false, error: "missing_token" },
+          { status: 400 }
+        );
       }
 
       if (request.method === "GET") {
-        const pending = await getNewsletterSubscriptionByConfirmationToken(env.DB, token);
+        const pending = await getNewsletterSubscriptionByConfirmationToken(
+          env.DB,
+          token
+        );
         if (!pending) {
-          return jsonResponse(request, { ok: false, error: "invalid_token" }, { status: 404 });
+          return jsonResponse(
+            request,
+            { ok: false, error: "invalid_token" },
+            { status: 404 }
+          );
         }
 
-        const municipality = getMunicipalityBySlug(pending.subscription.municipality_slug);
+        const municipality = getMunicipalityBySlug(
+          pending.subscription.municipality_slug
+        );
         return jsonResponse(request, {
           ok: true,
           subscription: {
             email: pending.subscription.email,
             municipalitySlug: pending.subscription.municipality_slug,
-            municipalityName: municipality?.shortName ?? pending.subscription.municipality_slug
+            municipalityName:
+              municipality?.shortName ?? pending.subscription.municipality_slug
           }
         });
       }
 
       if (request.method === "POST") {
-        const confirmed = await confirmNewsletterSubscriptionByToken(env.DB, token);
+        const confirmed = await confirmNewsletterSubscriptionByToken(
+          env.DB,
+          token
+        );
         if (!confirmed) {
-          return jsonResponse(request, { ok: false, error: "invalid_token" }, { status: 404 });
+          return jsonResponse(
+            request,
+            { ok: false, error: "invalid_token" },
+            { status: 404 }
+          );
         }
 
         return jsonResponse(request, {
@@ -337,7 +411,10 @@ export default {
 
     if (url.pathname === "/api/newsletter/manage") {
       const rateLimitResponse = await enforceRateLimit(request, env, {
-        routeKey: request.method === "POST" ? "newsletter_manage_submit" : "newsletter_manage_view",
+        routeKey:
+          request.method === "POST"
+            ? "newsletter_manage_submit"
+            : "newsletter_manage_view",
         limit: request.method === "POST" ? 15 : 30,
         windowMinutes: 15
       });
@@ -349,13 +426,24 @@ export default {
       const token = url.searchParams.get("token")?.trim() ?? "";
 
       if (!token) {
-        return jsonResponse(request, { ok: false, error: "missing_token" }, { status: 400 });
+        return jsonResponse(
+          request,
+          { ok: false, error: "missing_token" },
+          { status: 400 }
+        );
       }
 
-      const subscription = await getNewsletterSubscriptionByManageToken(env.DB, token);
+      const subscription = await getNewsletterSubscriptionByManageToken(
+        env.DB,
+        token
+      );
 
       if (!subscription) {
-        return jsonResponse(request, { ok: false, error: "invalid_token" }, { status: 404 });
+        return jsonResponse(
+          request,
+          { ok: false, error: "invalid_token" },
+          { status: 404 }
+        );
       }
 
       if (request.method === "GET") {
@@ -372,9 +460,10 @@ export default {
       }
 
       if (request.method === "POST") {
-        const body = (await request.json().catch(() => null)) as
-          | { action?: string; displayName?: string }
-          | null;
+        const body = (await request.json().catch(() => null)) as {
+          action?: string;
+          displayName?: string;
+        } | null;
         const action = body?.action?.trim() ?? "";
         const nextStatus =
           action === "unsubscribe"
@@ -383,11 +472,14 @@ export default {
               ? "active"
               : undefined;
 
-        const updated = await updateNewsletterSubscriptionByManageToken(env.DB, {
-          manageToken: token,
-          displayName: body?.displayName,
-          status: nextStatus
-        });
+        const updated = await updateNewsletterSubscriptionByManageToken(
+          env.DB,
+          {
+            manageToken: token,
+            displayName: body?.displayName,
+            status: nextStatus
+          }
+        );
 
         return jsonResponse(request, {
           ok: true,
@@ -402,7 +494,10 @@ export default {
       }
     }
 
-    return new Response("Not found", { status: 404, headers: buildJsonHeaders(request) });
+    return new Response("Not found", {
+      status: 404,
+      headers: buildJsonHeaders(request)
+    });
   },
 
   scheduled(event: ScheduledController, env: WorkerEnv, ctx: ExecutionContext) {
@@ -422,7 +517,10 @@ export default {
         if (event.cron === "37 6 * * *") {
           for (const municipality of municipalities) {
             try {
-              const result = await importPlanningCommissionArchives(env, municipality.slug);
+              const result = await importPlanningCommissionArchives(
+                env,
+                municipality.slug
+              );
 
               if (result.sourceFailures.length > 0) {
                 console.warn(
@@ -471,6 +569,222 @@ export default {
   }
 };
 
+async function handleResidentApi(request: Request, env: WorkerEnv, url: URL) {
+  const rateLimitResponse = await enforceRateLimit(request, env, {
+    routeKey: "resident_api",
+    limit: 90,
+    windowMinutes: 15
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const resident = await authenticateResident(request, env);
+
+  if (!resident) {
+    return jsonResponse(
+      request,
+      { ok: false, error: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const pathParts = url.pathname.split("/").filter(Boolean);
+  const resource = pathParts[2] ?? "";
+  const detailId = pathParts[3] ?? "";
+
+  if (!resource && request.method === "GET") {
+    return jsonResponse(request, {
+      ok: true,
+      resident: await getResidentSnapshot(env.DB, resident.profile.id)
+    });
+  }
+
+  if (resource === "places") {
+    if (!detailId && request.method === "GET") {
+      return jsonResponse(request, {
+        ok: true,
+        savedPlaces: await listSavedPlaces(env.DB, resident.profile.id)
+      });
+    }
+
+    if (!detailId && request.method === "POST") {
+      const body = (await request.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      const label = stringBody(body, "label").slice(0, 80);
+      const rawAddress =
+        stringBody(body, "rawAddress") || stringBody(body, "address");
+      const municipalitySlug =
+        stringBody(body, "municipalitySlug") ||
+        inferMunicipalitySlugFromZip(rawAddress);
+
+      if (
+        !label ||
+        rawAddress.length < 3 ||
+        !isSupportedMunicipality(municipalitySlug)
+      ) {
+        return jsonResponse(
+          request,
+          { ok: false, error: "invalid_saved_place" },
+          { status: 400 }
+        );
+      }
+
+      const savedPlace = await createSavedPlace(env.DB, {
+        userId: resident.profile.id,
+        label,
+        rawAddress: rawAddress.slice(0, 240),
+        normalizedAddress: normalizeResidentAddress(
+          stringBody(body, "normalizedAddress") || rawAddress
+        ),
+        zip: stringBody(body, "zip") || extractZip(rawAddress),
+        municipalitySlug,
+        lat: numberBody(body, "lat"),
+        lng: numberBody(body, "lng"),
+        geocodeConfidence: numberBody(body, "geocodeConfidence")
+      });
+
+      return jsonResponse(request, { ok: true, savedPlace }, { status: 201 });
+    }
+
+    if (detailId && request.method === "DELETE") {
+      await softDeleteSavedPlace(env.DB, resident.profile.id, detailId);
+      return jsonResponse(request, { ok: true });
+    }
+  }
+
+  if (resource === "watchlists") {
+    if (!detailId && request.method === "GET") {
+      return jsonResponse(request, {
+        ok: true,
+        watchlists: await listWatchlists(env.DB, resident.profile.id)
+      });
+    }
+
+    if (!detailId && request.method === "POST") {
+      const body = (await request.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      const label = stringBody(body, "label").slice(0, 80);
+      const query = stringBody(body, "query").slice(0, 160);
+      const savedPlaceId = stringBody(body, "savedPlaceId") || null;
+      const selectedPlace = savedPlaceId
+        ? (await listSavedPlaces(env.DB, resident.profile.id)).find(
+            (place) => place.id === savedPlaceId
+          )
+        : null;
+      const municipalitySlug =
+        selectedPlace?.municipality_slug ||
+        stringBody(body, "municipalitySlug") ||
+        "manheimtownshippa";
+
+      if (savedPlaceId && !selectedPlace) {
+        return jsonResponse(
+          request,
+          { ok: false, error: "invalid_saved_place" },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !label ||
+        query.length < 3 ||
+        !isSupportedMunicipality(municipalitySlug)
+      ) {
+        return jsonResponse(
+          request,
+          { ok: false, error: "invalid_watchlist" },
+          { status: 400 }
+        );
+      }
+
+      const watchlist = await createWatchlist(env.DB, {
+        userId: resident.profile.id,
+        savedPlaceId,
+        municipalitySlug,
+        label,
+        query,
+        topic: stringBody(body, "topic") || null,
+        notificationLevel: normalizeNotificationLevel(
+          stringBody(body, "notificationLevel")
+        )
+      });
+
+      return jsonResponse(request, { ok: true, watchlist }, { status: 201 });
+    }
+
+    if (detailId && request.method === "DELETE") {
+      await softDeleteWatchlist(env.DB, resident.profile.id, detailId);
+      return jsonResponse(request, { ok: true });
+    }
+  }
+
+  if (resource === "preferences" && request.method === "PATCH") {
+    const body = (await request.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
+    const preferences = await updateNotificationPreference(env.DB, {
+      userId: resident.profile.id,
+      emailEnabled: booleanBody(body, "emailEnabled"),
+      pushEnabled: booleanBody(body, "pushEnabled"),
+      digestFrequency: normalizeDigestFrequency(
+        stringBody(body, "digestFrequency")
+      ),
+      quietHoursStart: nullableStringBody(body, "quietHoursStart"),
+      quietHoursEnd: nullableStringBody(body, "quietHoursEnd"),
+      criticalSourceEnabled: booleanBody(body, "criticalSourceEnabled")
+    });
+
+    return jsonResponse(request, { ok: true, preferences });
+  }
+
+  if (resource === "push-tokens" && request.method === "POST") {
+    const body = (await request.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
+    const token = stringBody(body, "token");
+    const platform = normalizePushPlatform(stringBody(body, "platform"));
+
+    if (!token || !platform) {
+      return jsonResponse(
+        request,
+        { ok: false, error: "invalid_push_token" },
+        { status: 400 }
+      );
+    }
+
+    const pushToken = await upsertPushToken(env.DB, {
+      userId: resident.profile.id,
+      platform,
+      token,
+      deviceLabel: stringBody(body, "deviceLabel") || null
+    });
+
+    return jsonResponse(request, { ok: true, pushToken }, { status: 201 });
+  }
+
+  if (resource === "nearby" && request.method === "GET") {
+    const limit = Number(url.searchParams.get("limit") ?? "18");
+
+    return jsonResponse(request, {
+      ok: true,
+      entries: await listNearMeEntries(env.DB, resident.profile.id, limit)
+    });
+  }
+
+  return jsonResponse(
+    request,
+    { ok: false, error: "not_found" },
+    { status: 404 }
+  );
+}
+
 async function runWeeklyNewsletterCatchUp(env: WorkerEnv, now: Date) {
   if (!isWeeklyNewsletterCatchUpWindow(now)) {
     return;
@@ -497,7 +811,8 @@ async function runWeeklyNewsletterCatchUp(env: WorkerEnv, now: Date) {
         "Weekly newsletter catch-up failed",
         JSON.stringify({
           municipality: municipality.slug,
-          error: error instanceof Error ? error.message : "Unknown catch-up error"
+          error:
+            error instanceof Error ? error.message : "Unknown catch-up error"
         })
       );
     }
@@ -520,25 +835,24 @@ function isWeeklyNewsletterCatchUpWindow(now: Date) {
   return utcHour === 13 && utcMinute >= 15;
 }
 
-function buildJsonHeaders(request: Request, extraHeaders?: Record<string, string>) {
+function buildJsonHeaders(
+  request: Request,
+  extraHeaders?: Record<string, string>
+) {
   const origin = getAllowedOrigin(request);
 
   return {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
     "access-control-allow-origin": origin,
-    "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS",
+    "access-control-allow-headers": "authorization,content-type",
     vary: "Origin",
     ...extraHeaders
   };
 }
 
-function jsonResponse(
-  request: Request,
-  body: unknown,
-  init?: ResponseInit
-) {
+function jsonResponse(request: Request, body: unknown, init?: ResponseInit) {
   return Response.json(body, {
     ...init,
     headers: buildJsonHeaders(request, toHeaderRecord(init?.headers))
@@ -605,7 +919,11 @@ async function enforceRateLimit(
 
   return jsonResponse(
     request,
-    { ok: false, error: "rate_limited", retryAfterSeconds: result.retryAfterSeconds },
+    {
+      ok: false,
+      error: "rate_limited",
+      retryAfterSeconds: result.retryAfterSeconds
+    },
     {
       status: 429,
       headers: {
@@ -621,7 +939,10 @@ function getClientIdentifier(request: Request) {
     return cfIp;
   }
 
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const forwarded = request.headers
+    .get("x-forwarded-for")
+    ?.split(",")[0]
+    ?.trim();
   if (forwarded) {
     return forwarded;
   }
@@ -631,4 +952,104 @@ function getClientIdentifier(request: Request) {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function stringBody(body: Record<string, unknown> | null, key: string) {
+  const value = body?.[key];
+
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function nullableStringBody(body: Record<string, unknown> | null, key: string) {
+  if (!body || !(key in body)) {
+    return undefined;
+  }
+
+  const value = body[key];
+
+  if (value === null) {
+    return null;
+  }
+
+  return typeof value === "string" ? value.trim() || null : undefined;
+}
+
+function numberBody(body: Record<string, unknown> | null, key: string) {
+  const value = body?.[key];
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function booleanBody(body: Record<string, unknown> | null, key: string) {
+  const value = body?.[key];
+
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function normalizeResidentAddress(value: string) {
+  return value.replace(/\s+/g, " ").trim().slice(0, 240);
+}
+
+function extractZip(value: string) {
+  return value.match(/\b\d{5}(?:-\d{4})?\b/)?.[0] ?? null;
+}
+
+function inferMunicipalitySlugFromZip(value: string) {
+  const zip = extractZip(value);
+
+  switch (zip) {
+    case "17601":
+      return "manheimtownshippa";
+    case "17602":
+      return "lancastercitypa";
+    case "17603":
+      return "lancastertownshippa";
+    case "17538":
+      return "easthempfieldtownshippa";
+    case "17543":
+      return "warwicktownshippa";
+    default:
+      return "manheimtownshippa";
+  }
+}
+
+function isSupportedMunicipality(slug: string) {
+  return Boolean(getMunicipalityBySlug(slug));
+}
+
+function normalizeNotificationLevel(value: string) {
+  if (
+    value === "critical_source" ||
+    value === "important" ||
+    value === "routine"
+  ) {
+    return value;
+  }
+
+  return "important";
+}
+
+function normalizeDigestFrequency(value: string) {
+  if (
+    value === "off" ||
+    value === "daily" ||
+    value === "weekly" ||
+    value === "as_needed"
+  ) {
+    return value;
+  }
+
+  return undefined;
+}
+
+function normalizePushPlatform(value: string) {
+  if (value === "web" || value === "ios" || value === "android") {
+    return value;
+  }
+
+  return "";
 }

@@ -1,4 +1,7 @@
-import type { ContentDecision, NormalizedSourceItem } from "@thelocalrecord/core";
+import type {
+  ContentDecision,
+  NormalizedSourceItem
+} from "@thelocalrecord/core";
 
 import { compactText, contentDecisionSchema } from "@thelocalrecord/core";
 
@@ -62,7 +65,25 @@ type EvaluateItemOptions = {
   officialSource?: boolean;
 };
 
-export function classifyItem(item: NormalizedSourceItem): ContentDecision["classification"] {
+export type ExtractedEntryEntity = {
+  entityKind:
+    | "address"
+    | "street"
+    | "intersection"
+    | "park"
+    | "route"
+    | "project"
+    | "parcel_hint"
+    | "meeting_date"
+    | "source_category";
+  label: string;
+  normalizedValue: string;
+  confidence: number;
+};
+
+export function classifyItem(
+  item: NormalizedSourceItem
+): ContentDecision["classification"] {
   const haystack = `${item.title} ${item.normalizedText}`.toLowerCase();
 
   if (item.sourceSlug === "alert-center") {
@@ -91,7 +112,10 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
     return "planning_zoning";
   }
 
-  if (item.sourceSlug === "code-compliance" || item.sourceSlug === "permit-faq") {
+  if (
+    item.sourceSlug === "code-compliance" ||
+    item.sourceSlug === "permit-faq"
+  ) {
     return "service_notice";
   }
 
@@ -111,7 +135,11 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
     return "service_notice";
   }
 
-  if (/permit|code compliance|building code|certificate of use|occupancy|inspection|stormwater management plan|faq|ucc|icc/i.test(haystack)) {
+  if (
+    /permit|code compliance|building code|certificate of use|occupancy|inspection|stormwater management plan|faq|ucc|icc/i.test(
+      haystack
+    )
+  ) {
     return "service_notice";
   }
 
@@ -120,6 +148,94 @@ export function classifyItem(item: NormalizedSourceItem): ContentDecision["class
   }
 
   return "meeting_notice";
+}
+
+export function inferImpactLevel(
+  item: NormalizedSourceItem,
+  classification: ContentDecision["classification"]
+): ContentDecision["impactLevel"] {
+  const haystack = `${item.title} ${item.normalizedText}`.toLowerCase();
+
+  if (
+    classification === "official_alert" &&
+    /closure|closed|detour|water main|boil water|outage|emergency|evacuat|shelter|police|fire|flood|storm|snow emergency/i.test(
+      haystack
+    )
+  ) {
+    return "critical_source";
+  }
+
+  if (
+    classification === "official_alert" ||
+    /road|route|bridge|lane|traffic|detour|closure|closed|public works|water|sewer|trash|utility/i.test(
+      haystack
+    )
+  ) {
+    return "important";
+  }
+
+  if (
+    classification === "planning_zoning" ||
+    classification === "agenda_posted" ||
+    /hearing|ordinance|agenda|permit|zoning|subdivision|land development|conditional use|variance|public notice|meeting/i.test(
+      haystack
+    )
+  ) {
+    return "important";
+  }
+
+  return "routine";
+}
+
+export function extractEntryEntities(
+  item: NormalizedSourceItem
+): ExtractedEntryEntity[] {
+  const text = compactText(`${item.title}. ${item.normalizedText}`);
+  const entities: ExtractedEntryEntity[] = [];
+
+  collectMatches(
+    text,
+    /\b\d{1,6}\s+[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){0,5}\s+(?:Road|Rd|Street|St|Avenue|Ave|Pike|Lane|Ln|Drive|Dr|Boulevard|Blvd|Court|Ct|Way|Circle|Cir|Trail|Trl|Highway|Hwy)\b/g,
+    (match) => addEntity(entities, "address", match, 0.82)
+  );
+
+  collectMatches(text, /\b(?:Route|Rt\.?|PA|US)\s?\d{1,4}\b/g, (match) =>
+    addEntity(entities, "route", match, 0.78)
+  );
+
+  collectMatches(
+    text,
+    /\b[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){0,4}\s+(?:Road|Rd|Street|St|Avenue|Ave|Pike|Lane|Ln|Drive|Dr|Boulevard|Blvd|Court|Ct|Way)\b/g,
+    (match) => addEntity(entities, "street", match, 0.62)
+  );
+
+  collectMatches(
+    text,
+    /\b[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){0,5}\s+(?:Park|Trail|Playground|Field|Preserve)\b/g,
+    (match) => addEntity(entities, "park", match, 0.7)
+  );
+
+  collectMatches(
+    text,
+    /\b[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){1,5}\s+(?:Subdivision|Development|Commons|Meadows|Square|Village|Plan|Project)\b/g,
+    (match) => addEntity(entities, "project", match, 0.72)
+  );
+
+  collectMatches(
+    text,
+    /\b(?:parcel|tax parcel|UPI|PIN)\s*(?:no\.?|number|#)?\s*[A-Z0-9.-]{4,}\b/gi,
+    (match) => addEntity(entities, "parcel_hint", match, 0.68)
+  );
+
+  if (item.eventDate) {
+    addEntity(entities, "meeting_date", item.eventDate.slice(0, 10), 0.9);
+  }
+
+  if (item.categoryHint) {
+    addEntity(entities, "source_category", item.categoryHint, 0.75);
+  }
+
+  return entities.slice(0, 24);
 }
 
 export function summarizeItem(
@@ -180,7 +296,10 @@ function extractDetailSnippet(title: string, normalizedText: string) {
   const sentences = withoutTitle
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => compactText(sentence))
-    .filter((sentence) => sentence.length > 30 && sentence.toLowerCase() !== titleLower);
+    .filter(
+      (sentence) =>
+        sentence.length > 30 && sentence.toLowerCase() !== titleLower
+    );
   const snippet = selectDetailSentences(sentences).join(" ");
 
   if (!snippet) {
@@ -270,7 +389,10 @@ function formatIsoDate(value: string) {
   }).format(date);
 }
 
-function isOfficialSource(item: NormalizedSourceItem, options?: EvaluateItemOptions): boolean {
+function isOfficialSource(
+  item: NormalizedSourceItem,
+  options?: EvaluateItemOptions
+): boolean {
   if (typeof options?.officialSource === "boolean") {
     return options.officialSource;
   }
@@ -293,8 +415,12 @@ function isOfficialSource(item: NormalizedSourceItem, options?: EvaluateItemOpti
   });
 }
 
-export function evaluateItem(item: NormalizedSourceItem, options?: EvaluateItemOptions): ContentDecision {
+export function evaluateItem(
+  item: NormalizedSourceItem,
+  options?: EvaluateItemOptions
+): ContentDecision {
   const classification = classifyItem(item);
+  const impactLevel = inferImpactLevel(item, classification);
   const haystack = `${item.title} ${item.normalizedText}`.toLowerCase();
   const rationale: string[] = [];
   const officialSource = isOfficialSource(item, options);
@@ -324,7 +450,9 @@ export function evaluateItem(item: NormalizedSourceItem, options?: EvaluateItemO
       riskLevel = "review_required";
       reviewState = "review_required";
       autoPublishAllowed = false;
-      rationale.push("Matched high-risk land use keywords on an unofficial source");
+      rationale.push(
+        "Matched high-risk land use keywords on an unofficial source"
+      );
     }
   }
 
@@ -332,11 +460,47 @@ export function evaluateItem(item: NormalizedSourceItem, options?: EvaluateItemO
 
   return contentDecisionSchema.parse({
     classification,
+    impactLevel,
     riskLevel,
     reviewState,
     autoPublishAllowed,
     summary,
     extractionNote: item.extraction.note,
     rationale
+  });
+}
+
+function collectMatches(
+  text: string,
+  pattern: RegExp,
+  onMatch: (match: string) => void
+) {
+  for (const match of text.matchAll(pattern)) {
+    if (match[0]) {
+      onMatch(match[0]);
+    }
+  }
+}
+
+function addEntity(
+  entities: ExtractedEntryEntity[],
+  entityKind: ExtractedEntryEntity["entityKind"],
+  label: string,
+  confidence: number
+) {
+  const normalizedValue = compactText(label).toLowerCase();
+
+  if (
+    !normalizedValue ||
+    entities.some((entity) => entity.normalizedValue === normalizedValue)
+  ) {
+    return;
+  }
+
+  entities.push({
+    entityKind,
+    label: compactText(label),
+    normalizedValue,
+    confidence
   });
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { municipalities } from "@thelocalrecord/core";
 
 import { LocalitySubnav } from "../../../components/locality-subnav";
 import { getLocalityData } from "../../../lib/data";
@@ -8,7 +9,7 @@ type LocalitySourceInventoryPageProps = {
 };
 
 export function generateStaticParams() {
-  return [{ slug: "manheimtownshippa" }];
+  return municipalities.map((municipality) => ({ slug: municipality.slug }));
 }
 
 export default async function LocalitySourceInventoryPage({

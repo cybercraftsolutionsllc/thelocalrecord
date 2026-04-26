@@ -6,7 +6,7 @@ const residentScans = [
   {
     label: "Development near me",
     detail: "Find planning items, agendas, hearings, and project notices.",
-    query: "Ashford Meadows",
+    query: "land development",
     signal: "Growth"
   },
   {
@@ -18,7 +18,7 @@ const residentScans = [
   {
     label: "My street or park",
     detail: "Search a street, park, intersection, or local landmark.",
-    query: "Overlook Park",
+    query: "park",
     signal: "Place"
   },
   {

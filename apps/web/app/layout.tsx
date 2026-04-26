@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Newsreader, Public_Sans } from "next/font/google";
 
 import { SiteShell } from "../components/site-shell";
@@ -18,7 +18,12 @@ const sans = Public_Sans({
 
 export const metadata: Metadata = {
   title: "The Local Record",
-  description: "Independent resident-run digest of local government updates."
+  description: "Independent resident-run digest of local government updates.",
+  manifest: "/manifest.webmanifest"
+};
+
+export const viewport: Viewport = {
+  themeColor: "#183f47"
 };
 
 export default function RootLayout({

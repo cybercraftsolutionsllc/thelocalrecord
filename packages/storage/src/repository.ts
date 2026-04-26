@@ -201,6 +201,7 @@ async function createDiffAndContent(args: {
       title: args.item.title,
       summary: args.decision.summary,
       category: args.decision.classification,
+      impactLevel: args.decision.impactLevel,
       riskLevel: args.decision.riskLevel,
       reviewState: args.decision.reviewState,
       sourceLinksJson: JSON.stringify([

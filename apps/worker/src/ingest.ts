@@ -77,12 +77,15 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
   const seenCrossSourceKeys = new Set<string>();
 
   try {
-    for (const source of getSourcesForMunicipality(slug).filter((entry) => entry.implemented)) {
+    for (const source of getSourcesForMunicipality(slug).filter(
+      (entry) => entry.implemented
+    )) {
       try {
         const response = await fetch(source.url, {
           headers: {
             "user-agent":
-              env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
+              env.INGEST_USER_AGENT ??
+              "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
           }
         });
 
@@ -91,7 +94,8 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
         }
 
         const body = await response.text();
-        const contentType = response.headers.get("content-type") ?? "text/html; charset=utf-8";
+        const contentType =
+          response.headers.get("content-type") ?? "text/html; charset=utf-8";
         const storageKey = buildArtifactKey(slug, source.slug, fetchRunId);
 
         await env.ARTIFACTS.put(storageKey, body, {
@@ -115,11 +119,20 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
           mimeType: contentType
         });
 
-        const selectedItems = await selectAdapter(env, source.slug, body, source.url);
-        const items = await enrichSourceItemsWithFetchedDetails(selectedItems, source.slug, {
-          fetchImpl: fetch,
-          userAgent: env.INGEST_USER_AGENT
-        });
+        const selectedItems = await selectAdapter(
+          env,
+          source.slug,
+          body,
+          source.url
+        );
+        const items = await enrichSourceItemsWithFetchedDetails(
+          selectedItems,
+          source.slug,
+          {
+            fetchImpl: fetch,
+            userAgent: env.INGEST_USER_AGENT
+          }
+        );
         stats.sourcesFetched += 1;
         stats.itemsSeen += items.length;
 
@@ -130,7 +143,11 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
             continue;
           }
 
-          const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+          const existing = await findExistingSourceItem(
+            env.DB,
+            item.sourceSlug,
+            item.externalId
+          );
 
           if (existing?.content_hash === item.contentHash) {
             await touchSourceItem(env.DB, existing.id);
@@ -143,7 +160,11 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
           }
 
           const ruleDecision = evaluateItem(item);
-          const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+          const decision = await maybeRefineSummaryWithOpenAI(
+            env,
+            item,
+            ruleDecision
+          );
           const diffEventId = await persistNormalizedItem(env.DB, {
             item,
             decision,
@@ -163,7 +184,10 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
           sourceSlug: source.slug,
           sourceName: source.name,
           sourceUrl: source.url,
-          message: error instanceof Error ? error.message : "Unknown source ingest failure"
+          message:
+            error instanceof Error
+              ? error.message
+              : "Unknown source ingest failure"
         };
 
         stats.sourcesFailed += 1;
@@ -222,7 +246,11 @@ export async function importMunicipalityItems(
     stats.sourcesFetched = sourceSlugs.size;
 
     for (const item of items) {
-      const existing = await findExistingSourceItem(env.DB, item.sourceSlug, item.externalId);
+      const existing = await findExistingSourceItem(
+        env.DB,
+        item.sourceSlug,
+        item.externalId
+      );
 
       if (existing?.content_hash === item.contentHash) {
         await touchSourceItem(env.DB, existing.id);
@@ -230,7 +258,11 @@ export async function importMunicipalityItems(
       }
 
       const ruleDecision = evaluateItem(item);
-      const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+      const decision = await maybeRefineSummaryWithOpenAI(
+        env,
+        item,
+        ruleDecision
+      );
       const diffEventId = await persistNormalizedItem(env.DB, {
         item,
         decision,
@@ -260,7 +292,10 @@ export async function importMunicipalityItems(
   }
 }
 
-export async function importPlanningCommissionArchives(env: WorkerEnv, slug: string) {
+export async function importPlanningCommissionArchives(
+  env: WorkerEnv,
+  slug: string
+) {
   const municipality = getMunicipalityBySlug(slug);
 
   if (!municipality) {
@@ -291,7 +326,8 @@ export async function importPlanningCommissionArchives(env: WorkerEnv, slug: str
       const response = await fetch(source.url, {
         headers: {
           "user-agent":
-            env.INGEST_USER_AGENT ?? "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
+            env.INGEST_USER_AGENT ??
+            "thelocalrecord-bot/0.1 (+https://thelocalrecord.org)"
         }
       });
 
@@ -301,10 +337,14 @@ export async function importPlanningCommissionArchives(env: WorkerEnv, slug: str
 
       const html = await response.text();
       const parsed = source.parser(html, source.url);
-      const enriched = await enrichSourceItemsWithFetchedDetails(parsed, source.sourceSlug, {
-        fetchImpl: fetch,
-        userAgent: env.INGEST_USER_AGENT
-      });
+      const enriched = await enrichSourceItemsWithFetchedDetails(
+        parsed,
+        source.sourceSlug,
+        {
+          fetchImpl: fetch,
+          userAgent: env.INGEST_USER_AGENT
+        }
+      );
 
       importedItems.push(...enriched);
       sourcesFetched += 1;
@@ -313,7 +353,10 @@ export async function importPlanningCommissionArchives(env: WorkerEnv, slug: str
         sourceSlug: source.sourceSlug,
         sourceName: source.sourceName,
         sourceUrl: source.url,
-        message: error instanceof Error ? error.message : "Unknown archive import failure"
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown archive import failure"
       });
     }
   }
@@ -334,7 +377,11 @@ export async function importPlanningCommissionArchives(env: WorkerEnv, slug: str
     };
   }
 
-  const importedResult = await importMunicipalityItems(env, slug, importedItems);
+  const importedResult = await importMunicipalityItems(
+    env,
+    slug,
+    importedItems
+  );
 
   return {
     stats: {
@@ -358,18 +405,27 @@ export async function resummarizeMunicipalityItems(
     throw new Error(`Unknown municipality slug: ${slug}`);
   }
 
-  const storedItems = await listSourceItemsForMunicipality(env.DB, slug, sourceSlugs);
+  const storedItems = await listSourceItemsForMunicipality(
+    env.DB,
+    slug,
+    sourceSlugs
+  );
   let updated = 0;
 
   for (const storedItem of storedItems) {
     const item = mapStoredSourceItemToNormalizedItem(storedItem);
     const ruleDecision = evaluateItem(item);
-    const decision = await maybeRefineSummaryWithOpenAI(env, item, ruleDecision);
+    const decision = await maybeRefineSummaryWithOpenAI(
+      env,
+      item,
+      ruleDecision
+    );
 
     await updateContentEntriesForSourceItem(env.DB, {
       sourceItemId: storedItem.id,
       summary: decision.summary,
       category: decision.classification,
+      impactLevel: decision.impactLevel,
       riskLevel: decision.riskLevel,
       reviewState: decision.reviewState,
       extractionNote: decision.extractionNote
@@ -417,7 +473,12 @@ async function selectAdapter(
     case "planning-commission-minutes":
       return parsePlanningCommissionMinutesArchive(body, sourceUrl);
     case "icalendar":
-      return parseIcalendarDirectory(body, sourceUrl, fetch, env.INGEST_USER_AGENT);
+      return parseIcalendarDirectory(
+        body,
+        sourceUrl,
+        fetch,
+        env.INGEST_USER_AGENT
+      );
     case "view-page":
       return parseViewPage(body, sourceUrl);
     case "planning-zoning":
@@ -427,7 +488,11 @@ async function selectAdapter(
   }
 }
 
-function buildArtifactKey(municipalitySlug: string, sourceSlug: string, fetchRunId: string) {
+function buildArtifactKey(
+  municipalitySlug: string,
+  sourceSlug: string,
+  fetchRunId: string
+) {
   const datePath = new Date().toISOString().slice(0, 10);
   return `${municipalitySlug}/${sourceSlug}/${datePath}/${fetchRunId}.html`;
 }
@@ -483,7 +548,12 @@ function mapStoredSourceItemToNormalizedItem(
 function normalizeExtractionMethod(
   method: string
 ): NormalizedSourceItem["extraction"]["method"] {
-  if (method === "html" || method === "pdf" || method === "ical" || method === "manual") {
+  if (
+    method === "html" ||
+    method === "pdf" ||
+    method === "ical" ||
+    method === "manual"
+  ) {
     return method;
   }
 
@@ -494,7 +564,11 @@ function parseMetadata(metadataJson: string) {
   try {
     const parsed = JSON.parse(metadataJson) as unknown;
 
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
       return {};
     }
 

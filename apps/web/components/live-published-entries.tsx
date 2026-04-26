@@ -56,9 +56,9 @@ type TopicOption = {
 type FeedViewKey = "events_of_note" | "all_records";
 
 const quickSearchSuggestions = [
-  "Ashford Meadows",
+  "land development",
   "Route 30",
-  "605 Granite Run Drive",
+  "road closure",
   "zoning hearing"
 ];
 
@@ -558,7 +558,7 @@ export function LivePublishedEntries({
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
-                : 'No matching records yet. Try a nearby street, project name, road number, board, or park.'
+                : "No matching records yet. Try a nearby street, project name, road number, board, or park."
               : "No entries match that filter on this page of results."}
           </div>
         ) : null}

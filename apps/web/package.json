@@ -11,6 +11,7 @@
   "dependencies": {
     "@thelocalrecord/core": "workspace:*",
     "@thelocalrecord/storage": "workspace:*",
+    "firebase": "^12.12.1",
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

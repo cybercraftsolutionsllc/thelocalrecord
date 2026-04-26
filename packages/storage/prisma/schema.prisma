@@ -8,23 +8,28 @@ datasource db {
 }
 
 model Municipality {
-  id               String       @id @default(cuid())
-  slug             String       @unique
-  name             String
-  state            String
-  localityType     String
-  shortName        String
-  disclaimer       String
-  about            String
-  correctionsEmail String
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  sources          Source[]
-  fetchRuns        FetchRun[]
-  sourceItems      SourceItem[]
-  diffEvents       DiffEvent[]
-  contentEntries   ContentEntry[]
-  corrections      Correction[]
+  id                 String              @id @default(cuid())
+  slug               String              @unique
+  name               String
+  state              String
+  localityType       String
+  shortName          String
+  disclaimer         String
+  about              String
+  correctionsEmail   String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  sources            Source[]
+  fetchRuns          FetchRun[]
+  sourceItems        SourceItem[]
+  diffEvents         DiffEvent[]
+  contentEntries     ContentEntry[]
+  corrections        Correction[]
+  savedPlaces        SavedPlace[]
+  watchlists         Watchlist[]
+  notificationEvents NotificationEvent[]
+  communityCoverage  CommunityCoverage?
+  entryGeoEntities   EntryGeoEntity[]
 }
 
 model Source {
@@ -61,7 +66,7 @@ model FetchRun {
 }
 
 model SourceItem {
-  id                   String       @id @default(cuid())
+  id                   String         @id @default(cuid())
   municipalityId       String
   sourceId             String
   externalId           String
@@ -76,12 +81,12 @@ model SourceItem {
   extractionMethod     String
   extractionConfidence Float
   extractionNote       String?
-  firstSeenAt          DateTime     @default(now())
-  lastSeenAt           DateTime     @default(now())
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  municipality         Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  source               Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  firstSeenAt          DateTime       @default(now())
+  lastSeenAt           DateTime       @default(now())
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  municipality         Municipality   @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  source               Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   artifacts            Artifact[]
   diffEvents           DiffEvent[]
   contentEntries       ContentEntry[]
@@ -105,7 +110,7 @@ model Artifact {
 }
 
 model DiffEvent {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   municipalityId String
   fetchRunId     String
   sourceItemId   String
@@ -117,32 +122,35 @@ model DiffEvent {
   riskLevel      String
   reviewState    String
   rationaleJson  String
-  createdAt      DateTime     @default(now())
-  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  fetchRun       FetchRun     @relation(fields: [fetchRunId], references: [id], onDelete: Cascade)
-  sourceItem     SourceItem   @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  municipality   Municipality  @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  fetchRun       FetchRun      @relation(fields: [fetchRunId], references: [id], onDelete: Cascade)
+  sourceItem     SourceItem    @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
   contentEntry   ContentEntry?
 }
 
 model ContentEntry {
-  id              String       @id @default(cuid())
-  municipalityId  String
-  sourceItemId    String
-  diffEventId     String       @unique
-  title           String
-  summary         String
-  category        String
-  riskLevel       String
-  reviewState     String
-  sourceLinksJson String
-  extractionNote  String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  municipality    Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
-  sourceItem      SourceItem   @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
-  diffEvent       DiffEvent    @relation(fields: [diffEventId], references: [id], onDelete: Cascade)
-  publication     Publication?
-  corrections     Correction[]
+  id                 String              @id @default(cuid())
+  municipalityId     String
+  sourceItemId       String
+  diffEventId        String              @unique
+  title              String
+  summary            String
+  category           String
+  impactLevel        String              @default("routine")
+  riskLevel          String
+  reviewState        String
+  sourceLinksJson    String
+  extractionNote     String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  municipality       Municipality        @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  sourceItem         SourceItem          @relation(fields: [sourceItemId], references: [id], onDelete: Cascade)
+  diffEvent          DiffEvent           @relation(fields: [diffEventId], references: [id], onDelete: Cascade)
+  publication        Publication?
+  corrections        Correction[]
+  notificationEvents NotificationEvent[]
+  geoEntities        EntryGeoEntity[]
 }
 
 model Publication {
@@ -165,4 +173,146 @@ model Correction {
   createdAt      DateTime      @default(now())
   municipality   Municipality  @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
   contentEntry   ContentEntry? @relation(fields: [contentEntryId], references: [id], onDelete: SetNull)
+}
+
+model UserProfile {
+  id                     String                  @id @default(cuid())
+  providerUid            String                  @unique
+  email                  String
+  displayName            String?
+  authProvider           String
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  lastSeenAt             DateTime?
+  savedPlaces            SavedPlace[]
+  watchlists             Watchlist[]
+  notificationPreference NotificationPreference?
+  pushTokens             PushToken[]
+  notificationEvents     NotificationEvent[]
+}
+
+model SavedPlace {
+  id                String       @id @default(cuid())
+  userId            String
+  label             String
+  rawAddress        String
+  normalizedAddress String
+  zip               String?
+  municipalityId    String
+  lat               Float?
+  lng               Float?
+  geocodeConfidence Float?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
+  user              UserProfile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  municipality      Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  watchlists        Watchlist[]
+
+  @@index([userId])
+  @@index([municipalityId])
+  @@index([deletedAt])
+}
+
+model Watchlist {
+  id                 String              @id @default(cuid())
+  userId             String
+  savedPlaceId       String?
+  municipalityId     String
+  label              String
+  query              String
+  topic              String?
+  status             String              @default("active")
+  notificationLevel  String              @default("important")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  user               UserProfile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedPlace         SavedPlace?         @relation(fields: [savedPlaceId], references: [id], onDelete: SetNull)
+  municipality       Municipality        @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  notificationEvents NotificationEvent[]
+
+  @@index([userId])
+  @@index([municipalityId, status])
+  @@index([deletedAt])
+}
+
+model NotificationPreference {
+  userId                String      @id
+  emailEnabled          Boolean     @default(true)
+  pushEnabled           Boolean     @default(false)
+  digestFrequency       String      @default("as_needed")
+  quietHoursStart       String?
+  quietHoursEnd         String?
+  criticalSourceEnabled Boolean     @default(true)
+  updatedAt             DateTime    @updatedAt
+  user                  UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushToken {
+  id          String      @id @default(cuid())
+  userId      String
+  platform    String
+  token       String
+  deviceLabel String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  revokedAt   DateTime?
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@index([revokedAt])
+}
+
+model NotificationEvent {
+  id             String        @id @default(cuid())
+  userId         String
+  watchlistId    String?
+  municipalityId String
+  contentEntryId String?
+  eventKind      String
+  title          String
+  body           String
+  status         String        @default("observed")
+  createdAt      DateTime      @default(now())
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  user           UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlist      Watchlist?    @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  municipality   Municipality  @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  contentEntry   ContentEntry? @relation(fields: [contentEntryId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, watchlistId, contentEntryId, eventKind])
+  @@index([userId])
+  @@index([municipalityId])
+}
+
+model CommunityCoverage {
+  municipalityId String       @id
+  status         String
+  coverageLevel  String
+  coverageNotes  String
+  lastIngestedAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  municipality   Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+}
+
+model EntryGeoEntity {
+  id              String       @id @default(cuid())
+  contentEntryId  String
+  municipalityId  String
+  entityKind      String
+  label           String
+  normalizedValue String
+  lat             Float?
+  lng             Float?
+  confidence      Float
+  createdAt       DateTime     @default(now())
+  contentEntry    ContentEntry @relation(fields: [contentEntryId], references: [id], onDelete: Cascade)
+  municipality    Municipality @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+
+  @@index([contentEntryId])
+  @@index([municipalityId, normalizedValue])
 }

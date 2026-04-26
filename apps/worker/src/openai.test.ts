@@ -14,6 +14,7 @@ const troutSeasonMatch = {
   summary:
     "The township news post says trout season opens on Saturday, April 4, 2026 and points residents to the season announcement.",
   category: "official_news",
+  impact_level: "routine",
   source_links_json: JSON.stringify([
     {
       label: "Original post",
@@ -33,6 +34,7 @@ const ashfordMeadowsMatch = {
   summary:
     "According to the posted meeting minutes, the planning commission discussed Ashford Meadows and recorded a recommendation on the plan.",
   category: "approved_minutes",
+  impact_level: "important",
   source_links_json: JSON.stringify([
     {
       label: "Original document",

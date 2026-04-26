@@ -1,7 +1,13 @@
-import type { ContentDecision, MunicipalityConfig, NormalizedSourceItem, SourceConfig } from "@thelocalrecord/core";
+import type {
+  ContentDecision,
+  MunicipalityConfig,
+  NormalizedSourceItem,
+  SourceConfig
+} from "@thelocalrecord/core";
 import { createHash } from "node:crypto";
 
 import { municipalities, sourceRegistry } from "@thelocalrecord/core";
+import { extractEntryEntities } from "@thelocalrecord/content";
 
 import type { D1Database } from "./cloudflare";
 
@@ -12,6 +18,7 @@ type PublishedRow = {
   title: string;
   summary: string;
   category: string;
+  impact_level: string;
   risk_level: string;
   review_state: string;
   source_links_json: string;
@@ -29,6 +36,7 @@ export type SearchablePublishedEntry = {
   title: string;
   summary: string;
   category: string;
+  impact_level: string;
   source_links_json: string;
   published_at: string;
   source_material_date: string | null;
@@ -124,6 +132,92 @@ export type NewsletterIssueRecord = {
   sent_at: string | null;
 };
 
+export type ResidentIdentity = {
+  providerUid: string;
+  email: string;
+  displayName?: string | null;
+  authProvider: string;
+};
+
+export type UserProfileRecord = {
+  id: string;
+  provider_uid: string;
+  email: string;
+  display_name: string | null;
+  auth_provider: string;
+  created_at: string;
+  updated_at: string;
+  last_seen_at: string | null;
+};
+
+export type SavedPlaceRecord = {
+  id: string;
+  user_id: string;
+  label: string;
+  raw_address: string;
+  normalized_address: string;
+  zip: string | null;
+  municipality_slug: string;
+  lat: number | null;
+  lng: number | null;
+  geocode_confidence: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type WatchlistRecord = {
+  id: string;
+  user_id: string;
+  saved_place_id: string | null;
+  municipality_slug: string;
+  label: string;
+  query: string;
+  topic: string | null;
+  status: string;
+  notification_level: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type NotificationPreferenceRecord = {
+  user_id: string;
+  email_enabled: number;
+  push_enabled: number;
+  digest_frequency: string;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  critical_source_enabled: number;
+  updated_at: string;
+};
+
+export type PushTokenRecord = {
+  id: string;
+  user_id: string;
+  platform: string;
+  token: string;
+  device_label: string | null;
+  created_at: string;
+  updated_at: string;
+  revoked_at: string | null;
+};
+
+export type NotificationEventRecord = {
+  id: string;
+  user_id: string;
+  watchlist_id: string | null;
+  municipality_slug: string;
+  content_entry_id: string | null;
+  event_kind: string;
+  title: string;
+  body: string;
+  status: string;
+  created_at: string;
+  delivered_at: string | null;
+  read_at: string | null;
+};
+
 function publishedCategoryPrioritySql(columnName = "content_entry.category") {
   return `CASE ${columnName}
     WHEN 'official_alert' THEN 1
@@ -172,9 +266,17 @@ export async function syncRegistry(db: D1Database) {
   for (const source of sourceRegistry) {
     await upsertSource(db, source, now);
   }
+
+  for (const municipality of municipalities) {
+    await upsertCommunityCoverage(db, municipality.slug, now);
+  }
 }
 
-async function upsertMunicipality(db: D1Database, municipality: MunicipalityConfig, now: string) {
+async function upsertMunicipality(
+  db: D1Database,
+  municipality: MunicipalityConfig,
+  now: string
+) {
   await db
     .prepare(
       `INSERT INTO municipality (
@@ -238,6 +340,48 @@ async function upsertSource(db: D1Database, source: SourceConfig, now: string) {
     .run();
 }
 
+async function upsertCommunityCoverage(
+  db: D1Database,
+  municipalitySlug: string,
+  now: string
+) {
+  const sources = sourceRegistry.filter(
+    (source) => source.municipalitySlug === municipalitySlug
+  );
+  const implementedCount = sources.filter(
+    (source) => source.implemented
+  ).length;
+  const status = implementedCount > 0 ? "live" : "planned";
+  const coverageLevel =
+    implementedCount > 0 ? "model_locality" : "source_inventory";
+  const coverageNotes =
+    implementedCount > 0
+      ? "Live resident record with source-linked search, ask, and watchlist-ready coverage."
+      : "Official source inventory added; ingest adapters and resident alerts are planned.";
+
+  await db
+    .prepare(
+      `INSERT INTO community_coverage (
+        municipality_slug, status, coverage_level, coverage_notes, last_ingested_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(municipality_slug) DO UPDATE SET
+        status = excluded.status,
+        coverage_level = excluded.coverage_level,
+        coverage_notes = excluded.coverage_notes,
+        updated_at = excluded.updated_at`
+    )
+    .bind(
+      municipalitySlug,
+      status,
+      coverageLevel,
+      coverageNotes,
+      null,
+      now,
+      now
+    )
+    .run();
+}
+
 export async function createFetchRun(db: D1Database, municipalitySlug: string) {
   await expireStaleFetchRuns(db, municipalitySlug);
   await assertNoActiveFetchRun(db, municipalitySlug);
@@ -253,7 +397,10 @@ export async function createFetchRun(db: D1Database, municipalitySlug: string) {
   return id;
 }
 
-async function assertNoActiveFetchRun(db: D1Database, municipalitySlug: string) {
+async function assertNoActiveFetchRun(
+  db: D1Database,
+  municipalitySlug: string
+) {
   const active = await db
     .prepare(
       `SELECT id, started_at
@@ -271,7 +418,9 @@ async function assertNoActiveFetchRun(db: D1Database, municipalitySlug: string) 
 }
 
 async function expireStaleFetchRuns(db: D1Database, municipalitySlug: string) {
-  const cutoff = new Date(Date.now() - STALE_FETCH_RUN_MINUTES * 60 * 1000).toISOString();
+  const cutoff = new Date(
+    Date.now() - STALE_FETCH_RUN_MINUTES * 60 * 1000
+  ).toISOString();
 
   await db
     .prepare(
@@ -306,7 +455,13 @@ export async function completeFetchRun(
     .prepare(
       "UPDATE fetch_run SET status = ?, completed_at = ?, stats_json = ?, error_message = ? WHERE id = ?"
     )
-    .bind(status, nowIso(), JSON.stringify(stats), errorMessage ?? null, fetchRunId)
+    .bind(
+      status,
+      nowIso(),
+      JSON.stringify(stats),
+      errorMessage ?? null,
+      fetchRunId
+    )
     .run();
 }
 
@@ -350,7 +505,9 @@ export async function findExistingSourceItem(
   externalId: string
 ): QueryResult<{ id: string; content_hash: string }> {
   return db
-    .prepare("SELECT id, content_hash FROM source_item WHERE source_slug = ? AND external_id = ?")
+    .prepare(
+      "SELECT id, content_hash FROM source_item WHERE source_slug = ? AND external_id = ?"
+    )
     .bind(sourceSlug, externalId)
     .first<{ id: string; content_hash: string }>();
 }
@@ -359,7 +516,9 @@ export async function touchSourceItem(db: D1Database, sourceItemId: string) {
   const now = nowIso();
 
   await db
-    .prepare("UPDATE source_item SET last_seen_at = ?, updated_at = ? WHERE id = ?")
+    .prepare(
+      "UPDATE source_item SET last_seen_at = ?, updated_at = ? WHERE id = ?"
+    )
     .bind(now, now, sourceItemId)
     .run();
 }
@@ -373,7 +532,11 @@ export async function persistNormalizedItem(
   }
 ) {
   const now = nowIso();
-  const existing = await findExistingSourceItem(db, args.item.sourceSlug, args.item.externalId);
+  const existing = await findExistingSourceItem(
+    db,
+    args.item.sourceSlug,
+    args.item.externalId
+  );
 
   if (!existing) {
     const sourceItemId = crypto.randomUUID();
@@ -420,7 +583,9 @@ export async function persistNormalizedItem(
 
   if (existing.content_hash === args.item.contentHash) {
     await db
-      .prepare("UPDATE source_item SET last_seen_at = ?, updated_at = ? WHERE id = ?")
+      .prepare(
+        "UPDATE source_item SET last_seen_at = ?, updated_at = ? WHERE id = ?"
+      )
       .bind(now, now, existing.id)
       .run();
 
@@ -506,8 +671,8 @@ async function createDiffAndContent(
     .prepare(
       `INSERT INTO content_entry (
         id, municipality_slug, source_item_id, diff_event_id, title, summary, category,
-        risk_level, review_state, source_links_json, extraction_note, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        impact_level, risk_level, review_state, source_links_json, extraction_note, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       contentEntryId,
@@ -517,6 +682,7 @@ async function createDiffAndContent(
       args.item.title,
       args.decision.summary,
       args.decision.classification,
+      args.decision.impactLevel,
       args.decision.riskLevel,
       args.decision.reviewState,
       JSON.stringify([
@@ -528,6 +694,13 @@ async function createDiffAndContent(
       now
     )
     .run();
+
+  await persistEntryEntities(db, {
+    contentEntryId,
+    municipalitySlug: args.item.municipalitySlug,
+    item: args.item,
+    now
+  });
 
   if (args.decision.autoPublishAllowed) {
     await db
@@ -547,7 +720,46 @@ async function createDiffAndContent(
   return diffEventId;
 }
 
-export async function listPublishedEntries(db: D1Database, slug: string, page = 1, pageSize = 10) {
+async function persistEntryEntities(
+  db: D1Database,
+  args: {
+    contentEntryId: string;
+    municipalitySlug: string;
+    item: NormalizedSourceItem;
+    now: string;
+  }
+) {
+  const entities = extractEntryEntities(args.item);
+
+  for (const entity of entities) {
+    await db
+      .prepare(
+        `INSERT INTO entry_geo_entity (
+          id, content_entry_id, municipality_slug, entity_kind, label, normalized_value, lat, lng, confidence, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        crypto.randomUUID(),
+        args.contentEntryId,
+        args.municipalitySlug,
+        entity.entityKind,
+        entity.label,
+        entity.normalizedValue,
+        null,
+        null,
+        entity.confidence,
+        args.now
+      )
+      .run();
+  }
+}
+
+export async function listPublishedEntries(
+  db: D1Database,
+  slug: string,
+  page = 1,
+  pageSize = 10
+) {
   const safePage = Math.max(1, page);
   const safePageSize = Math.min(Math.max(1, pageSize), 50);
   const offset = (safePage - 1) * safePageSize;
@@ -570,6 +782,7 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
           content_entry.title,
           content_entry.summary,
           content_entry.category,
+          content_entry.impact_level,
           content_entry.risk_level,
           content_entry.review_state,
           content_entry.source_links_json,
@@ -594,6 +807,7 @@ export async function listPublishedEntries(db: D1Database, slug: string, page = 
         title,
         summary,
         category,
+        impact_level,
         risk_level,
         review_state,
         source_links_json,
@@ -630,6 +844,7 @@ export async function getPublishedEntryById(
         content_entry.title,
         content_entry.summary,
         content_entry.category,
+        content_entry.impact_level,
         content_entry.risk_level,
         content_entry.review_state,
         content_entry.source_links_json,
@@ -655,7 +870,7 @@ export async function listReviewQueue(db: D1Database, slug: string) {
   const result = await db
     .prepare(
       `SELECT
-        id, title, summary, category, extraction_note, review_state, source_links_json
+        id, title, summary, category, impact_level, extraction_note, review_state, source_links_json
       FROM content_entry
       WHERE municipality_slug = ? AND review_state = 'review_required'
       ORDER BY created_at DESC`
@@ -716,10 +931,15 @@ function tokenizeSearchQuery(query: string) {
     .slice(0, 8);
 }
 
-function scoreSearchableEntry(entry: SearchablePublishedEntry, query: string, terms: string[]) {
+function scoreSearchableEntry(
+  entry: SearchablePublishedEntry,
+  query: string,
+  terms: string[]
+) {
   const title = entry.title.toLowerCase();
   const summary = entry.summary.toLowerCase();
-  const body = `${entry.normalized_text} ${entry.category} ${entry.source_name}`.toLowerCase();
+  const body =
+    `${entry.normalized_text} ${entry.category} ${entry.source_name}`.toLowerCase();
   let score = 0;
 
   if (query && title.includes(query)) {
@@ -768,7 +988,10 @@ function scoreSearchableEntry(entry: SearchablePublishedEntry, query: string, te
     }
   }
 
-  if (score > 0 && (entry.category === "official_news" || entry.category === "official_alert")) {
+  if (
+    score > 0 &&
+    (entry.category === "official_news" || entry.category === "official_alert")
+  ) {
     score += 1;
   }
 
@@ -818,7 +1041,11 @@ function isDevelopmentIntent(query: string, terms: string[]) {
   return includesPhraseOrTerm(query, terms, DEVELOPMENT_TERMS);
 }
 
-function includesPhraseOrTerm(query: string, terms: string[], patterns: string[]) {
+function includesPhraseOrTerm(
+  query: string,
+  terms: string[],
+  patterns: string[]
+) {
   return patterns.some((pattern) => {
     return query.includes(pattern) || terms.includes(pattern);
   });
@@ -833,7 +1060,9 @@ function isDevelopmentEntry(title: string, summary: string, body: string) {
 }
 
 function includesInAny(values: string[], patterns: string[]) {
-  return values.some((value) => patterns.some((pattern) => value.includes(pattern)));
+  return values.some((value) =>
+    patterns.some((pattern) => value.includes(pattern))
+  );
 }
 
 function compactSearchText(value: string) {
@@ -864,7 +1093,11 @@ function searchSummaryPrefix(category: string) {
   }
 }
 
-function scoreSearchSnippetSentence(sentence: string, query: string, terms: string[]) {
+function scoreSearchSnippetSentence(
+  sentence: string,
+  query: string,
+  terms: string[]
+) {
   const lower = sentence.toLowerCase();
   let score = 0;
 
@@ -878,30 +1111,46 @@ function scoreSearchSnippetSentence(sentence: string, query: string, terms: stri
     }
   }
 
-    if (
-      /presented the plan|proposes|proposed|subdivision|land development|rezoning|variance|conditional use|ordinance|hearing|single family|mixed-use|townhome|apartment|dwelling|table the plan|recommend approval/i.test(
-        sentence
-      )
-    ) {
-      score += 5;
-    }
-
-    if (/117 lots|111 lots|open space lots|rgs associates|site is located/i.test(sentence)) {
-      score += 4;
-    }
-
-    if (/approve the minutes|roll call|call to order|adjournment|members present/i.test(sentence)) {
-      score -= 6;
-    }
-
-    if (/public comment|focused discussions|no motions were made|\.\.\.\.\.\.\.\./i.test(sentence)) {
-      score -= 4;
-    }
-
-    return score;
+  if (
+    /presented the plan|proposes|proposed|subdivision|land development|rezoning|variance|conditional use|ordinance|hearing|single family|mixed-use|townhome|apartment|dwelling|table the plan|recommend approval/i.test(
+      sentence
+    )
+  ) {
+    score += 5;
   }
 
-function buildSearchSnippet(entry: SearchablePublishedEntry, query: string, terms: string[]) {
+  if (
+    /117 lots|111 lots|open space lots|rgs associates|site is located/i.test(
+      sentence
+    )
+  ) {
+    score += 4;
+  }
+
+  if (
+    /approve the minutes|roll call|call to order|adjournment|members present/i.test(
+      sentence
+    )
+  ) {
+    score -= 6;
+  }
+
+  if (
+    /public comment|focused discussions|no motions were made|\.\.\.\.\.\.\.\./i.test(
+      sentence
+    )
+  ) {
+    score -= 4;
+  }
+
+  return score;
+}
+
+function buildSearchSnippet(
+  entry: SearchablePublishedEntry,
+  query: string,
+  terms: string[]
+) {
   const sentences = splitSearchSentences(entry.normalized_text);
   const bestSentence = sentences
     .map((sentence, index) => ({
@@ -910,7 +1159,9 @@ function buildSearchSnippet(entry: SearchablePublishedEntry, query: string, term
       score: scoreSearchSnippetSentence(sentence, query, terms)
     }))
     .filter((candidate) => candidate.score > 0)
-    .sort((left, right) => right.score - left.score || left.index - right.index)[0];
+    .sort(
+      (left, right) => right.score - left.score || left.index - right.index
+    )[0];
 
   if (!bestSentence) {
     return entry.summary;
@@ -948,6 +1199,7 @@ export async function searchPublishedEntries(
           content_entry.title,
           content_entry.summary,
           content_entry.category,
+          content_entry.impact_level,
           content_entry.source_links_json,
           publication.published_at,
           COALESCE(source_item.event_date, source_item.published_at, publication.published_at) as source_material_date,
@@ -968,6 +1220,7 @@ export async function searchPublishedEntries(
         title,
         summary,
         category,
+        impact_level,
         source_links_json,
         published_at,
         source_material_date,
@@ -1045,6 +1298,7 @@ export async function updateContentEntriesForSourceItem(
     sourceItemId: string;
     summary: string;
     category: string;
+    impactLevel: string;
     riskLevel: string;
     reviewState: string;
     extractionNote?: string;
@@ -1056,6 +1310,7 @@ export async function updateContentEntriesForSourceItem(
       SET
         summary = ?,
         category = ?,
+        impact_level = ?,
         risk_level = ?,
         review_state = ?,
         extraction_note = ?,
@@ -1065,6 +1320,7 @@ export async function updateContentEntriesForSourceItem(
     .bind(
       args.summary,
       args.category,
+      args.impactLevel,
       args.riskLevel,
       args.reviewState,
       args.extractionNote ?? null,
@@ -1072,6 +1328,583 @@ export async function updateContentEntriesForSourceItem(
       args.sourceItemId
     )
     .run();
+}
+
+export async function upsertUserProfile(
+  db: D1Database,
+  identity: ResidentIdentity
+) {
+  const now = nowIso();
+  const existing = await db
+    .prepare(
+      `SELECT
+        id, provider_uid, email, display_name, auth_provider, created_at, updated_at, last_seen_at
+      FROM user_profile
+      WHERE provider_uid = ?`
+    )
+    .bind(identity.providerUid)
+    .first<UserProfileRecord>();
+
+  if (existing) {
+    await db
+      .prepare(
+        `UPDATE user_profile
+        SET email = ?, display_name = ?, auth_provider = ?, updated_at = ?, last_seen_at = ?
+        WHERE id = ?`
+      )
+      .bind(
+        normalizeEmailAddress(identity.email),
+        identity.displayName?.trim() || existing.display_name,
+        identity.authProvider,
+        now,
+        now,
+        existing.id
+      )
+      .run();
+
+    await ensureNotificationPreference(db, existing.id, now);
+
+    return {
+      ...existing,
+      email: normalizeEmailAddress(identity.email),
+      display_name: identity.displayName?.trim() || existing.display_name,
+      auth_provider: identity.authProvider,
+      updated_at: now,
+      last_seen_at: now
+    } satisfies UserProfileRecord;
+  }
+
+  const created = {
+    id: crypto.randomUUID(),
+    provider_uid: identity.providerUid,
+    email: normalizeEmailAddress(identity.email),
+    display_name: identity.displayName?.trim() || null,
+    auth_provider: identity.authProvider,
+    created_at: now,
+    updated_at: now,
+    last_seen_at: now
+  } satisfies UserProfileRecord;
+
+  await db
+    .prepare(
+      `INSERT INTO user_profile (
+        id, provider_uid, email, display_name, auth_provider, created_at, updated_at, last_seen_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      created.id,
+      created.provider_uid,
+      created.email,
+      created.display_name,
+      created.auth_provider,
+      created.created_at,
+      created.updated_at,
+      created.last_seen_at
+    )
+    .run();
+
+  await ensureNotificationPreference(db, created.id, now);
+
+  return created;
+}
+
+export async function getResidentSnapshot(db: D1Database, userId: string) {
+  const [profile, savedPlaces, watchlists, preferences, notificationEvents] =
+    await Promise.all([
+      getUserProfileById(db, userId),
+      listSavedPlaces(db, userId),
+      listWatchlists(db, userId),
+      getNotificationPreference(db, userId),
+      listNotificationEvents(db, userId)
+    ]);
+
+  return {
+    profile,
+    savedPlaces,
+    watchlists,
+    preferences,
+    notificationEvents
+  };
+}
+
+export async function getUserProfileById(db: D1Database, userId: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, provider_uid, email, display_name, auth_provider, created_at, updated_at, last_seen_at
+      FROM user_profile
+      WHERE id = ?`
+    )
+    .bind(userId)
+    .first<UserProfileRecord>();
+}
+
+export async function listSavedPlaces(db: D1Database, userId: string) {
+  const result = await db
+    .prepare(
+      `SELECT
+        id, user_id, label, raw_address, normalized_address, zip, municipality_slug, lat, lng,
+        geocode_confidence, created_at, updated_at, deleted_at
+      FROM saved_place
+      WHERE user_id = ? AND deleted_at IS NULL
+      ORDER BY updated_at DESC`
+    )
+    .bind(userId)
+    .all<SavedPlaceRecord>();
+
+  return result.results ?? [];
+}
+
+export async function createSavedPlace(
+  db: D1Database,
+  args: {
+    userId: string;
+    label: string;
+    rawAddress: string;
+    normalizedAddress: string;
+    zip?: string | null;
+    municipalitySlug: string;
+    lat?: number | null;
+    lng?: number | null;
+    geocodeConfidence?: number | null;
+  }
+) {
+  const now = nowIso();
+  const created = {
+    id: crypto.randomUUID(),
+    user_id: args.userId,
+    label: args.label.trim(),
+    raw_address: args.rawAddress.trim(),
+    normalized_address: args.normalizedAddress.trim(),
+    zip: args.zip?.trim() || null,
+    municipality_slug: args.municipalitySlug,
+    lat: args.lat ?? null,
+    lng: args.lng ?? null,
+    geocode_confidence: args.geocodeConfidence ?? null,
+    created_at: now,
+    updated_at: now,
+    deleted_at: null
+  } satisfies SavedPlaceRecord;
+
+  await db
+    .prepare(
+      `INSERT INTO saved_place (
+        id, user_id, label, raw_address, normalized_address, zip, municipality_slug, lat, lng,
+        geocode_confidence, created_at, updated_at, deleted_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      created.id,
+      created.user_id,
+      created.label,
+      created.raw_address,
+      created.normalized_address,
+      created.zip,
+      created.municipality_slug,
+      created.lat,
+      created.lng,
+      created.geocode_confidence,
+      created.created_at,
+      created.updated_at,
+      created.deleted_at
+    )
+    .run();
+
+  return created;
+}
+
+export async function softDeleteSavedPlace(
+  db: D1Database,
+  userId: string,
+  placeId: string
+) {
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `UPDATE saved_place
+      SET deleted_at = ?, updated_at = ?
+      WHERE id = ? AND user_id = ? AND deleted_at IS NULL`
+    )
+    .bind(now, now, placeId, userId)
+    .run();
+
+  await db
+    .prepare(
+      `UPDATE watchlist
+      SET deleted_at = ?, updated_at = ?, status = 'deleted'
+      WHERE saved_place_id = ? AND user_id = ? AND deleted_at IS NULL`
+    )
+    .bind(now, now, placeId, userId)
+    .run();
+}
+
+export async function listWatchlists(db: D1Database, userId: string) {
+  const result = await db
+    .prepare(
+      `SELECT
+        id, user_id, saved_place_id, municipality_slug, label, query, topic, status,
+        notification_level, created_at, updated_at, deleted_at
+      FROM watchlist
+      WHERE user_id = ? AND deleted_at IS NULL
+      ORDER BY updated_at DESC`
+    )
+    .bind(userId)
+    .all<WatchlistRecord>();
+
+  return result.results ?? [];
+}
+
+export async function createWatchlist(
+  db: D1Database,
+  args: {
+    userId: string;
+    savedPlaceId?: string | null;
+    municipalitySlug: string;
+    label: string;
+    query: string;
+    topic?: string | null;
+    notificationLevel?: string | null;
+  }
+) {
+  const now = nowIso();
+  const created = {
+    id: crypto.randomUUID(),
+    user_id: args.userId,
+    saved_place_id: args.savedPlaceId ?? null,
+    municipality_slug: args.municipalitySlug,
+    label: args.label.trim(),
+    query: args.query.trim(),
+    topic: args.topic?.trim() || null,
+    status: "active",
+    notification_level: args.notificationLevel?.trim() || "important",
+    created_at: now,
+    updated_at: now,
+    deleted_at: null
+  } satisfies WatchlistRecord;
+
+  await db
+    .prepare(
+      `INSERT INTO watchlist (
+        id, user_id, saved_place_id, municipality_slug, label, query, topic, status,
+        notification_level, created_at, updated_at, deleted_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      created.id,
+      created.user_id,
+      created.saved_place_id,
+      created.municipality_slug,
+      created.label,
+      created.query,
+      created.topic,
+      created.status,
+      created.notification_level,
+      created.created_at,
+      created.updated_at,
+      created.deleted_at
+    )
+    .run();
+
+  return created;
+}
+
+export async function softDeleteWatchlist(
+  db: D1Database,
+  userId: string,
+  watchlistId: string
+) {
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `UPDATE watchlist
+      SET deleted_at = ?, updated_at = ?, status = 'deleted'
+      WHERE id = ? AND user_id = ? AND deleted_at IS NULL`
+    )
+    .bind(now, now, watchlistId, userId)
+    .run();
+}
+
+export async function getNotificationPreference(
+  db: D1Database,
+  userId: string
+) {
+  await ensureNotificationPreference(db, userId, nowIso());
+
+  return db
+    .prepare(
+      `SELECT
+        user_id, email_enabled, push_enabled, digest_frequency, quiet_hours_start,
+        quiet_hours_end, critical_source_enabled, updated_at
+      FROM notification_preference
+      WHERE user_id = ?`
+    )
+    .bind(userId)
+    .first<NotificationPreferenceRecord>();
+}
+
+export async function updateNotificationPreference(
+  db: D1Database,
+  args: {
+    userId: string;
+    emailEnabled?: boolean;
+    pushEnabled?: boolean;
+    digestFrequency?: string;
+    quietHoursStart?: string | null;
+    quietHoursEnd?: string | null;
+    criticalSourceEnabled?: boolean;
+  }
+) {
+  const current = await getNotificationPreference(db, args.userId);
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `UPDATE notification_preference
+      SET
+        email_enabled = ?,
+        push_enabled = ?,
+        digest_frequency = ?,
+        quiet_hours_start = ?,
+        quiet_hours_end = ?,
+        critical_source_enabled = ?,
+        updated_at = ?
+      WHERE user_id = ?`
+    )
+    .bind(
+      boolToInteger(args.emailEnabled, current?.email_enabled ?? 1),
+      boolToInteger(args.pushEnabled, current?.push_enabled ?? 0),
+      args.digestFrequency?.trim() || current?.digest_frequency || "as_needed",
+      args.quietHoursStart === undefined
+        ? (current?.quiet_hours_start ?? null)
+        : args.quietHoursStart,
+      args.quietHoursEnd === undefined
+        ? (current?.quiet_hours_end ?? null)
+        : args.quietHoursEnd,
+      boolToInteger(
+        args.criticalSourceEnabled,
+        current?.critical_source_enabled ?? 1
+      ),
+      now,
+      args.userId
+    )
+    .run();
+
+  return getNotificationPreference(db, args.userId);
+}
+
+export async function upsertPushToken(
+  db: D1Database,
+  args: {
+    userId: string;
+    platform: string;
+    token: string;
+    deviceLabel?: string | null;
+  }
+) {
+  const now = nowIso();
+  const id = crypto.randomUUID();
+
+  await db
+    .prepare(
+      `INSERT INTO push_token (
+        id, user_id, platform, token, device_label, created_at, updated_at, revoked_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
+      ON CONFLICT(user_id, token) DO UPDATE SET
+        platform = excluded.platform,
+        device_label = excluded.device_label,
+        updated_at = excluded.updated_at,
+        revoked_at = NULL`
+    )
+    .bind(
+      id,
+      args.userId,
+      args.platform.trim(),
+      args.token.trim(),
+      args.deviceLabel?.trim() || null,
+      now,
+      now
+    )
+    .run();
+
+  return db
+    .prepare(
+      `SELECT
+        id, user_id, platform, token, device_label, created_at, updated_at, revoked_at
+      FROM push_token
+      WHERE user_id = ? AND token = ?`
+    )
+    .bind(args.userId, args.token.trim())
+    .first<PushTokenRecord>();
+}
+
+export async function listNotificationEvents(
+  db: D1Database,
+  userId: string,
+  limit = 20
+) {
+  const safeLimit = Math.min(Math.max(limit, 1), 50);
+  const result = await db
+    .prepare(
+      `SELECT
+        id, user_id, watchlist_id, municipality_slug, content_entry_id, event_kind, title,
+        body, status, created_at, delivered_at, read_at
+      FROM notification_event
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?`
+    )
+    .bind(userId, safeLimit)
+    .all<NotificationEventRecord>();
+
+  return result.results ?? [];
+}
+
+export async function listNearMeEntries(
+  db: D1Database,
+  userId: string,
+  limit = 18
+) {
+  const [savedPlaces, watchlists] = await Promise.all([
+    listSavedPlaces(db, userId),
+    listWatchlists(db, userId)
+  ]);
+  const matched = new Map<
+    string,
+    SearchablePublishedEntry & { match_reason: string }
+  >();
+  const activeWatchlists = watchlists.filter(
+    (watchlist) => watchlist.status === "active"
+  );
+
+  for (const watchlist of activeWatchlists) {
+    const entries = await searchPublishedEntries(
+      db,
+      watchlist.municipality_slug,
+      watchlist.query,
+      6
+    );
+
+    for (const entry of entries) {
+      matched.set(entry.id, {
+        ...entry,
+        match_reason: `Watchlist: ${watchlist.label}`
+      });
+      await recordWatchlistObservedEvent(db, userId, watchlist, entry);
+    }
+  }
+
+  for (const place of savedPlaces) {
+    const queries = [
+      place.normalized_address,
+      place.raw_address,
+      place.zip ?? ""
+    ].filter((query) => query.trim().length >= 3);
+
+    for (const query of queries.slice(0, 2)) {
+      const entries = await searchPublishedEntries(
+        db,
+        place.municipality_slug,
+        query,
+        4
+      );
+
+      for (const entry of entries) {
+        if (!matched.has(entry.id)) {
+          matched.set(entry.id, {
+            ...entry,
+            match_reason: `Saved place: ${place.label}`
+          });
+        }
+      }
+    }
+  }
+
+  if (matched.size === 0 && savedPlaces[0]) {
+    const latest = await listPublishedEntries(
+      db,
+      savedPlaces[0].municipality_slug,
+      1,
+      Math.min(limit, 10)
+    );
+
+    for (const entry of latest.entries) {
+      matched.set(entry.id, {
+        id: entry.id,
+        title: entry.title,
+        summary: entry.summary,
+        category: entry.category,
+        impact_level: entry.impact_level,
+        source_links_json: entry.source_links_json,
+        published_at: entry.published_at,
+        source_material_date: entry.source_material_date,
+        source_name: entry.source_name,
+        normalized_text: entry.topic_text,
+        match_reason: "Latest from your saved community"
+      });
+    }
+  }
+
+  return Array.from(matched.values())
+    .sort((left, right) => right.published_at.localeCompare(left.published_at))
+    .slice(0, Math.min(Math.max(limit, 1), 50));
+}
+
+async function ensureNotificationPreference(
+  db: D1Database,
+  userId: string,
+  now: string
+) {
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO notification_preference (
+        user_id, email_enabled, push_enabled, digest_frequency, quiet_hours_start,
+        quiet_hours_end, critical_source_enabled, updated_at
+      ) VALUES (?, 1, 0, 'as_needed', NULL, NULL, 1, ?)`
+    )
+    .bind(userId, now)
+    .run();
+}
+
+async function recordWatchlistObservedEvent(
+  db: D1Database,
+  userId: string,
+  watchlist: WatchlistRecord,
+  entry: SearchablePublishedEntry
+) {
+  const now = nowIso();
+
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO notification_event (
+        id, user_id, watchlist_id, municipality_slug, content_entry_id, event_kind,
+        title, body, status, created_at, delivered_at, read_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      userId,
+      watchlist.id,
+      watchlist.municipality_slug,
+      entry.id,
+      "watchlist_match",
+      `Source observed: ${entry.title}`,
+      entry.summary,
+      "observed",
+      now,
+      null,
+      null
+    )
+    .run();
+}
+
+function boolToInteger(value: boolean | undefined, fallback: number) {
+  if (typeof value === "boolean") {
+    return value ? 1 : 0;
+  }
+
+  return fallback;
 }
 
 export async function upsertNewsletterSubscription(
@@ -1110,7 +1943,8 @@ export async function upsertNewsletterSubscription(
 
   if (existing) {
     const displayName = args.displayName?.trim() || existing.display_name;
-    const nextStatus = existing.status === "active" ? "active" : "pending_confirm";
+    const nextStatus =
+      existing.status === "active" ? "active" : "pending_confirm";
 
     await db
       .prepare(
@@ -1130,7 +1964,8 @@ export async function upsertNewsletterSubscription(
       display_name: displayName ?? null,
       status: nextStatus,
       updated_at: now,
-      unsubscribed_at: nextStatus === "pending_confirm" ? null : existing.unsubscribed_at
+      unsubscribed_at:
+        nextStatus === "pending_confirm" ? null : existing.unsubscribed_at
     } satisfies NewsletterSubscriptionRecord;
   }
 
@@ -1286,8 +2121,13 @@ async function markNewsletterTokenConsumed(db: D1Database, tokenId: string) {
     .run();
 }
 
-export async function issueNewsletterManageToken(db: D1Database, subscriptionId: string) {
-  const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+export async function issueNewsletterManageToken(
+  db: D1Database,
+  subscriptionId: string
+) {
+  const expiresAt = new Date(
+    Date.now() + 365 * 24 * 60 * 60 * 1000
+  ).toISOString();
   return createNewsletterTokenRecord(db, {
     subscriptionId,
     tokenKind: "manage",
@@ -1433,7 +2273,10 @@ export async function confirmNewsletterSubscriptionByToken(
   db: D1Database,
   confirmationToken: string
 ) {
-  const result = await getNewsletterSubscriptionByConfirmationToken(db, confirmationToken);
+  const result = await getNewsletterSubscriptionByConfirmationToken(
+    db,
+    confirmationToken
+  );
 
   if (!result) {
     return null;
@@ -1454,7 +2297,10 @@ export async function confirmNewsletterSubscriptionByToken(
     .run();
 
   await markNewsletterTokenConsumed(db, result.tokenRecord.id);
-  const manageToken = await issueNewsletterManageToken(db, result.subscription.id);
+  const manageToken = await issueNewsletterManageToken(
+    db,
+    result.subscription.id
+  );
 
   return {
     subscription: {
@@ -1476,7 +2322,10 @@ export async function updateNewsletterSubscriptionByManageToken(
     status?: "active" | "unsubscribed";
   }
 ) {
-  const existing = await getNewsletterSubscriptionByManageToken(db, args.manageToken);
+  const existing = await getNewsletterSubscriptionByManageToken(
+    db,
+    args.manageToken
+  );
 
   if (!existing) {
     return null;
@@ -1484,7 +2333,9 @@ export async function updateNewsletterSubscriptionByManageToken(
 
   const nextStatus = args.status ?? existing.status;
   const nextDisplayName =
-    args.displayName === undefined ? existing.display_name : args.displayName.trim() || null;
+    args.displayName === undefined
+      ? existing.display_name
+      : args.displayName.trim() || null;
   const now = nowIso();
 
   await db
@@ -1515,11 +2366,17 @@ export async function updateNewsletterSubscriptionByManageToken(
     status: nextStatus,
     updated_at: now,
     unsubscribed_at: nextStatus === "unsubscribed" ? now : null,
-    confirmed_at: nextStatus === "active" ? existing.confirmed_at ?? now : existing.confirmed_at
+    confirmed_at:
+      nextStatus === "active"
+        ? (existing.confirmed_at ?? now)
+        : existing.confirmed_at
   } satisfies NewsletterSubscriptionRecord;
 }
 
-export async function listActiveNewsletterSubscriptions(db: D1Database, municipalitySlug: string) {
+export async function listActiveNewsletterSubscriptions(
+  db: D1Database,
+  municipalitySlug: string
+) {
   const result = await db
     .prepare(
       `SELECT
@@ -1605,9 +2462,13 @@ export async function consumeRateLimit(
 ): Promise<RateLimitResult> {
   const now = new Date();
   const bucketMs = args.windowMinutes * 60 * 1000;
-  const bucketStartDate = new Date(Math.floor(now.getTime() / bucketMs) * bucketMs);
+  const bucketStartDate = new Date(
+    Math.floor(now.getTime() / bucketMs) * bucketMs
+  );
   const bucketStart = bucketStartDate.toISOString();
-  const expiresAt = new Date(bucketStartDate.getTime() + bucketMs).toISOString();
+  const expiresAt = new Date(
+    bucketStartDate.getTime() + bucketMs
+  ).toISOString();
   const id = crypto.randomUUID();
 
   await db
@@ -1625,7 +2486,14 @@ export async function consumeRateLimit(
         updated_at = excluded.updated_at,
         expires_at = excluded.expires_at`
     )
-    .bind(id, args.routeKey, args.identifier, bucketStart, now.toISOString(), expiresAt)
+    .bind(
+      id,
+      args.routeKey,
+      args.identifier,
+      bucketStart,
+      now.toISOString(),
+      expiresAt
+    )
     .run();
 
   const record = await db
@@ -1646,7 +2514,10 @@ export async function consumeRateLimit(
 
   const requestCount = record?.request_count ?? 0;
   const remaining = Math.max(0, args.limit - requestCount);
-  const retryAfterSeconds = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now.getTime()) / 1000));
+  const retryAfterSeconds = Math.max(
+    0,
+    Math.ceil((new Date(expiresAt).getTime() - now.getTime()) / 1000)
+  );
 
   return {
     allowed: requestCount <= args.limit,

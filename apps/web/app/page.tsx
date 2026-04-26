@@ -89,6 +89,12 @@ export default function HomePage() {
                   Run local scan
                 </button>
               </form>
+              <Link
+                href="/my-record"
+                className="mt-3 block rounded-[0.9rem] border border-moss/15 bg-sand/45 px-5 py-3 text-center text-sm font-bold text-moss transition hover:bg-sky/55"
+              >
+                Save my place and watchlists
+              </Link>
 
               <div className="mt-5 grid gap-2">
                 {[
@@ -115,18 +121,15 @@ export default function HomePage() {
         {[
           {
             title: "For your property",
-            body:
-              "Use an address, street, intersection, or development name to find matching local records."
+            body: "Use an address, street, intersection, or development name to find matching local records."
           },
           {
             title: "For your week",
-            body:
-              "See meetings, dates, closures, notices, and items residents can act on next."
+            body: "See meetings, dates, closures, notices, and items residents can act on next."
           },
           {
             title: "For the source",
-            body:
-              "Every result points back to the official record so you can verify before deciding."
+            body: "Every result points back to the official record so you can verify before deciding."
           }
         ].map((item) => (
           <div
@@ -161,6 +164,12 @@ export default function HomePage() {
             className="rounded-[0.9rem] bg-moss px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#183f47]"
           >
             Open resident console
+          </Link>
+          <Link
+            href="/my-record"
+            className="rounded-[0.9rem] border border-moss/15 bg-[#183f47] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-moss"
+          >
+            Open My Record
           </Link>
           <Link
             href={`/${launchLocality.slug}/source-inventory`}

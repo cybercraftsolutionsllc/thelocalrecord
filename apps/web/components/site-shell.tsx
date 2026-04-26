@@ -14,6 +14,7 @@ const PLATFORM_DISCLAIMER =
 
 const navItems = [
   { href: "/", label: "Check" },
+  { href: "/my-record", label: "My Record" },
   { href: "/manheimtownshippa", label: "Manheim" },
   { href: "/about", label: "About" },
   { href: "/policy", label: "Rules" },

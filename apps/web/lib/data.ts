@@ -1,4 +1,8 @@
-import { getMunicipalityBySlug, getSourcesForMunicipality, municipalities } from "@thelocalrecord/core";
+import {
+  getMunicipalityBySlug,
+  getSourcesForMunicipality,
+  municipalities
+} from "@thelocalrecord/core";
 
 type PublicEntry = {
   id: string;
@@ -32,8 +36,11 @@ export function getHomepageData() {
 export function getLocalitiesDirectory() {
   return municipalities.map((municipality) => ({
     ...municipality,
-    county: municipality.slug === "manheimtownshippa" ? "Lancaster County" : "",
-    statusLabel: "Live now"
+    county: "Lancaster County",
+    statusLabel:
+      municipality.slug === "manheimtownshippa"
+        ? "Live now"
+        : "Planned coverage"
   }));
 }
 
@@ -59,9 +66,8 @@ export async function getLocalityData(slug: string) {
   }
 
   try {
-    const { getMunicipalityWithSources, getPublishedEntriesByMunicipality } = await import(
-      "@thelocalrecord/storage"
-    );
+    const { getMunicipalityWithSources, getPublishedEntriesByMunicipality } =
+      await import("@thelocalrecord/storage");
 
     const [municipality, publishedEntries] = await Promise.all([
       getMunicipalityWithSources(slug),
@@ -78,10 +84,15 @@ export async function getLocalityData(slug: string) {
         title: entry.title,
         summary: entry.summary,
         category: entry.category,
-        publishedAt: entry.publication?.publishedAt.toISOString() ?? entry.createdAt.toISOString(),
+        publishedAt:
+          entry.publication?.publishedAt.toISOString() ??
+          entry.createdAt.toISOString(),
         extractionNote: entry.extractionNote,
         sourceLabel: entry.sourceItem.source.name,
-        sourceLinks: JSON.parse(entry.sourceLinksJson) as Array<{ label: string; url: string }>,
+        sourceLinks: JSON.parse(entry.sourceLinksJson) as Array<{
+          label: string;
+          url: string;
+        }>,
         detailUrl: `/${slug}/item/?id=${encodeURIComponent(entry.id)}`
       }))
     };
@@ -104,7 +115,8 @@ export async function getReviewData(slug: string) {
   }
 
   try {
-    const { getReviewQueueByMunicipality } = await import("@thelocalrecord/storage");
+    const { getReviewQueueByMunicipality } =
+      await import("@thelocalrecord/storage");
     const reviewEntries = await getReviewQueueByMunicipality(slug);
 
     return reviewEntries.map((entry) => ({
@@ -112,7 +124,8 @@ export async function getReviewData(slug: string) {
       title: entry.title,
       summary: entry.summary,
       category: entry.category,
-      reason: entry.extractionNote ?? "Manual review required by editorial rule.",
+      reason:
+        entry.extractionNote ?? "Manual review required by editorial rule.",
       sourceUrl: entry.sourceItem.sourceUrl
     })) satisfies ReviewEntry[];
   } catch {

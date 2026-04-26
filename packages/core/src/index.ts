@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 export const PLATFORM_DISCLAIMER =
-  "Independent resident-run digest platform. Not an official municipal website.";
+  "Independent resident-run digest platform. Not an official municipal website or emergency alert service.";
 
 export const INDEPENDENT_DISCLAIMER =
-  "Independent resident-run digest. Not affiliated with or speaking for Manheim Township.";
+  "Independent resident-run digest. Not affiliated with or speaking for this municipality.";
 
 export const municipalitySchema = z.object({
   slug: z.string(),
@@ -84,8 +84,15 @@ export const reviewStateSchema = z.enum([
   "auto_published"
 ]);
 
+export const impactLevelSchema = z.enum([
+  "critical_source",
+  "important",
+  "routine"
+]);
+
 export const contentDecisionSchema = z.object({
   classification: classificationSchema,
+  impactLevel: impactLevelSchema.default("routine"),
   riskLevel: riskLevelSchema,
   reviewState: reviewStateSchema,
   autoPublishAllowed: z.boolean(),
@@ -111,6 +118,50 @@ export const municipalities: MunicipalityConfig[] = [
     about:
       "A citizen-run digest that tracks selected public Manheim Township sources, highlights what changed, and links back to the original records.",
     correctionsEmail: "cyber.craft@craftedcybersolutions.com"
+  }),
+  municipalitySchema.parse({
+    slug: "lancastercitypa",
+    name: "Lancaster City",
+    state: "Pennsylvania",
+    localityType: "City",
+    shortName: "Lancaster City, PA",
+    disclaimer: INDEPENDENT_DISCLAIMER,
+    about:
+      "Planned resident coverage for Lancaster City official records, notices, meetings, services, and source-linked updates.",
+    correctionsEmail: "cyber.craft@craftedcybersolutions.com"
+  }),
+  municipalitySchema.parse({
+    slug: "easthempfieldtownshippa",
+    name: "East Hempfield Township",
+    state: "Pennsylvania",
+    localityType: "Township",
+    shortName: "East Hempfield Township, PA",
+    disclaimer: INDEPENDENT_DISCLAIMER,
+    about:
+      "Planned resident coverage for East Hempfield Township official records, agendas, roadway projects, permits, and source-linked updates.",
+    correctionsEmail: "cyber.craft@craftedcybersolutions.com"
+  }),
+  municipalitySchema.parse({
+    slug: "warwicktownshippa",
+    name: "Warwick Township",
+    state: "Pennsylvania",
+    localityType: "Township",
+    shortName: "Warwick Township, PA",
+    disclaimer: INDEPENDENT_DISCLAIMER,
+    about:
+      "Planned resident coverage for Warwick Township official records, agendas, township news, public works notices, and source-linked updates.",
+    correctionsEmail: "cyber.craft@craftedcybersolutions.com"
+  }),
+  municipalitySchema.parse({
+    slug: "lancastertownshippa",
+    name: "Lancaster Township",
+    state: "Pennsylvania",
+    localityType: "Township",
+    shortName: "Lancaster Township, PA",
+    disclaimer: INDEPENDENT_DISCLAIMER,
+    about:
+      "Fallback Lancaster-area coverage candidate for official township records, agendas, alerts, road notices, and resident source trails.",
+    correctionsEmail: "cyber.craft@craftedcybersolutions.com"
   })
 ];
 
@@ -119,7 +170,8 @@ export const sourceRegistry: SourceConfig[] = [
     slug: "agenda-center",
     municipalitySlug: "manheimtownshippa",
     name: "Agenda Center",
-    description: "Agendas and approved minutes published through the township agenda portal.",
+    description:
+      "Agendas and approved minutes published through the township agenda portal.",
     url: "https://www.manheimtownship.org/AgendaCenter",
     kind: "agenda_center",
     implemented: true,
@@ -208,7 +260,8 @@ export const sourceRegistry: SourceConfig[] = [
     slug: "permit-faq",
     municipalitySlug: "manheimtownshippa",
     name: "Permit and Code Compliance FAQs",
-    description: "Official FAQs covering permits, occupancy, roofing, and code questions.",
+    description:
+      "Official FAQs covering permits, occupancy, roofing, and code questions.",
     url: "https://www.manheimtownship.org/Faq.aspx?TID=49",
     kind: "page",
     implemented: true,
@@ -291,16 +344,115 @@ export const sourceRegistry: SourceConfig[] = [
     slug: "planning-zoning",
     municipalitySlug: "manheimtownshippa",
     name: "Planning and Zoning",
-    description: "Official planning and zoning materials published by the township.",
+    description:
+      "Official planning and zoning materials published by the township.",
     url: "https://www.manheimtownship.org/478/Planning-Zoning",
     kind: "planning_zoning",
     implemented: true,
     fetchStrategy: "html",
     publicCategory: "Planning and zoning"
+  },
+  {
+    slug: "lancaster-city-home",
+    municipalitySlug: "lancastercitypa",
+    name: "Lancaster City Homepage",
+    description:
+      "Official city homepage with links to services, city news, events, legal notices, permits, and street closures.",
+    url: "https://www.cityoflancasterpa.gov/",
+    kind: "page",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Coverage planned"
+  },
+  {
+    slug: "lancaster-city-legal-notices",
+    municipalitySlug: "lancastercitypa",
+    name: "Legal Notices",
+    description:
+      "Official city legal notices and pending legislation or resolution records planned for future ingest.",
+    url: "https://www.cityoflancasterpa.gov/",
+    kind: "page",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Public notices"
+  },
+  {
+    slug: "east-hempfield-home",
+    municipalitySlug: "easthempfieldtownshippa",
+    name: "East Hempfield Township Homepage",
+    description:
+      "Official township homepage with agendas, public meeting calendar, roadway projects, forms, permits, and announcements.",
+    url: "https://www.easthempfield.org/",
+    kind: "page",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Coverage planned"
+  },
+  {
+    slug: "east-hempfield-agendas",
+    municipalitySlug: "easthempfieldtownshippa",
+    name: "Agendas and Minutes",
+    description:
+      "Official agendas and minutes page planned for source-linked meeting coverage.",
+    url: "https://www.easthempfield.org/",
+    kind: "agenda_center",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Agendas and minutes"
+  },
+  {
+    slug: "warwick-home",
+    municipalitySlug: "warwicktownshippa",
+    name: "Warwick Township Homepage",
+    description:
+      "Official township homepage with news, calendar items, agendas, parks, public works notices, and resident services.",
+    url: "https://www.warwicktownship.org/1/Home",
+    kind: "page",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Coverage planned"
+  },
+  {
+    slug: "warwick-news",
+    municipalitySlug: "warwicktownshippa",
+    name: "News Flash",
+    description:
+      "Official township news area planned for notices such as road work, utility work, public meetings, and service updates.",
+    url: "https://www.warwicktownship.org/1/Home",
+    kind: "news_flash",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Official news"
+  },
+  {
+    slug: "lancaster-township-home",
+    municipalitySlug: "lancastertownshippa",
+    name: "Lancaster Township Homepage",
+    description:
+      "Official township homepage with alerts, announcements, road notices, permits, agendas, and resident services.",
+    url: "https://www.twp.lancaster.pa.us/",
+    kind: "page",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Coverage planned"
+  },
+  {
+    slug: "lancaster-township-agendas",
+    municipalitySlug: "lancastertownshippa",
+    name: "Agendas and Minutes",
+    description:
+      "Official agendas and minutes area planned as a fallback Lancaster-area meeting source.",
+    url: "https://www.twp.lancaster.pa.us/",
+    kind: "agenda_center",
+    implemented: false,
+    fetchStrategy: "html",
+    publicCategory: "Agendas and minutes"
   }
 ].map((source) => sourceConfigSchema.parse(source));
 
-export function getMunicipalityBySlug(slug: string): MunicipalityConfig | undefined {
+export function getMunicipalityBySlug(
+  slug: string
+): MunicipalityConfig | undefined {
   return municipalities.find((municipality) => municipality.slug === slug);
 }
 

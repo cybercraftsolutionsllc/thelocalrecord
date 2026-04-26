@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { hashContent, normalizedSourceItemSchema } from "@thelocalrecord/core";
 
-import { evaluateItem } from "./index";
+import { evaluateItem, extractEntryEntities } from "./index";
 
 describe("evaluateItem", () => {
   it("auto-publishes low-risk agenda items", () => {
@@ -27,6 +27,7 @@ describe("evaluateItem", () => {
     expect(decision.autoPublishAllowed).toBe(true);
     expect(decision.reviewState).toBe("auto_published");
     expect(decision.classification).toBe("agenda_posted");
+    expect(decision.impactLevel).toBe("important");
   });
 
   it("auto-publishes official planning items even with low extraction confidence", () => {
@@ -37,7 +38,8 @@ describe("evaluateItem", () => {
       title: "Planning Commission Packet",
       sourceUrl: "https://www.manheimtownship.org/planning.pdf",
       sourcePageUrl: "https://www.manheimtownship.org/AgendaCenter",
-      normalizedText: "Rezoning hearing for a land development subdivision application",
+      normalizedText:
+        "Rezoning hearing for a land development subdivision application",
       extraction: {
         method: "pdf",
         confidence: 0.65,
@@ -52,6 +54,7 @@ describe("evaluateItem", () => {
     expect(decision.autoPublishAllowed).toBe(true);
     expect(decision.reviewState).toBe("auto_published");
     expect(decision.classification).toBe("planning_zoning");
+    expect(decision.impactLevel).toBe("important");
   });
 
   it("routes unofficial low-confidence planning items to review", () => {
@@ -62,7 +65,8 @@ describe("evaluateItem", () => {
       title: "Planning Commission Packet",
       sourceUrl: "https://example.com/planning.pdf",
       sourcePageUrl: "https://example.com/agenda",
-      normalizedText: "Rezoning hearing for a land development subdivision application",
+      normalizedText:
+        "Rezoning hearing for a land development subdivision application",
       extraction: {
         method: "pdf",
         confidence: 0.65,
@@ -86,7 +90,8 @@ describe("evaluateItem", () => {
       externalId: "faq-1",
       title: "Can I keep chickens on my property?",
       sourceUrl: "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
-      sourcePageUrl: "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
+      sourcePageUrl:
+        "https://www.manheimtownship.org/1546/Planning-Zoning-FAQs",
       normalizedText:
         "Can I keep chickens on my property? The township zoning FAQ explains how this use is regulated and when zoning approval may be required.",
       extraction: {
@@ -126,7 +131,9 @@ describe("evaluateItem", () => {
     const decision = evaluateItem(item);
 
     expect(decision.classification).toBe("approved_minutes");
-    expect(decision.summary).toContain("According to the posted meeting minutes");
+    expect(decision.summary).toContain(
+      "According to the posted meeting minutes"
+    );
     expect(decision.summary).toContain("Ashford Meadows");
   });
 
@@ -154,5 +161,59 @@ describe("evaluateItem", () => {
     expect(decision.summary).toContain("Ashford Meadows");
     expect(decision.summary).toContain("117 lots");
     expect(decision.summary).not.toContain("approve the minutes");
+  });
+
+  it("marks sourced road closures as critical source observations", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "alert-center",
+      externalId: "alert-1",
+      title: "Route 30 lane closure and detour",
+      sourceUrl: "https://www.manheimtownship.org/AlertCenter.aspx",
+      sourcePageUrl: "https://www.manheimtownship.org/AlertCenter.aspx",
+      normalizedText:
+        "The township alert center reports a road closure and detour near Lititz Pike.",
+      extraction: {
+        method: "html",
+        confidence: 0.98
+      },
+      metadata: {},
+      contentHash: hashContent("alert-1")
+    });
+
+    const decision = evaluateItem(item);
+
+    expect(decision.classification).toBe("official_alert");
+    expect(decision.impactLevel).toBe("critical_source");
+  });
+
+  it("extracts resident-facing entities from local records", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-geo",
+      title: "Ashford Meadows Preliminary Subdivision",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3640",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "The site is located at 120 Kreider Avenue and 2325 Lititz Pike. Route 30 traffic and Overlook Park access were discussed.",
+      eventDate: "2026-02-18T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-geo")
+    });
+
+    const entities = extractEntryEntities(item);
+
+    expect(entities.some((entity) => entity.entityKind === "address")).toBe(
+      true
+    );
+    expect(entities.some((entity) => entity.entityKind === "route")).toBe(true);
+    expect(
+      entities.some((entity) => entity.entityKind === "meeting_date")
+    ).toBe(true);
   });
 });
