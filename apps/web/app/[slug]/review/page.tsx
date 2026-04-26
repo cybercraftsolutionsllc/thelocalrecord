@@ -26,7 +26,7 @@ export default async function LocalityReviewPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <div className="rounded-[2rem] bg-white p-8 shadow-card">
+      <div className="rounded-lg bg-white p-8">
         <div className="space-y-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             {data.municipality.shortName} review queue
@@ -49,13 +49,13 @@ export default async function LocalityReviewPage({
             entries.map((entry) => (
               <article
                 key={entry.id}
-                className="rounded-[1.5rem] border border-ink/10 p-5"
+                className="rounded-lg border border-ink/10 p-5"
               >
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-serif text-2xl text-moss">
                     {entry.title}
                   </h2>
-                  <span className="rounded-full bg-clay/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                  <span className="rounded-md bg-clay/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
                     {entry.category.split("_").join(" ")}
                   </span>
                 </div>
@@ -74,7 +74,7 @@ export default async function LocalityReviewPage({
               </article>
             ))
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-ink/15 p-6 text-ink/70">
+            <div className="rounded-lg border border-dashed border-ink/15 p-6 text-ink/70">
               No unofficial-source items are waiting for review.
             </div>
           )}

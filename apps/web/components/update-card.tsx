@@ -17,68 +17,18 @@ type UpdateCardProps = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  official_news: "Township news",
-  official_alert: "Official alert",
-  agenda_posted: "Agenda posted",
-  approved_minutes: "Meeting minutes",
-  meeting_notice: "Meeting notice",
-  calendar_update: "Calendar update",
-  planning_zoning: "Planning item",
-  service_notice: "Service notice"
-};
-
-const CATEGORY_TONES: Record<
-  string,
-  {
-    badge: string;
-    accent: string;
-  }
-> = {
-  official_news: {
-    badge: "bg-sky text-moss",
-    accent: "bg-sky/45"
-  },
-  official_alert: {
-    badge: "bg-clay/15 text-clay",
-    accent: "bg-clay/45"
-  },
-  agenda_posted: {
-    badge: "bg-[#e8f0ea] text-moss",
-    accent: "bg-[#d4e6da]"
-  },
-  approved_minutes: {
-    badge: "bg-[#eef0e8] text-moss",
-    accent: "bg-[#dfe6d6]"
-  },
-  meeting_notice: {
-    badge: "bg-[#e8f0ea] text-moss",
-    accent: "bg-[#d4e6da]"
-  },
-  calendar_update: {
-    badge: "bg-[#eef4f6] text-moss",
-    accent: "bg-[#dbe8ec]"
-  },
-  planning_zoning: {
-    badge: "bg-[#eef0e8] text-moss",
-    accent: "bg-[#dfe6d6]"
-  },
-  service_notice: {
-    badge: "bg-[#f3ece3] text-clay",
-    accent: "bg-[#ead8c6]"
-  }
+  official_news: "News",
+  official_alert: "Alert",
+  agenda_posted: "Agenda",
+  approved_minutes: "Minutes",
+  meeting_notice: "Meeting",
+  calendar_update: "Calendar",
+  planning_zoning: "Planning",
+  service_notice: "Service"
 };
 
 function formatCategory(category: string) {
   return CATEGORY_LABELS[category] ?? category.split("_").join(" ");
-}
-
-function categoryTone(category: string) {
-  return (
-    CATEGORY_TONES[category] ?? {
-      badge: "bg-sky text-moss",
-      accent: "bg-sky/45"
-    }
-  );
 }
 
 function formatPublishedDate(publishedAt: string) {
@@ -134,48 +84,24 @@ function buildExpandedExcerpt(
     return "";
   }
 
-  if (candidate.length <= 1200) {
+  if (candidate.length <= 900) {
     return candidate;
   }
 
-  return `${candidate.slice(0, 1197).trimEnd()}...`;
+  return `${candidate.slice(0, 897).trimEnd()}...`;
 }
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function getResidentSignal(props: UpdateCardProps) {
-  const haystack =
-    `${props.title} ${props.summary} ${props.category} ${props.topicText ?? ""}`.toLowerCase();
-
-  if (/closure|detour|traffic|route|road|bridge|alert/.test(haystack)) {
-    return "Travel impact";
-  }
-
-  if (/ordinance|hearing|agenda|minutes|commission|board|meeting|notice/.test(haystack)) {
-    return "Decision to watch";
-  }
-
-  if (/permit|code|zoning|inspection|occupancy|variance/.test(haystack)) {
-    return "Property rules";
-  }
-
-  if (/park|trail|recreation|program|festival|volunteer/.test(haystack)) {
-    return "Community amenity";
-  }
-
-  return "Local update";
-}
-
 export function UpdateCard(props: UpdateCardProps) {
   const [expanded, setExpanded] = useState(false);
   const sourceLinks = Array.isArray(props.sourceLinks) ? props.sourceLinks : [];
-  const tone = categoryTone(props.category);
   const datedLabel =
     props.sourceMaterialDate && props.sourceMaterialDate !== props.publishedAt
-      ? `Source date ${formatPublishedDate(props.sourceMaterialDate)}`
-      : `Published ${formatPublishedDate(props.publishedAt)}`;
+      ? formatPublishedDate(props.sourceMaterialDate)
+      : formatPublishedDate(props.publishedAt);
   const expandedExcerpt = buildExpandedExcerpt(
     props.title,
     props.summary,
@@ -184,51 +110,31 @@ export function UpdateCard(props: UpdateCardProps) {
   const canExpand = expandedExcerpt.length > 0;
 
   return (
-    <article className="relative overflow-hidden rounded-[1.25rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-      <div
-        aria-hidden="true"
-        className={`absolute left-0 top-0 h-full w-1.5 ${tone.accent}`}
-      />
-
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
-          >
-            {formatCategory(props.category)}
-          </span>
-          <span className="rounded-full border border-ink/10 bg-[#f8f6ef] px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#183f47]">
-            {getResidentSignal(props)}
-          </span>
-        </div>
-        <span className="rounded-full border border-ink/10 bg-sand/35 px-3 py-1 text-xs font-semibold text-ink/62">
-          {datedLabel}
+    <article className="rounded-lg border border-ink/10 bg-white p-5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink/54">
+        <span className="font-semibold text-moss">
+          {formatCategory(props.category)}
         </span>
+        <span>{datedLabel}</span>
+        <span>{props.sourceLabel}</span>
       </div>
 
-      <h3 className="text-balance font-serif text-2xl leading-tight text-moss sm:text-[1.85rem]">
+      <h3 className="mt-3 font-serif text-2xl leading-tight text-ink">
         {props.title}
       </h3>
-      <p className="mt-3 max-w-4xl text-base leading-8 text-ink/82">
-        {props.summary}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink/48">
-        <span>{props.sourceLabel}</span>
-        <span aria-hidden="true">/</span>
-        <span>source-linked</span>
-      </div>
+      <p className="mt-3 text-base leading-7 text-ink/72">{props.summary}</p>
 
       {canExpand ? (
-        <div className="mt-5 rounded-[1rem] border border-moss/10 bg-sand/35 px-4 py-4">
+        <div className="mt-4 border-t border-ink/8 pt-4">
           <button
             type="button"
             onClick={() => setExpanded((current) => !current)}
-            className="text-sm font-semibold text-moss underline-offset-4 transition hover:text-ink hover:underline"
+            className="text-sm font-semibold text-moss underline-offset-4 hover:underline"
           >
-            {expanded ? "Show less" : "Read more from the source text"}
+            {expanded ? "Show less" : "More source text"}
           </button>
           {expanded ? (
-            <p className="mt-3 text-sm leading-7 text-ink/78">
+            <p className="mt-3 text-sm leading-7 text-ink/68">
               {expandedExcerpt}
             </p>
           ) : null}
@@ -236,48 +142,31 @@ export function UpdateCard(props: UpdateCardProps) {
       ) : null}
 
       {props.extractionNote ? (
-        <div className="mt-5 rounded-[1rem] border border-clay/20 bg-clay/5 px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
-            Extraction note
-          </p>
-          <p className="mt-2 text-sm leading-7 text-ink/75">
-            {props.extractionNote}
-          </p>
-        </div>
+        <p className="mt-4 rounded-md border border-clay/15 bg-sand px-3 py-2 text-sm leading-6 text-ink/64">
+          {props.extractionNote}
+        </p>
       ) : null}
 
-      <div className="mt-6 rounded-[1rem] border border-ink/10 bg-sand/45 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">
-              Verify this record
-            </p>
-            <p className="mt-1 text-sm font-semibold text-ink">
-              {props.sourceLabel}
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-3 text-sm">
-          {props.detailUrl ? (
-            <a
-              href={props.detailUrl}
-              className="rounded-[0.8rem] border border-moss/15 bg-moss px-3 py-2 font-semibold text-white transition hover:bg-moss/90"
-            >
-              Open record details
-            </a>
-          ) : null}
-          {sourceLinks.map((link) => (
-            <a
-              key={`${props.title}-${link.url}`}
-              href={link.url}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-[0.8rem] border border-moss/15 bg-white px-3 py-2 text-moss transition hover:bg-sky"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
+      <div className="mt-5 flex flex-wrap gap-2 border-t border-ink/8 pt-4">
+        {props.detailUrl ? (
+          <a
+            href={props.detailUrl}
+            className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+          >
+            Details
+          </a>
+        ) : null}
+        {sourceLinks.map((link) => (
+          <a
+            key={`${props.title}-${link.url}`}
+            href={link.url}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+          >
+            {link.label}
+          </a>
+        ))}
       </div>
     </article>
   );

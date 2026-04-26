@@ -424,7 +424,7 @@ export function LivePublishedEntries({
 
   if (entries.length > 0) {
     return (
-      <div id="records" className="space-y-5 scroll-mt-24">
+      <div id="records" className="space-y-4 scroll-mt-24">
         <CommunityBriefing
           entries={visiblePool}
           total={searchActive ? searchTotal : total}
@@ -437,22 +437,16 @@ export function LivePublishedEntries({
 
         <div
           id="record-results"
-          className="scroll-mt-24 rounded-[1.5rem] border border-white/75 bg-white p-6 shadow-card"
+          className="scroll-mt-24 rounded-lg border border-ink/10 bg-white p-5"
         >
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                  Instant results
-                </p>
-                <h2 className="mt-2 font-serif text-[2.15rem] leading-tight text-moss">
-                  What is going on in this locale
+                <p className="text-sm font-semibold text-moss">Results</p>
+                <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
+                  Local records
                 </h2>
               </div>
-              <p className="max-w-sm text-sm leading-6 text-ink/58">
-                Scan the full record by property clue, street, project, date,
-                ordinance, or meeting. Then open the source before acting.
-              </p>
             </div>
 
             <div className="space-y-4 border-t border-ink/8 pt-5">
@@ -464,43 +458,43 @@ export function LivePublishedEntries({
                     value={query}
                     onChange={(event) => handleQueryChange(event.target.value)}
                     placeholder="Refine by address, street, development, road, permit..."
-                    className="w-full rounded-[1rem] border border-ink/10 bg-sand/20 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+                    className="w-full rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-moss"
                   />
                 </label>
 
                 {searchActive ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-clay/20 bg-clay/10 px-4 py-2 text-sm font-semibold text-clay">
+                    <span className="rounded-md border border-clay/20 px-3 py-2 text-sm font-semibold text-clay">
                       Checking live records
                     </span>
                     <button
                       type="button"
                       onClick={resetView}
-                      className="rounded-full border border-moss/15 bg-white px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky"
+                      className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
                     >
                       Clear search
                     </button>
                   </div>
                 ) : (
-                  <div className="inline-flex rounded-full border border-moss/10 bg-sand/25 p-1">
+                  <div className="inline-flex rounded-lg border border-ink/10 bg-sand p-1">
                     <button
                       type="button"
                       onClick={() => setFeedView("events_of_note")}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                         feedView === "events_of_note"
-                          ? "bg-moss text-white shadow-sm"
-                          : "text-moss hover:bg-white"
+                          ? "bg-white text-moss shadow-sm"
+                          : "text-ink/58 hover:text-moss"
                       }`}
                     >
-                      Resident highlights
+                      Highlights
                     </button>
                     <button
                       type="button"
                       onClick={() => setFeedView("all_records")}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                         feedView === "all_records"
-                          ? "bg-moss text-white shadow-sm"
-                          : "text-moss hover:bg-white"
+                          ? "bg-white text-moss shadow-sm"
+                          : "text-ink/58 hover:text-moss"
                       }`}
                     >
                       All records
@@ -516,7 +510,7 @@ export function LivePublishedEntries({
                     key={suggestion}
                     type="button"
                     onClick={() => applySearch(suggestion)}
-                    className="rounded-full border border-ink/10 bg-white px-3 py-1.5 text-sm text-moss transition hover:bg-sky"
+                    className="rounded-md border border-ink/10 px-3 py-1.5 text-sm text-ink/68 transition hover:border-moss/25 hover:text-moss"
                   >
                     {suggestion}
                   </button>
@@ -537,10 +531,10 @@ export function LivePublishedEntries({
                     key={option.key}
                     type="button"
                     onClick={() => setActiveTopic(option.key)}
-                    className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
+                    className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
                       activeTopic === option.key
                         ? "bg-moss text-white"
-                        : "border border-ink/10 bg-[#f7f4ec] text-moss hover:bg-sky/65"
+                        : "border border-ink/10 text-ink/68 hover:border-moss/25 hover:text-moss"
                     }`}
                   >
                     {option.label} ({option.count})
@@ -554,7 +548,7 @@ export function LivePublishedEntries({
           <UpdateCard key={entry.id} {...entry} />
         ))}
         {filteredEntries.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card">
+          <div className="rounded-lg border border-dashed border-ink/15 bg-white p-5 text-sm leading-6 text-ink/64">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
@@ -562,7 +556,7 @@ export function LivePublishedEntries({
               : "No entries match that filter on this page of results."}
           </div>
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-white/75 bg-white px-5 py-4 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-ink/10 bg-white px-5 py-4">
           <p className="text-sm text-ink/70">
             {searchActive
               ? searchStatus === "loading"
@@ -575,7 +569,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
               >
                 Clear search
               </button>
@@ -585,7 +579,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
               >
                 Reset filters
               </button>
@@ -596,7 +590,7 @@ export function LivePublishedEntries({
                 onClick={() =>
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
-                className="rounded-full border border-ink/10 px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
               >
                 Load more records
               </button>
@@ -610,9 +604,9 @@ export function LivePublishedEntries({
   return (
     <div
       id="records"
-      className="scroll-mt-24 rounded-[2rem] border border-dashed border-ink/15 bg-white p-8 text-ink/70 shadow-card"
+      className="scroll-mt-24 rounded-lg border border-dashed border-ink/15 bg-white p-5 text-ink/64"
     >
-      <h3 className="font-serif text-2xl text-moss">
+      <h3 className="font-serif text-2xl text-ink">
         {status === "loading"
           ? "Loading published entries"
           : "No published entries yet"}

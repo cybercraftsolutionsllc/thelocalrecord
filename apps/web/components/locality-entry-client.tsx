@@ -137,34 +137,34 @@ export function LocalityEntryClient({ slug }: LocalityEntryClientProps) {
       <div className="mb-6">
         <Link
           href={`/${slug}`}
-          className="inline-flex rounded-full border border-moss/10 bg-white px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/50"
+          className="inline-flex rounded-md border border-moss/10 bg-white px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/50"
         >
           Back to digest
         </Link>
       </div>
 
       {!entryId ? (
-        <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+        <div className="rounded-lg border border-ink/10 bg-white p-8">
           This item link is incomplete. Go back to the digest and open the item
           again.
         </div>
       ) : null}
 
       {entryId && !contentApiBase ? (
-        <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+        <div className="rounded-lg border border-ink/10 bg-white p-8">
           The live digest API is not available from this build, so this item
           page cannot load yet.
         </div>
       ) : null}
 
       {entryId && contentApiBase && status === "loading" ? (
-        <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+        <div className="rounded-lg border border-ink/10 bg-white p-8">
           Loading digest item...
         </div>
       ) : null}
 
       {entryId && contentApiBase && status === "error" ? (
-        <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+        <div className="rounded-lg border border-ink/10 bg-white p-8">
           That item could not be loaded right now. Try again in a moment.
         </div>
       ) : null}
@@ -184,13 +184,11 @@ export function LocalityEntryClient({ slug }: LocalityEntryClientProps) {
           />
 
           {sourceText ? (
-            <section className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card sm:p-7">
+            <section className="rounded-lg border border-ink/10 bg-white p-6 sm:p-7">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
                 Source text
               </p>
-              <p className="mt-4 text-sm leading-8 text-ink/78">
-                {sourceText}
-              </p>
+              <p className="mt-4 text-sm leading-8 text-ink/78">{sourceText}</p>
             </section>
           ) : null}
         </div>

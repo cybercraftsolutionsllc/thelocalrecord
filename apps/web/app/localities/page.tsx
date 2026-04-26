@@ -9,7 +9,7 @@ export default function LocalitiesPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
-      <section className="rounded-[2rem] border border-white/75 bg-white px-7 py-8 shadow-card lg:px-8 lg:py-9">
+      <section className="rounded-lg border border-ink/10 bg-white px-7 py-8 lg:px-8 lg:py-9">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <div className="space-y-4">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -25,7 +25,7 @@ export default function LocalitiesPage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-clay/20 bg-[#fbf8f2] p-5 text-sm leading-7 text-ink/75">
+          <div className="rounded-lg border border-clay/20 bg-[#fbf8f2] p-5 text-sm leading-7 text-ink/75">
             This selector page is platform-wide. Each locality keeps its own
             public digest and source pages underneath its own slug.
           </div>
@@ -34,7 +34,7 @@ export default function LocalitiesPage() {
 
       <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div className="space-y-4">
-          <div className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card">
+          <div className="rounded-lg border border-ink/10 bg-white p-6">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
               Live localities
             </p>
@@ -50,11 +50,11 @@ export default function LocalitiesPage() {
           {localities.map((locality) => (
             <article
               key={locality.slug}
-              className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card"
+              className="rounded-lg border border-ink/10 bg-white p-6"
             >
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss">
+                  <span className="rounded-md bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss">
                     {locality.statusLabel}
                   </span>
                   <span className="text-sm text-ink/55">{locality.county}</span>
@@ -70,13 +70,13 @@ export default function LocalitiesPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
                   href={`/${locality.slug}`}
-                  className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+                  className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
                 >
                   Open digest
                 </Link>
                 <Link
                   href={`/${locality.slug}/source-inventory`}
-                  className="rounded-full border border-moss/15 bg-white px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                  className="rounded-md border border-moss/15 bg-white px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
                 >
                   View sources
                 </Link>

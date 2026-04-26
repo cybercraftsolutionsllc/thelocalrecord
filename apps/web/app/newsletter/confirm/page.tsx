@@ -7,7 +7,7 @@ export default function NewsletterConfirmPage() {
     <div className="mx-auto max-w-4xl px-6 py-12">
       <Suspense
         fallback={
-          <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+          <div className="rounded-lg border border-ink/10 bg-white p-8">
             Loading confirmation...
           </div>
         }

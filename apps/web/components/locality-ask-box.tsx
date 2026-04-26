@@ -28,7 +28,7 @@ type AskResponse =
 
 const askExamples = [
   {
-    label: "My property",
+    label: "Property",
     question: "What local records should I check for my property or street?"
   },
   {
@@ -94,15 +94,12 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
   return (
     <section
       id="ask"
-      className="relative scroll-mt-24 overflow-hidden rounded-[1.5rem] border border-white/75 bg-white p-6 shadow-card"
+      className="scroll-mt-24 rounded-lg border border-ink/10 bg-white p-5"
     >
-      <div className="relative space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-          Ask the local record
-        </p>
-        <p className="text-sm leading-7 text-ink/70">
-          Ask about a property clue, project, meeting, notice, ordinance, or
-          planning item and get a source-linked answer.
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-moss">Ask</p>
+        <p className="text-sm leading-6 text-ink/62">
+          Source-linked answers for specific local questions.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {askExamples.map((example) => (
@@ -111,15 +108,15 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
               type="button"
               onClick={() => askQuestion(example.question)}
               disabled={status === "loading"}
-              className="rounded-full border border-moss/10 bg-sand/35 px-3 py-2 text-xs font-semibold text-moss transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-ink/10 px-2.5 py-1.5 text-xs font-semibold text-ink/68 transition hover:border-moss/25 hover:text-moss disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Ask: {example.label}
+              {example.label}
             </button>
           ))}
         </div>
       </div>
 
-      <form className="relative mt-5 space-y-4" onSubmit={handleSubmit}>
+      <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
         <label className="block">
           <span className="sr-only">Question about this locality</span>
           <textarea
@@ -127,48 +124,43 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
             onChange={(event) => setQuestion(event.target.value)}
             rows={3}
             placeholder="What changed with Ashford Meadows?"
-            className="w-full rounded-[1.5rem] border border-ink/10 bg-sand/35 px-4 py-4 text-sm leading-7 text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+            className="w-full rounded-lg border border-ink/15 bg-white px-3 py-3 text-sm leading-6 text-ink outline-none transition focus:border-moss"
           />
         </label>
 
-        <div className="flex flex-col items-start gap-3">
+        <div className="flex flex-col gap-2">
           <button
             type="submit"
             disabled={status === "loading" || question.trim().length === 0}
-            className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-moss px-4 py-3 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "loading" ? "Thinking..." : "Ask"}
           </button>
-          <p className="text-xs leading-6 text-ink/55">
-            Source-grounded and AI-assisted. Best for specific questions.
-          </p>
         </div>
       </form>
 
       {status === "error" ? (
-        <div className="mt-5 rounded-[1.5rem] border border-clay/20 bg-[#fbf8f2] px-4 py-4 text-sm leading-7 text-ink/75">
+        <div className="mt-4 rounded-lg border border-clay/20 bg-white px-3 py-3 text-sm leading-6 text-clay">
           The locality answer service did not respond. Try again in a moment.
         </div>
       ) : null}
 
       {result ? (
-        <div className="relative mt-5 rounded-[1.75rem] border border-ink/10 bg-sand/50 p-5">
+        <div className="mt-4 rounded-lg border border-ink/10 bg-sand p-4">
           {result.mode === "clarify" ? (
             <div className="space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
+              <p className="text-sm font-semibold text-moss">
                 Clarifying question
               </p>
-              <p className="text-base leading-7 text-ink/80">
+              <p className="text-sm leading-6 text-ink/72">
                 {result.clarifyQuestion}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-                  Answer
-                </p>
-                <p className="mt-3 text-base leading-8 text-ink/85">
+                <p className="text-sm font-semibold text-moss">Answer</p>
+                <p className="mt-2 text-sm leading-7 text-ink/78">
                   {result.answer}
                 </p>
               </div>
@@ -182,7 +174,7 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
                       href={citation.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-moss/15 bg-white px-3 py-2 text-sm text-moss transition hover:bg-sky"
+                      className="rounded-md border border-ink/10 bg-white px-3 py-2 text-sm text-moss transition hover:bg-sky"
                       title={`${citation.sourceName}: ${citation.title}`}
                     >
                       {citation.label}
@@ -193,7 +185,7 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
             </div>
           )}
 
-          <p className="mt-4 text-xs leading-6 text-ink/55">
+          <p className="mt-4 text-xs leading-5 text-ink/50">
             {result.disclaimer}
           </p>
         </div>

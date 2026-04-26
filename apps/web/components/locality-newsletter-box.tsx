@@ -23,7 +23,9 @@ export function LocalityNewsletterBox({
 }: LocalityNewsletterBoxProps) {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -58,7 +60,9 @@ export function LocalityNewsletterBox({
 
         if (!response.ok) {
           if (payload.error === "newsletter_unavailable") {
-            throw new Error("The weekly digest is not configured yet. Try again after the next deploy.");
+            throw new Error(
+              "The weekly digest is not configured yet. Try again after the next deploy."
+            );
           }
 
           if (payload.error === "rate_limited") {
@@ -97,51 +101,48 @@ export function LocalityNewsletterBox({
   return (
     <section
       id="newsletter"
-      className="rounded-[2rem] border border-white/75 bg-white p-6 shadow-card"
+      className="rounded-lg border border-ink/10 bg-white p-5"
     >
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-        Weekly digest
-      </p>
-      <h2 className="mt-3 font-serif text-3xl leading-tight text-moss">
-        Get {municipalityName} in one weekly email
+      <p className="text-sm font-semibold text-moss">Weekly digest</p>
+      <h2 className="mt-2 font-serif text-2xl leading-tight text-ink">
+        {municipalityName} by email
       </h2>
-      <p className="mt-3 text-sm leading-7 text-ink/72">
-        Subscribe for a source-linked weekly roundup of the most notable local
-        meetings, alerts, planning items, and township news.
+      <p className="mt-2 text-sm leading-6 text-ink/62">
+        Source-linked weekly updates.
       </p>
 
-      <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+      <form className="mt-4 space-y-2" onSubmit={handleSubmit}>
         <input
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-[1.25rem] border border-ink/10 bg-sand/35 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-3 text-sm text-ink outline-none transition focus:border-moss"
         />
         <input
           type="text"
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           placeholder="First name (optional)"
-          className="w-full rounded-[1.25rem] border border-ink/10 bg-sand/35 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-3 text-sm text-ink outline-none transition focus:border-moss"
         />
         <button
           type="submit"
           disabled={status === "loading" || !email.trim()}
-          className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-moss px-4 py-3 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
         >
           {status === "loading" ? "Saving..." : "Subscribe"}
         </button>
       </form>
 
       {status === "success" ? (
-        <div className="mt-4 rounded-[1.5rem] border border-moss/10 bg-sand/35 px-4 py-4 text-sm leading-7 text-ink/78">
+        <div className="mt-3 rounded-lg border border-moss/15 bg-sky/35 px-3 py-3 text-sm leading-6 text-ink/72">
           {successMessage}
         </div>
       ) : null}
 
       {status === "error" ? (
-        <div className="mt-4 rounded-[1.5rem] border border-clay/20 bg-[#fbf8f2] px-4 py-4 text-sm leading-7 text-ink/75">
+        <div className="mt-3 rounded-lg border border-clay/20 bg-white px-3 py-3 text-sm leading-6 text-clay">
           {errorMessage}
         </div>
       ) : null}

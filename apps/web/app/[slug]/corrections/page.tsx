@@ -27,7 +27,7 @@ export default async function LocalityCorrectionsPage({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <div className="rounded-[2rem] bg-white p-8 shadow-card">
+      <div className="rounded-lg bg-white p-8">
         <div className="space-y-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             {data.municipality.shortName} corrections
@@ -70,13 +70,13 @@ export default async function LocalityCorrectionsPage({
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href={`/${slug}`}
-            className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
           >
             Return to digest
           </Link>
           <Link
             href="/corrections"
-            className="rounded-full border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
+            className="rounded-md border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
           >
             Platform-wide corrections policy
           </Link>

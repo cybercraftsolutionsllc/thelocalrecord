@@ -46,7 +46,7 @@ export default async function LocalitySourceInventoryPage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <div className="space-y-8 rounded-[2rem] bg-white p-8 shadow-card">
+      <div className="space-y-8 rounded-lg bg-white p-8">
         <div className="space-y-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             {data.municipality.shortName} source inventory
@@ -65,7 +65,7 @@ export default async function LocalitySourceInventoryPage({
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Active sources
             </p>
@@ -73,7 +73,7 @@ export default async function LocalitySourceInventoryPage({
               {activeSources.length}
             </p>
           </div>
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Planned sources
             </p>
@@ -81,7 +81,7 @@ export default async function LocalitySourceInventoryPage({
               {plannedSources.length}
             </p>
           </div>
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Coverage model
             </p>
@@ -91,7 +91,7 @@ export default async function LocalitySourceInventoryPage({
           </div>
         </div>
 
-        <section className="rounded-[1.5rem] border border-moss/10 bg-[#f9f7f0] p-5">
+        <section className="rounded-lg border border-moss/10 bg-[#f9f7f0] p-5">
           <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
@@ -110,7 +110,7 @@ export default async function LocalitySourceInventoryPage({
               {categoryCounts.map((category) => (
                 <div
                   key={category.label}
-                  className="rounded-[1rem] border border-ink/10 bg-white px-4 py-4"
+                  className="rounded-lg border border-ink/10 bg-white px-4 py-4"
                 >
                   <p className="font-semibold text-moss">{category.label}</p>
                   <p className="mt-2 text-sm leading-6 text-ink/62">
@@ -138,16 +138,16 @@ export default async function LocalitySourceInventoryPage({
               {activeSources.map((source) => (
                 <article
                   key={source.slug}
-                  className="rounded-[1.5rem] border border-ink/10 p-5"
+                  className="rounded-lg border border-ink/10 p-5"
                 >
                   <div className="flex flex-wrap items-center gap-3">
                     <h3 className="font-serif text-2xl text-moss">
                       {source.name}
                     </h3>
-                    <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
+                    <span className="rounded-md bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
                       {source.publicCategory}
                     </span>
-                    <span className="rounded-full bg-sand px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                    <span className="rounded-md bg-sand px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
                       Active
                     </span>
                   </div>
@@ -181,16 +181,16 @@ export default async function LocalitySourceInventoryPage({
                 {plannedSources.map((source) => (
                   <article
                     key={source.slug}
-                    className="rounded-[1.5rem] border border-ink/10 p-5"
+                    className="rounded-lg border border-ink/10 p-5"
                   >
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="font-serif text-2xl text-moss">
                         {source.name}
                       </h3>
-                      <span className="rounded-full bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
+                      <span className="rounded-md bg-sky px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-moss">
                         {source.publicCategory}
                       </span>
-                      <span className="rounded-full bg-sand px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                      <span className="rounded-md bg-sand px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-clay">
                         Planned
                       </span>
                     </div>

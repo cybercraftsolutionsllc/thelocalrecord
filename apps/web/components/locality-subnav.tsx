@@ -8,11 +8,11 @@ type LocalitySubnavProps = {
 
 const items = [
   { suffix: "", label: "Overview" },
-  { suffix: "#records", label: "Check an area" },
-  { suffix: "#ask", label: "Ask the record" },
-  { suffix: "#newsletter", label: "Watch updates" },
-  { suffix: "/source-inventory", label: "Trace sources" },
-  { suffix: "/corrections", label: "Fix a detail" }
+  { suffix: "#records", label: "Search" },
+  { suffix: "#newsletter", label: "Subscribe" },
+  { suffix: "#ask", label: "Ask" },
+  { suffix: "/source-inventory", label: "Sources" },
+  { suffix: "/corrections", label: "Fix" }
 ];
 
 export function LocalitySubnav({
@@ -22,11 +22,11 @@ export function LocalitySubnav({
 }: LocalitySubnavProps) {
   const itemClass =
     tone === "dark"
-      ? "rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/14"
-      : "rounded-full border border-moss/10 bg-sand/35 px-4 py-2 text-sm font-semibold text-moss transition hover:border-moss/30 hover:bg-sky/40";
+      ? "rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+      : "rounded-md border border-ink/10 bg-white px-3 py-2 text-sm font-semibold text-ink/68 transition hover:border-moss/25 hover:text-moss";
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-2">
       {items
         .filter((item) => item.suffix !== currentSuffix)
         .map((item) => (

@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <div className="rounded-[2rem] bg-white p-8 shadow-card">
+      <div className="rounded-lg bg-white p-8">
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             About the project
@@ -19,7 +19,7 @@ export default function AboutPage() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Independence
             </p>
@@ -28,16 +28,16 @@ export default function AboutPage() {
               any municipality.
             </p>
           </div>
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Source trail
             </p>
             <p className="mt-3 text-sm leading-7 text-ink/75">
-              Public entries point back to the original notice, agenda, post,
-              or document.
+              Public entries point back to the original notice, agenda, post, or
+              document.
             </p>
           </div>
-          <div className="rounded-[1.5rem] border border-moss/10 bg-sand/35 p-5">
+          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
               Locality-first
             </p>
@@ -66,7 +66,9 @@ export default function AboutPage() {
 
           <section className="space-y-4 text-base leading-8 text-ink/75">
             <h2 className="font-serif text-2xl text-moss">How it works</h2>
-            <p>Sources are registered per municipality and checked for changes.</p>
+            <p>
+              Sources are registered per municipality and checked for changes.
+            </p>
             <p>
               New or updated items are normalized into a standard format so they
               can be sorted, filtered, and published consistently.
@@ -81,13 +83,13 @@ export default function AboutPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/localities"
-            className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
           >
             Browse localities
           </Link>
           <Link
             href="/policy"
-            className="rounded-full border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
+            className="rounded-md border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
           >
             Read the policy
           </Link>

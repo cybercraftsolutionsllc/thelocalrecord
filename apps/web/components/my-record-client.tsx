@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction
+} from "react";
 import Link from "next/link";
 import {
   isSignInWithEmailLink,
@@ -434,565 +442,574 @@ export function MyRecordClient() {
 
   if (!authReady) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="rounded-[1rem] border border-ink/10 bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-            My Record
-          </p>
-          <h1 className="mt-2 font-serif text-4xl text-moss">
-            Loading sign-in...
-          </h1>
-        </div>
-      </div>
+      <PageWrap>
+        <Panel>
+          <p className="text-sm text-ink/60">Loading sign-in...</p>
+        </Panel>
+      </PageWrap>
     );
   }
 
   if (!canUsePrivateApi && !isDemo) {
     return (
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_0.82fr] lg:py-12">
-        <section className="rounded-[1rem] bg-[#183f47] p-6 text-white shadow-card sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#aee4ef]">
-            My Record
-          </p>
-          <h1 className="mt-3 font-serif text-5xl leading-tight">
-            A private resident console for places and watchlists.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-white/78">
-            Save your property, ZIP, street, or project. The Local Record checks
-            source-linked local records against what you care about and keeps
-            the official trail one tap away.
-          </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            {[
-              "Private saved places",
-              "Watchlist alerts",
-              "Source observed"
-            ].map((item) => (
-              <div
-                key={item}
-                className="border-t border-white/20 pt-3 text-sm text-white/80"
-              >
-                {item}
-              </div>
-            ))}
+      <PageWrap>
+        <section className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold text-moss">My Record</p>
+            <h1 className="mt-3 font-serif text-5xl leading-none text-ink sm:text-6xl">
+              Save your place. Watch what changes.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-ink/64">
+              Keep addresses private, track topics, and open official sources
+              when something matches.
+            </p>
           </div>
-        </section>
 
-        <section className="rounded-[1rem] border border-white/75 bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-            Sign in
-          </p>
-          {firebaseConfigured ? (
-            <div className="mt-5 space-y-4">
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">Email</span>
-                <input
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  type="email"
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                  placeholder="you@example.com"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  sendEmailLink().catch((sendError: unknown) => {
-                    setError(
-                      sendError instanceof Error
-                        ? sendError.message
-                        : "Could not send link."
-                    );
-                  });
-                }}
-                className="w-full rounded-[0.75rem] bg-moss px-4 py-3 text-sm font-bold text-white transition hover:bg-[#183f47]"
-              >
-                Email me a magic link
-              </button>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    signInWithProvider("google").catch(
-                      (providerError: unknown) => {
-                        setError(
-                          providerError instanceof Error
-                            ? providerError.message
-                            : "Google sign-in failed."
-                        );
-                      }
-                    );
-                  }}
-                  className="rounded-[0.75rem] border border-ink/10 bg-[#fcfaf4] px-4 py-3 text-sm font-semibold text-ink transition hover:border-moss/25 hover:bg-sky/40"
-                >
-                  Continue with Google
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    signInWithProvider("apple").catch(
-                      (providerError: unknown) => {
-                        setError(
-                          providerError instanceof Error
-                            ? providerError.message
-                            : "Apple sign-in failed."
-                        );
-                      }
-                    );
-                  }}
-                  className="rounded-[0.75rem] border border-ink/10 bg-[#fcfaf4] px-4 py-3 text-sm font-semibold text-ink transition hover:border-moss/25 hover:bg-sky/40"
-                >
-                  Continue with Apple
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-5 rounded-[0.9rem] border border-clay/20 bg-[#fff8ee] p-4 text-sm leading-7 text-ink/72">
-              Firebase public config is not set for this build. Production
-              sign-in stays disabled until the project adds the Firebase web
-              keys and Worker token verification settings.
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={startDemo}
-            className="mt-4 w-full rounded-[0.75rem] border border-moss/15 bg-sand/50 px-4 py-3 text-sm font-semibold text-moss transition hover:bg-sky/45"
-          >
-            Try local demo
-          </button>
-          {status ? <p className="mt-4 text-sm text-moss">{status}</p> : null}
-          {error ? <p className="mt-4 text-sm text-clay">{error}</p> : null}
+          <AuthPanel
+            email={email}
+            error={error}
+            firebaseConfigured={firebaseConfigured}
+            onEmailChange={setEmail}
+            onSendEmailLink={() => {
+              sendEmailLink().catch((sendError: unknown) => {
+                setError(
+                  sendError instanceof Error
+                    ? sendError.message
+                    : "Could not send link."
+                );
+              });
+            }}
+            onGoogle={() => {
+              signInWithProvider("google").catch((providerError: unknown) => {
+                setError(
+                  providerError instanceof Error
+                    ? providerError.message
+                    : "Google sign-in failed."
+                );
+              });
+            }}
+            onApple={() => {
+              signInWithProvider("apple").catch((providerError: unknown) => {
+                setError(
+                  providerError instanceof Error
+                    ? providerError.message
+                    : "Apple sign-in failed."
+                );
+              });
+            }}
+            onDemo={startDemo}
+            status={status}
+          />
         </section>
-      </div>
+      </PageWrap>
     );
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:py-10">
-      <section className="grid gap-5 rounded-[1rem] bg-[#183f47] p-5 text-white shadow-card sm:p-7 lg:grid-cols-[1fr_0.72fr]">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#aee4ef]">
-            My Record
-          </p>
-          <h1 className="mt-2 font-serif text-4xl leading-tight sm:text-5xl">
-            What affects me?
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-white/78">
-            Signed in as {profileEmail}. Saved places are private account data.
-            Alerts are source-observed watchlist matches, not official emergency
-            delivery.
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-          <Metric label="Saved places" value={savedPlaces.length} />
-          <Metric label="Watchlists" value={watchlists.length} />
-          <Metric
-            label="Near me"
-            value={nearby.length || suggestedQueries.length}
-          />
+    <PageWrap>
+      <section className="border-b border-ink/10 pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-moss">My Record</p>
+            <h1 className="mt-2 font-serif text-5xl leading-none text-ink">
+              What affects me?
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
+              Signed in as {profileEmail}. Saved places stay private.
+            </p>
+          </div>
+          <div className="flex gap-2 text-sm">
+            {!isDemo && user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const auth = getAuthClient();
+                  if (auth) {
+                    signOut(auth).catch(() => undefined);
+                  }
+                }}
+                className="rounded-md border border-ink/10 px-3 py-2 text-ink/68 transition hover:border-moss/25 hover:text-moss"
+              >
+                Sign out
+              </button>
+            ) : null}
+            {isDemo ? (
+              <button
+                type="button"
+                onClick={() => setDemoState(null)}
+                className="rounded-md border border-ink/10 px-3 py-2 text-ink/68 transition hover:border-moss/25 hover:text-moss"
+              >
+                Exit demo
+              </button>
+            ) : null}
+          </div>
         </div>
       </section>
 
       {error ? (
-        <div className="rounded-[0.85rem] border border-clay/20 bg-[#fff8ee] px-4 py-3 text-sm text-clay">
+        <div className="rounded-lg border border-clay/20 bg-white px-4 py-3 text-sm text-clay">
           {error}
         </div>
       ) : null}
 
-      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
         <div className="space-y-6">
-          <section className="rounded-[1rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-            <SectionHeading
-              eyebrow="Saved places"
-              title="Add your property, ZIP, or street"
-            />
-            <div className="mt-5 space-y-3">
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">Label</span>
-                <input
-                  value={placeForm.label}
-                  onChange={(event) =>
-                    setPlaceForm((current) => ({
-                      ...current,
-                      label: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">
-                  Address or ZIP
-                </span>
-                <input
-                  value={placeForm.rawAddress}
-                  onChange={(event) =>
-                    setPlaceForm((current) => ({
-                      ...current,
-                      rawAddress: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                  placeholder="120 Kreider Ave, 17601, Lititz Pike..."
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">
-                  Community
-                </span>
-                <select
-                  value={placeForm.municipalitySlug}
-                  onChange={(event) =>
-                    setPlaceForm((current) => ({
-                      ...current,
-                      municipalitySlug: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                >
-                  {residentCommunities.map((municipality) => (
-                    <option key={municipality.slug} value={municipality.slug}>
-                      {municipality.shortName}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="text-xs leading-6 text-ink/58">
-                Precise places stay in your account and can be deleted. The
-                first release stores the address text and community; geocoding
-                can be added behind the same private saved-place record.
-              </p>
+          <NearbyPanel
+            isDemo={isDemo}
+            nearby={nearby}
+            onRefresh={() => {
+              refreshNearMe().catch((nearError: unknown) => {
+                setError(
+                  nearError instanceof Error
+                    ? nearError.message
+                    : "Could not refresh nearby records."
+                );
+              });
+            }}
+            placeFormMunicipalitySlug={placeForm.municipalitySlug}
+            suggestedQueries={suggestedQueries}
+          />
+
+          <RecordList
+            title="Saved places"
+            empty="No saved places yet."
+            items={savedPlaces.map((place) => ({
+              id: place.id,
+              title: place.label,
+              body: `${place.raw_address} - ${municipalityLabel(place.municipality_slug)}`,
+              actionLabel: "Delete",
+              onAction: () => removePlace(place.id)
+            }))}
+          />
+
+          <RecordList
+            title="Watchlists"
+            empty="No watchlists yet."
+            items={watchlists.map((watchlist) => ({
+              id: watchlist.id,
+              title: watchlist.label,
+              body: `${watchlist.query} - ${watchlist.topic ?? "General"}`,
+              actionLabel: "Delete",
+              onAction: () => removeWatchlist(watchlist.id)
+            }))}
+          />
+        </div>
+
+        <aside className="space-y-4 lg:sticky lg:top-6">
+          <PlacePanel
+            placeForm={placeForm}
+            onPlaceFormChange={setPlaceForm}
+            onCreatePlace={() => {
+              handleCreatePlace().catch((placeError: unknown) => {
+                setError(
+                  placeError instanceof Error
+                    ? placeError.message
+                    : "Could not save place."
+                );
+              });
+            }}
+          />
+
+          <WatchPanel
+            savedPlaces={savedPlaces}
+            watchForm={watchForm}
+            onWatchFormChange={setWatchForm}
+            onCreateWatchlist={() => {
+              handleCreateWatchlist().catch((watchError: unknown) => {
+                setError(
+                  watchError instanceof Error
+                    ? watchError.message
+                    : "Could not save watchlist."
+                );
+              });
+            }}
+          />
+
+          <Panel>
+            <p className="text-sm font-semibold text-moss">Notifications</p>
+            <p className="mt-2 text-sm leading-6 text-ink/62">
+              Email alerts are{" "}
+              {snapshot?.preferences?.email_enabled === 0 ? "off" : "on"}.
+            </p>
+            {!isDemo ? (
               <button
                 type="button"
                 onClick={() => {
-                  handleCreatePlace().catch((placeError: unknown) => {
+                  toggleEmailPreference().catch((prefError: unknown) => {
                     setError(
-                      placeError instanceof Error
-                        ? placeError.message
-                        : "Could not save place."
+                      prefError instanceof Error
+                        ? prefError.message
+                        : "Could not update preferences."
                     );
                   });
                 }}
-                className="w-full rounded-[0.75rem] bg-moss px-4 py-3 text-sm font-bold text-white transition hover:bg-[#183f47]"
+                className="mt-4 w-full rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
               >
-                Save place
+                Toggle email alerts
               </button>
-            </div>
-          </section>
-
-          <section className="rounded-[1rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-            <SectionHeading
-              eyebrow="Notifications"
-              title="Quiet, watchlist-first alerts"
-            />
-            <div className="mt-5 space-y-3 text-sm leading-7 text-ink/72">
-              <p>
-                Email alerts are{" "}
-                {snapshot?.preferences?.email_enabled === 0 ? "off" : "on"}.
-                Push registration is ready for the mobile wrapper after
-                production sign-in and push tokens are stable.
-              </p>
-              {!isDemo ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    toggleEmailPreference().catch((prefError: unknown) => {
-                      setError(
-                        prefError instanceof Error
-                          ? prefError.message
-                          : "Could not update preferences."
-                      );
-                    });
-                  }}
-                  className="rounded-[0.75rem] border border-moss/15 bg-sand/45 px-4 py-3 text-sm font-semibold text-moss transition hover:bg-sky/45"
-                >
-                  Toggle email alerts
-                </button>
-              ) : null}
-            </div>
-          </section>
-        </div>
-
-        <div className="space-y-6">
-          <section className="rounded-[1rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-            <SectionHeading eyebrow="Watchlists" title="Track what matters" />
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">Label</span>
-                <input
-                  value={watchForm.label}
-                  onChange={(event) =>
-                    setWatchForm((current) => ({
-                      ...current,
-                      label: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">
-                  Saved place
-                </span>
-                <select
-                  value={watchForm.savedPlaceId}
-                  onChange={(event) =>
-                    setWatchForm((current) => ({
-                      ...current,
-                      savedPlaceId: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                >
-                  <option value="">No place attached</option>
-                  {savedPlaces.map((place) => (
-                    <option key={place.id} value={place.id}>
-                      {place.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block sm:col-span-2">
-                <span className="text-sm font-semibold text-ink/74">
-                  Topic, street, or project
-                </span>
-                <input
-                  value={watchForm.query}
-                  onChange={(event) =>
-                    setWatchForm((current) => ({
-                      ...current,
-                      query: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                  placeholder="Route 30, Ashford Meadows, zoning hearing..."
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">Lane</span>
-                <select
-                  value={watchForm.topic}
-                  onChange={(event) =>
-                    setWatchForm((current) => ({
-                      ...current,
-                      topic: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                >
-                  {starterWatchTopics.map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-ink/74">
-                  Notify for
-                </span>
-                <select
-                  value={watchForm.notificationLevel}
-                  onChange={(event) =>
-                    setWatchForm((current) => ({
-                      ...current,
-                      notificationLevel: event.target.value
-                    }))
-                  }
-                  className="mt-2 w-full rounded-[0.75rem] border border-ink/10 bg-sand/35 px-4 py-3 outline-none focus:border-moss/30 focus:bg-white"
-                >
-                  <option value="important">Important and above</option>
-                  <option value="critical_source">Critical source only</option>
-                  <option value="routine">Everything matching</option>
-                </select>
-              </label>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                handleCreateWatchlist().catch((watchError: unknown) => {
-                  setError(
-                    watchError instanceof Error
-                      ? watchError.message
-                      : "Could not save watchlist."
-                  );
-                });
-              }}
-              className="mt-4 w-full rounded-[0.75rem] bg-moss px-4 py-3 text-sm font-bold text-white transition hover:bg-[#183f47]"
-            >
-              Save watchlist
-            </button>
-          </section>
-
-          <section className="rounded-[1rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <SectionHeading
-                eyebrow="Latest near me"
-                title="Source-linked matches"
-              />
-              {!isDemo ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    refreshNearMe().catch((nearError: unknown) => {
-                      setError(
-                        nearError instanceof Error
-                          ? nearError.message
-                          : "Could not refresh nearby records."
-                      );
-                    });
-                  }}
-                  className="rounded-[0.75rem] border border-moss/15 bg-sand/45 px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-                >
-                  Refresh
-                </button>
-              ) : null}
-            </div>
-            <div className="mt-5 space-y-3">
-              {isDemo ? (
-                suggestedQueries.slice(0, 5).map((query) => (
-                  <Link
-                    key={query}
-                    href={`/${placeForm.municipalitySlug}?q=${encodeURIComponent(query)}#records`}
-                    className="block rounded-[0.85rem] border border-ink/10 bg-sand/35 p-4 transition hover:border-moss/20 hover:bg-sky/40"
-                  >
-                    <p className="text-sm font-semibold text-moss">{query}</p>
-                    <p className="mt-1 text-xs leading-5 text-ink/58">
-                      Open the public source search for this demo watch.
-                    </p>
-                  </Link>
-                ))
-              ) : nearby.length > 0 ? (
-                nearby.map((entry) => {
-                  const source = parseSourceLinks(entry.source_links_json)[0];
-
-                  return (
-                    <article
-                      key={entry.id}
-                      className="rounded-[0.85rem] border border-ink/10 bg-[#fcfaf4] p-4"
-                    >
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-sky px-2.5 py-1 text-xs font-semibold text-moss">
-                          {entry.match_reason}
-                        </span>
-                        <span className="rounded-full bg-sand px-2.5 py-1 text-xs font-semibold text-clay">
-                          {entry.impact_level.replace("_", " ")}
-                        </span>
-                      </div>
-                      <h3 className="mt-3 font-serif text-2xl leading-tight text-moss">
-                        {entry.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-7 text-ink/70">
-                        {entry.summary}
-                      </p>
-                      {source ? (
-                        <a
-                          href={source.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-3 inline-flex text-sm font-semibold text-moss"
-                        >
-                          Open official source
-                        </a>
-                      ) : null}
-                    </article>
-                  );
-                })
-              ) : (
-                <p className="rounded-[0.85rem] border border-dashed border-ink/15 bg-sand/25 p-4 text-sm leading-7 text-ink/62">
-                  Add a place or watchlist, then refresh. If nothing matches,
-                  the current source set has no published records for that
-                  query.
-                </p>
-              )}
-            </div>
-          </section>
-        </div>
+            ) : null}
+          </Panel>
+        </aside>
       </section>
+    </PageWrap>
+  );
+}
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <RecordList
-          title="Saved places"
-          empty="No saved places yet."
-          items={savedPlaces.map((place) => ({
-            id: place.id,
-            title: place.label,
-            body: `${place.raw_address} - ${municipalityLabel(place.municipality_slug)}`,
-            actionLabel: "Delete",
-            onAction: () => removePlace(place.id)
-          }))}
-        />
-        <RecordList
-          title="Watchlists"
-          empty="No watchlists yet."
-          items={watchlists.map((watchlist) => ({
-            id: watchlist.id,
-            title: watchlist.label,
-            body: `${watchlist.query} - ${watchlist.topic ?? "General"} - ${
-              watchlist.notification_level
-            }`,
-            actionLabel: "Delete",
-            onAction: () => removeWatchlist(watchlist.id)
-          }))}
-        />
-      </section>
+function PageWrap({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
+      {children}
+    </div>
+  );
+}
 
-      <div className="flex flex-wrap gap-3">
-        {!isDemo && user ? (
+function Panel({ children }: { children: ReactNode }) {
+  return (
+    <section className="rounded-lg border border-ink/10 bg-white p-5">
+      {children}
+    </section>
+  );
+}
+
+function AuthPanel({
+  email,
+  error,
+  firebaseConfigured,
+  onApple,
+  onDemo,
+  onEmailChange,
+  onGoogle,
+  onSendEmailLink,
+  status
+}: {
+  email: string;
+  error: string;
+  firebaseConfigured: boolean;
+  onApple: () => void;
+  onDemo: () => void;
+  onEmailChange: (value: string) => void;
+  onGoogle: () => void;
+  onSendEmailLink: () => void;
+  status: string;
+}) {
+  return (
+    <Panel>
+      <p className="text-sm font-semibold text-moss">Sign in</p>
+      {firebaseConfigured ? (
+        <div className="mt-4 space-y-3">
+          <input
+            value={email}
+            onChange={(event) => onEmailChange(event.target.value)}
+            type="email"
+            className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+            placeholder="you@example.com"
+          />
           <button
             type="button"
-            onClick={() => {
-              const auth = getAuthClient();
-              if (auth) {
-                signOut(auth).catch(() => undefined);
-              }
-            }}
-            className="rounded-[0.75rem] border border-ink/10 bg-[#fcfaf4] px-4 py-3 text-sm font-semibold text-ink/74 transition hover:bg-sky/40"
+            onClick={onSendEmailLink}
+            className="h-11 w-full rounded-lg bg-moss px-4 text-sm font-semibold text-white transition hover:bg-ink"
           >
-            Sign out
+            Email magic link
           </button>
-        ) : null}
-        {isDemo ? (
           <button
             type="button"
-            onClick={() => setDemoState(null)}
-            className="rounded-[0.75rem] border border-ink/10 bg-[#fcfaf4] px-4 py-3 text-sm font-semibold text-ink/74 transition hover:bg-sky/40"
+            onClick={onGoogle}
+            className="h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-ink/72 transition hover:border-moss/25 hover:text-moss"
           >
-            Exit demo
+            Continue with Google
+          </button>
+          <button
+            type="button"
+            onClick={onApple}
+            className="h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-ink/72 transition hover:border-moss/25 hover:text-moss"
+          >
+            Continue with Apple
+          </button>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-ink/62">
+          Firebase sign-in is not configured for this build.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onDemo}
+        className="mt-3 h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-moss transition hover:bg-sky/45"
+      >
+        Try demo
+      </button>
+      {status ? <p className="mt-3 text-sm text-moss">{status}</p> : null}
+      {error ? <p className="mt-3 text-sm text-clay">{error}</p> : null}
+    </Panel>
+  );
+}
+
+function PlacePanel({
+  placeForm,
+  onCreatePlace,
+  onPlaceFormChange
+}: {
+  placeForm: {
+    label: string;
+    rawAddress: string;
+    municipalitySlug: string;
+  };
+  onCreatePlace: () => void;
+  onPlaceFormChange: Dispatch<
+    SetStateAction<{
+      label: string;
+      rawAddress: string;
+      municipalitySlug: string;
+    }>
+  >;
+}) {
+  return (
+    <Panel>
+      <p className="text-sm font-semibold text-moss">Save a place</p>
+      <div className="mt-4 space-y-3">
+        <input
+          value={placeForm.label}
+          onChange={(event) =>
+            onPlaceFormChange((current) => ({
+              ...current,
+              label: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          placeholder="Label"
+        />
+        <input
+          value={placeForm.rawAddress}
+          onChange={(event) =>
+            onPlaceFormChange((current) => ({
+              ...current,
+              rawAddress: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          placeholder="Address, ZIP, street..."
+        />
+        <select
+          value={placeForm.municipalitySlug}
+          onChange={(event) =>
+            onPlaceFormChange((current) => ({
+              ...current,
+              municipalitySlug: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+        >
+          {residentCommunities.map((municipality) => (
+            <option key={municipality.slug} value={municipality.slug}>
+              {municipality.shortName}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={onCreatePlace}
+          className="h-11 w-full rounded-lg bg-moss px-4 text-sm font-semibold text-white transition hover:bg-ink"
+        >
+          Save place
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+function WatchPanel({
+  savedPlaces,
+  watchForm,
+  onCreateWatchlist,
+  onWatchFormChange
+}: {
+  savedPlaces: SavedPlace[];
+  watchForm: {
+    label: string;
+    query: string;
+    topic: string;
+    notificationLevel: string;
+    savedPlaceId: string;
+  };
+  onCreateWatchlist: () => void;
+  onWatchFormChange: Dispatch<
+    SetStateAction<{
+      label: string;
+      query: string;
+      topic: string;
+      notificationLevel: string;
+      savedPlaceId: string;
+    }>
+  >;
+}) {
+  return (
+    <Panel>
+      <p className="text-sm font-semibold text-moss">Create a watch</p>
+      <div className="mt-4 space-y-3">
+        <input
+          value={watchForm.label}
+          onChange={(event) =>
+            onWatchFormChange((current) => ({
+              ...current,
+              label: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          placeholder="Watch name"
+        />
+        <input
+          value={watchForm.query}
+          onChange={(event) =>
+            onWatchFormChange((current) => ({
+              ...current,
+              query: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          placeholder="Topic, street, project..."
+        />
+        <select
+          value={watchForm.savedPlaceId}
+          onChange={(event) =>
+            onWatchFormChange((current) => ({
+              ...current,
+              savedPlaceId: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+        >
+          <option value="">No saved place</option>
+          {savedPlaces.map((place) => (
+            <option key={place.id} value={place.id}>
+              {place.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={watchForm.topic}
+          onChange={(event) =>
+            onWatchFormChange((current) => ({
+              ...current,
+              topic: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+        >
+          {starterWatchTopics.map((topic) => (
+            <option key={topic} value={topic}>
+              {topic}
+            </option>
+          ))}
+        </select>
+        <select
+          value={watchForm.notificationLevel}
+          onChange={(event) =>
+            onWatchFormChange((current) => ({
+              ...current,
+              notificationLevel: event.target.value
+            }))
+          }
+          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+        >
+          <option value="important">Important and above</option>
+          <option value="critical_source">Critical only</option>
+          <option value="routine">Every match</option>
+        </select>
+        <button
+          type="button"
+          onClick={onCreateWatchlist}
+          className="h-11 w-full rounded-lg bg-moss px-4 text-sm font-semibold text-white transition hover:bg-ink"
+        >
+          Save watch
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+function NearbyPanel({
+  isDemo,
+  nearby,
+  onRefresh,
+  placeFormMunicipalitySlug,
+  suggestedQueries
+}: {
+  isDemo: boolean;
+  nearby: NearbyEntry[];
+  onRefresh: () => void;
+  placeFormMunicipalitySlug: string;
+  suggestedQueries: string[];
+}) {
+  return (
+    <Panel>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-moss">Latest near me</p>
+          <h2 className="mt-1 font-serif text-3xl text-ink">
+            Source-linked matches
+          </h2>
+        </div>
+        {!isDemo ? (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+          >
+            Refresh
           </button>
         ) : null}
       </div>
-    </div>
-  );
-}
 
-function SectionHeading({
-  eyebrow,
-  title
-}: {
-  eyebrow: string;
-  title: string;
-}) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 font-serif text-3xl leading-tight text-moss">
-        {title}
-      </h2>
-    </div>
-  );
-}
+      <div className="mt-5 space-y-3">
+        {isDemo ? (
+          suggestedQueries.slice(0, 5).map((query) => (
+            <Link
+              key={query}
+              href={`/${placeFormMunicipalitySlug}?q=${encodeURIComponent(query)}#records`}
+              className="block rounded-md border border-ink/10 px-4 py-3 text-sm transition hover:border-moss/25"
+            >
+              <span className="font-semibold text-ink">{query}</span>
+              <span className="mt-1 block text-ink/54">Open public search</span>
+            </Link>
+          ))
+        ) : nearby.length > 0 ? (
+          nearby.map((entry) => {
+            const source = parseSourceLinks(entry.source_links_json)[0];
 
-function Metric({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-[0.85rem] border border-white/12 bg-white/10 px-4 py-3">
-      <p className="font-serif text-3xl leading-none text-sand">{value}</p>
-      <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-sky">
-        {label}
-      </p>
-    </div>
+            return (
+              <article
+                key={entry.id}
+                className="rounded-md border border-ink/10 px-4 py-3"
+              >
+                <p className="text-xs font-semibold text-moss">
+                  {entry.match_reason} - {entry.impact_level.replace("_", " ")}
+                </p>
+                <h3 className="mt-2 font-serif text-2xl leading-tight text-ink">
+                  {entry.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-ink/68">
+                  {entry.summary}
+                </p>
+                {source ? (
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
+                  >
+                    Open source
+                  </a>
+                ) : null}
+              </article>
+            );
+          })
+        ) : (
+          <p className="rounded-md border border-dashed border-ink/15 px-4 py-3 text-sm leading-6 text-ink/60">
+            Add a place or watchlist, then refresh.
+          </p>
+        )}
+      </div>
+    </Panel>
   );
 }
 
@@ -1012,20 +1029,20 @@ function RecordList({
   }>;
 }) {
   return (
-    <section className="rounded-[1rem] border border-white/75 bg-white p-5 shadow-card sm:p-6">
-      <h2 className="font-serif text-3xl leading-tight text-moss">{title}</h2>
-      <div className="mt-4 space-y-3">
+    <Panel>
+      <h2 className="font-serif text-3xl text-ink">{title}</h2>
+      <div className="mt-4 divide-y divide-ink/8">
         {items.length === 0 ? (
-          <p className="text-sm text-ink/60">{empty}</p>
+          <p className="text-sm text-ink/58">{empty}</p>
         ) : (
           items.map((item) => (
             <div
               key={item.id}
-              className="flex flex-col gap-3 rounded-[0.85rem] border border-ink/10 bg-sand/30 p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <p className="font-semibold text-moss">{item.title}</p>
-                <p className="mt-1 text-sm leading-6 text-ink/62">
+                <p className="font-semibold text-ink">{item.title}</p>
+                <p className="mt-1 text-sm leading-6 text-ink/58">
                   {item.body}
                 </p>
               </div>
@@ -1034,7 +1051,7 @@ function RecordList({
                 onClick={() => {
                   Promise.resolve(item.onAction()).catch(() => undefined);
                 }}
-                className="rounded-[0.7rem] border border-ink/10 bg-white px-3 py-2 text-sm font-semibold text-clay transition hover:bg-[#fff8ee]"
+                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sand"
               >
                 {item.actionLabel}
               </button>
@@ -1042,7 +1059,7 @@ function RecordList({
           ))
         )}
       </div>
-    </section>
+    </Panel>
   );
 }
 

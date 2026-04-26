@@ -1,7 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  content: [
+    "./app/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}"
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -11,12 +15,12 @@ const config: Config = {
       colors: {
         ink: "#1f2a2a",
         moss: "#20403a",
-        sand: "#f3efe4",
-        clay: "#b45d3d",
-        sky: "#d8e9ef"
+        sand: "#f7f7f4",
+        clay: "#9f5539",
+        sky: "#dfecef"
       },
       boxShadow: {
-        card: "0 20px 60px rgba(25, 44, 43, 0.08)"
+        card: "0 12px 32px rgba(25, 44, 43, 0.06)"
       }
     }
   },

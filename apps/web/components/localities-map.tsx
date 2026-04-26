@@ -25,7 +25,7 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
   const locality = LOCALITY_AREAS[activeSlug];
 
   return (
-    <div className="rounded-[2rem] bg-moss px-6 py-6 text-white shadow-card">
+    <div className="rounded-lg bg-moss px-6 py-6 text-white">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky">
@@ -39,12 +39,12 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
             The highlighted area marks the current launch locality.
           </p>
         </div>
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky">
+        <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky">
           Static boundary preview
         </span>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-[1.5rem] bg-white/10 p-4">
+      <div className="mt-6 overflow-hidden rounded-lg bg-white/10 p-4">
         <svg
           viewBox="0 0 520 300"
           role="img"

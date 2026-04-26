@@ -19,9 +19,13 @@ type ManagePayload = {
 export function NewsletterManageClient() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  );
   const [saving, setSaving] = useState(false);
-  const [subscription, setSubscription] = useState<ManagePayload["subscription"] | null>(null);
+  const [subscription, setSubscription] = useState<
+    ManagePayload["subscription"] | null
+  >(null);
   const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
@@ -62,7 +66,9 @@ export function NewsletterManageClient() {
     };
   }, [token]);
 
-  async function updateSubscription(action: "save" | "unsubscribe" | "resubscribe") {
+  async function updateSubscription(
+    action: "save" | "unsubscribe" | "resubscribe"
+  ) {
     if (!token || !contentApiBase) {
       return;
     }
@@ -101,7 +107,7 @@ export function NewsletterManageClient() {
 
   if (status === "loading") {
     return (
-      <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+      <div className="rounded-lg border border-ink/10 bg-white p-8">
         Loading subscription settings...
       </div>
     );
@@ -109,8 +115,10 @@ export function NewsletterManageClient() {
 
   if (status === "error" || !subscription) {
     return (
-      <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
-        <h1 className="font-serif text-3xl text-moss">Subscription link not found</h1>
+      <div className="rounded-lg border border-ink/10 bg-white p-8">
+        <h1 className="font-serif text-3xl text-moss">
+          Subscription link not found
+        </h1>
         <p className="mt-3 max-w-2xl text-base leading-8 text-ink/75">
           This newsletter management link is missing or invalid. Try subscribing
           again from the locality page.
@@ -120,7 +128,7 @@ export function NewsletterManageClient() {
   }
 
   return (
-    <div className="rounded-[2rem] border border-white/75 bg-white p-8 shadow-card">
+    <div className="rounded-lg border border-ink/10 bg-white p-8">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
         Newsletter settings
       </p>
@@ -141,20 +149,20 @@ export function NewsletterManageClient() {
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
             placeholder="Optional"
-            className="w-full rounded-[1.25rem] border border-ink/10 bg-sand/35 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
+            className="w-full rounded-lg border border-ink/10 bg-sand/35 px-4 py-3 text-sm text-ink outline-none transition focus:border-moss/30 focus:bg-white"
           />
         </label>
         <button
           type="button"
           onClick={() => void updateSubscription("save")}
           disabled={saving}
-          className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
+          className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
         >
           Save
         </button>
       </div>
 
-      <div className="mt-6 rounded-[1.5rem] border border-moss/10 bg-sand/30 p-5 text-sm leading-7 text-ink/75">
+      <div className="mt-6 rounded-lg border border-moss/10 bg-sand/30 p-5 text-sm leading-7 text-ink/75">
         Status:{" "}
         <span className="font-semibold text-moss">
           {subscription.status === "active" ? "Subscribed" : "Unsubscribed"}
@@ -169,7 +177,7 @@ export function NewsletterManageClient() {
             type="button"
             onClick={() => void updateSubscription("unsubscribe")}
             disabled={saving}
-            className="rounded-full border border-clay/30 bg-white px-5 py-3 text-sm font-semibold text-clay transition hover:bg-[#fbf8f2] disabled:opacity-50"
+            className="rounded-md border border-clay/30 bg-white px-5 py-3 text-sm font-semibold text-clay transition hover:bg-[#fbf8f2] disabled:opacity-50"
           >
             Unsubscribe
           </button>
@@ -178,7 +186,7 @@ export function NewsletterManageClient() {
             type="button"
             onClick={() => void updateSubscription("resubscribe")}
             disabled={saving}
-            className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
+            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
           >
             Resubscribe
           </button>
