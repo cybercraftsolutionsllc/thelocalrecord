@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RecordVisual } from "../components/record-visual";
 import { getHomepageData } from "../lib/data";
 
 export default function HomePage() {
@@ -56,6 +57,11 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      <RecordVisual
+        label="Place-first record"
+        caption="A quieter map for roads, meetings, projects, parks, and official source dates."
+      />
 
       <section className="rounded-lg border border-ink/10 bg-white p-5">
         <p className="text-sm font-semibold text-moss">First coverage area</p>

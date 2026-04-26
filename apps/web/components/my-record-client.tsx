@@ -36,6 +36,8 @@ import {
   type Watchlist
 } from "../lib/resident-api";
 
+import { RecordVisual } from "./record-visual";
+
 type ApiSnapshotResponse = {
   ok: boolean;
   resident: ResidentSnapshot;
@@ -464,6 +466,11 @@ export function MyRecordClient() {
           </p>
         </section>
 
+        <RecordVisual
+          label="Private resident view"
+          caption="Save a place, watch what changes, and return to the official source before you act."
+        />
+
         <AuthPanel
           email={email}
           error={error}
@@ -543,6 +550,11 @@ export function MyRecordClient() {
           </div>
         </div>
       </section>
+
+      <RecordVisual
+        label="My local watch"
+        caption="One quiet lane for saved places, watches, nearby matches, and source trails."
+      />
 
       {error ? (
         <div className="rounded-lg border border-clay/20 bg-white px-4 py-3 text-sm text-clay">

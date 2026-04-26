@@ -31,15 +31,21 @@ export function SiteShell({ children }: SiteShellProps) {
   );
 
   return (
-    <div className="min-h-screen bg-sand text-ink">
-      <header className="border-b border-ink/10 bg-white">
+    <div className="record-shell min-h-screen text-ink">
+      <header className="record-glass border-b border-white/70">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4 sm:px-6">
-          <Link href="/" className="inline-flex items-baseline gap-2">
-            <span className="font-serif text-2xl leading-none text-moss">
-              The Local Record
-            </span>
-            <span className="hidden text-sm text-ink/50 sm:inline">
-              resident utility
+          <Link href="/" className="inline-flex items-center gap-3">
+            <img
+              src="/icon.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-9 w-9 rounded-lg shadow-card"
+            />
+            <span className="flex flex-col">
+              <span className="font-serif text-2xl leading-none text-moss">
+                The Local Record
+              </span>
+              <span className="text-sm text-ink/50">resident utility</span>
             </span>
           </Link>
 
@@ -59,7 +65,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
       <main>{children}</main>
 
-      <footer className="border-t border-ink/10 bg-white">
+      <footer className="record-glass border-t border-white/70">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>

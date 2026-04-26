@@ -5,6 +5,7 @@ import { LocalityAskBox } from "../../components/locality-ask-box";
 import { LocalityNewsletterBox } from "../../components/locality-newsletter-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
+import { RecordVisual } from "../../components/record-visual";
 import { getLocalityData } from "../../lib/data";
 import { municipalities } from "@thelocalrecord/core";
 
@@ -58,6 +59,12 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           <LocalitySubnav slug={slug} currentSuffix="" />
         </div>
       </section>
+
+      <RecordVisual
+        variant="town"
+        label={data.municipality.shortName}
+        caption="Local updates should feel like checking the weather: quick, clear, and source-linked."
+      />
 
       <section className="min-w-0">
         <LivePublishedEntries slug={slug} initialEntries={data.entries} />
