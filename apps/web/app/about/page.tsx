@@ -1,56 +1,42 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      <div className="rounded-lg bg-white p-8">
-        <div className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-            About the project
-          </p>
-          <h1 className="font-serif text-4xl text-moss">
-            Why The Local Record exists
-          </h1>
-          <p className="max-w-3xl text-base leading-8 text-ink/75">
-            The Local Record is an independent digest for people who want an
-            easier way to follow local government activity without wading
-            through scattered pages, notices, and attachments.
-          </p>
-        </div>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
+      <section className="border-b border-ink/10 pb-8">
+        <p className="text-sm font-semibold text-moss">About the project</p>
+        <h1 className="mt-3 font-serif text-4xl text-ink">
+          Why The Local Record exists
+        </h1>
+        <p className="mt-4 max-w-3xl text-base leading-8 text-ink/70">
+          The Local Record is an independent digest for people who want an
+          easier way to follow local government activity without wading through
+          scattered pages, notices, and attachments.
+        </p>
+      </section>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
-              Independence
-            </p>
-            <p className="mt-3 text-sm leading-7 text-ink/75">
-              This is not an official government website and does not speak for
-              any municipality.
-            </p>
-          </div>
-          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
-              Source trail
-            </p>
-            <p className="mt-3 text-sm leading-7 text-ink/75">
-              Public entries point back to the original notice, agenda, post, or
-              document.
-            </p>
-          </div>
-          <div className="rounded-lg border border-moss/10 bg-sand/35 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay">
-              Locality-first
-            </p>
-            <p className="mt-3 text-sm leading-7 text-ink/75">
-              Each locality keeps its own digest, source inventory, and
-              correction trail.
-            </p>
-          </div>
+      <section className="rounded-lg border border-ink/10 bg-white p-5">
+        <div className="divide-y divide-ink/8">
+          <Principle title="Independence">
+            This is not an official government website and does not speak for
+            any municipality.
+          </Principle>
+          <Principle title="Source trail">
+            Public entries point back to the original notice, agenda, post, or
+            document.
+          </Principle>
+          <Principle title="Locality-first">
+            Each locality keeps its own digest, source inventory, and correction
+            trail.
+          </Principle>
         </div>
+      </section>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
-          <section className="space-y-4 text-base leading-8 text-ink/75">
-            <h2 className="font-serif text-2xl text-moss">What it does</h2>
+      <section className="rounded-lg border border-ink/10 bg-white p-5">
+        <div className="space-y-7 text-base leading-8 text-ink/70">
+          <section className="space-y-3">
+            <h2 className="font-serif text-2xl text-ink">What it does</h2>
             <p>
               Tracks selected public municipal sources per locality instead of
               trying to mirror an official site.
@@ -64,8 +50,8 @@ export default function AboutPage() {
             </p>
           </section>
 
-          <section className="space-y-4 text-base leading-8 text-ink/75">
-            <h2 className="font-serif text-2xl text-moss">How it works</h2>
+          <section className="space-y-3 border-t border-ink/8 pt-7">
+            <h2 className="font-serif text-2xl text-ink">How it works</h2>
             <p>
               Sources are registered per municipality and checked for changes.
             </p>
@@ -79,22 +65,37 @@ export default function AboutPage() {
             </p>
           </section>
         </div>
+      </section>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/localities"
-            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
-          >
-            Browse localities
-          </Link>
-          <Link
-            href="/policy"
-            className="rounded-md border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
-          >
-            Read the policy
-          </Link>
-        </div>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/localities"
+          className="rounded-md bg-moss px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-moss/90"
+        >
+          Browse localities
+        </Link>
+        <Link
+          href="/policy"
+          className="rounded-md border border-moss/15 px-5 py-3 text-center text-sm font-semibold text-moss transition hover:bg-sky/40"
+        >
+          Read the policy
+        </Link>
       </div>
+    </div>
+  );
+}
+
+function Principle({
+  children,
+  title
+}: {
+  children: ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="py-4 first:pt-0 last:pb-0">
+      <p className="text-sm font-semibold text-moss">{title}</p>
+      <p className="mt-2 text-sm leading-7 text-ink/70">{children}</p>
     </div>
   );
 }

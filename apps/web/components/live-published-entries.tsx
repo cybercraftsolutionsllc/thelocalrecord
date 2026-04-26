@@ -440,18 +440,16 @@ export function LivePublishedEntries({
           className="scroll-mt-24 rounded-lg border border-ink/10 bg-white p-5"
         >
           <div className="space-y-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-moss">Results</p>
-                <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
-                  Local records
-                </h2>
-              </div>
+            <div>
+              <p className="text-sm font-semibold text-moss">Results</p>
+              <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
+                Local records
+              </h2>
             </div>
 
             <div className="space-y-4 border-t border-ink/8 pt-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <label className="block flex-1">
+              <div className="space-y-4">
+                <label className="block">
                   <span className="sr-only">Search updates</span>
                   <input
                     type="search"
@@ -463,7 +461,7 @@ export function LivePublishedEntries({
                 </label>
 
                 {searchActive ? (
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <span className="rounded-md border border-clay/20 px-3 py-2 text-sm font-semibold text-clay">
                       Checking live records
                     </span>
@@ -476,11 +474,11 @@ export function LivePublishedEntries({
                     </button>
                   </div>
                 ) : (
-                  <div className="inline-flex rounded-lg border border-ink/10 bg-sand p-1">
+                  <div className="flex rounded-lg border border-ink/10 bg-sand p-1">
                     <button
                       type="button"
                       onClick={() => setFeedView("events_of_note")}
-                      className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
                         feedView === "events_of_note"
                           ? "bg-white text-moss shadow-sm"
                           : "text-ink/58 hover:text-moss"
@@ -491,7 +489,7 @@ export function LivePublishedEntries({
                     <button
                       type="button"
                       onClick={() => setFeedView("all_records")}
-                      className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
                         feedView === "all_records"
                           ? "bg-white text-moss shadow-sm"
                           : "text-ink/58 hover:text-moss"
@@ -556,7 +554,7 @@ export function LivePublishedEntries({
               : "No entries match that filter on this page of results."}
           </div>
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-ink/10 bg-white px-5 py-4">
+        <div className="flex flex-col gap-4 rounded-lg border border-ink/10 bg-white px-5 py-4">
           <p className="text-sm text-ink/70">
             {searchActive
               ? searchStatus === "loading"
@@ -564,7 +562,7 @@ export function LivePublishedEntries({
                 : "Search ran across the full live locality record, not just loaded cards."
               : `Page ${Math.min(page, totalPages)} of ${totalPages}`}
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             {searchActive ? (
               <button
                 type="button"

@@ -87,10 +87,7 @@ export function CommunityBriefing({
 
   return (
     <section className="rounded-lg border border-ink/10 bg-white p-5">
-      <form
-        className="grid gap-3 sm:grid-cols-[1fr_auto]"
-        onSubmit={submitLookup}
-      >
+      <form className="space-y-3" onSubmit={submitLookup}>
         <label className="block">
           <span className="sr-only">Search local records</span>
           <input
@@ -104,7 +101,7 @@ export function CommunityBriefing({
         <button
           type="submit"
           disabled={draftQuery.trim().length < 3}
-          className="h-12 rounded-lg bg-moss px-5 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-12 w-full rounded-lg bg-moss px-5 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           Search
         </button>
@@ -132,7 +129,7 @@ export function CommunityBriefing({
         ) : null}
       </div>
 
-      <div className="mt-5 grid gap-4 border-t border-ink/8 pt-5 sm:grid-cols-3">
+      <div className="mt-5 divide-y divide-ink/8 border-t border-ink/8 pt-2">
         <Metric
           label={searchActive ? `Matches for "${query}"` : "Records"}
           value={status === "loading" ? "..." : total || entries.length}
@@ -164,9 +161,11 @@ export function CommunityBriefing({
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div>
-      <p className="font-serif text-2xl leading-none text-ink">{value}</p>
-      <p className="mt-1 text-xs font-semibold text-ink/50">{label}</p>
+    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+      <p className="text-xs font-semibold text-ink/50">{label}</p>
+      <p className="text-right font-serif text-2xl leading-none text-ink">
+        {value}
+      </p>
     </div>
   );
 }

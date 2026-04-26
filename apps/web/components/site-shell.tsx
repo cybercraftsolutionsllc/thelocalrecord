@@ -33,7 +33,7 @@ export function SiteShell({ children }: SiteShellProps) {
   return (
     <div className="min-h-screen bg-sand text-ink">
       <header className="border-b border-ink/10 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="inline-flex items-baseline gap-2">
             <span className="font-serif text-2xl leading-none text-moss">
               The Local Record
@@ -43,7 +43,7 @@ export function SiteShell({ children }: SiteShellProps) {
             </span>
           </Link>
 
-          <nav className="flex gap-1 overflow-x-auto text-sm md:justify-end">
+          <nav className="flex gap-1 overflow-x-auto text-sm">
             {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
@@ -60,7 +60,7 @@ export function SiteShell({ children }: SiteShellProps) {
       <main>{children}</main>
 
       <footer className="border-t border-ink/10 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>
             <p className="max-w-2xl leading-6 text-ink/58">

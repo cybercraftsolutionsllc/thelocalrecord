@@ -453,54 +453,52 @@ export function MyRecordClient() {
   if (!canUsePrivateApi && !isDemo) {
     return (
       <PageWrap>
-        <section className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold text-moss">My Record</p>
-            <h1 className="mt-3 font-serif text-5xl leading-none text-ink sm:text-6xl">
-              Save your place. Watch what changes.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-ink/64">
-              Keep addresses private, track topics, and open official sources
-              when something matches.
-            </p>
-          </div>
-
-          <AuthPanel
-            email={email}
-            error={error}
-            firebaseConfigured={firebaseConfigured}
-            onEmailChange={setEmail}
-            onSendEmailLink={() => {
-              sendEmailLink().catch((sendError: unknown) => {
-                setError(
-                  sendError instanceof Error
-                    ? sendError.message
-                    : "Could not send link."
-                );
-              });
-            }}
-            onGoogle={() => {
-              signInWithProvider("google").catch((providerError: unknown) => {
-                setError(
-                  providerError instanceof Error
-                    ? providerError.message
-                    : "Google sign-in failed."
-                );
-              });
-            }}
-            onApple={() => {
-              signInWithProvider("apple").catch((providerError: unknown) => {
-                setError(
-                  providerError instanceof Error
-                    ? providerError.message
-                    : "Apple sign-in failed."
-                );
-              });
-            }}
-            onDemo={startDemo}
-            status={status}
-          />
+        <section className="border-b border-ink/10 pb-8">
+          <p className="text-sm font-semibold text-moss">My Record</p>
+          <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-ink sm:text-6xl">
+            Save your place. Watch what changes.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-ink/64">
+            Keep addresses private, track topics, and open official sources when
+            something matches.
+          </p>
         </section>
+
+        <AuthPanel
+          email={email}
+          error={error}
+          firebaseConfigured={firebaseConfigured}
+          onEmailChange={setEmail}
+          onSendEmailLink={() => {
+            sendEmailLink().catch((sendError: unknown) => {
+              setError(
+                sendError instanceof Error
+                  ? sendError.message
+                  : "Could not send link."
+              );
+            });
+          }}
+          onGoogle={() => {
+            signInWithProvider("google").catch((providerError: unknown) => {
+              setError(
+                providerError instanceof Error
+                  ? providerError.message
+                  : "Google sign-in failed."
+              );
+            });
+          }}
+          onApple={() => {
+            signInWithProvider("apple").catch((providerError: unknown) => {
+              setError(
+                providerError instanceof Error
+                  ? providerError.message
+                  : "Apple sign-in failed."
+              );
+            });
+          }}
+          onDemo={startDemo}
+          status={status}
+        />
       </PageWrap>
     );
   }
@@ -552,112 +550,106 @@ export function MyRecordClient() {
         </div>
       ) : null}
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
-        <div className="space-y-6">
-          <NearbyPanel
-            isDemo={isDemo}
-            nearby={nearby}
-            onRefresh={() => {
-              refreshNearMe().catch((nearError: unknown) => {
+      <PlacePanel
+        placeForm={placeForm}
+        onPlaceFormChange={setPlaceForm}
+        onCreatePlace={() => {
+          handleCreatePlace().catch((placeError: unknown) => {
+            setError(
+              placeError instanceof Error
+                ? placeError.message
+                : "Could not save place."
+            );
+          });
+        }}
+      />
+
+      <WatchPanel
+        savedPlaces={savedPlaces}
+        watchForm={watchForm}
+        onWatchFormChange={setWatchForm}
+        onCreateWatchlist={() => {
+          handleCreateWatchlist().catch((watchError: unknown) => {
+            setError(
+              watchError instanceof Error
+                ? watchError.message
+                : "Could not save watchlist."
+            );
+          });
+        }}
+      />
+
+      <NearbyPanel
+        isDemo={isDemo}
+        nearby={nearby}
+        onRefresh={() => {
+          refreshNearMe().catch((nearError: unknown) => {
+            setError(
+              nearError instanceof Error
+                ? nearError.message
+                : "Could not refresh nearby records."
+            );
+          });
+        }}
+        placeFormMunicipalitySlug={placeForm.municipalitySlug}
+        suggestedQueries={suggestedQueries}
+      />
+
+      <Panel>
+        <p className="text-sm font-semibold text-moss">Notifications</p>
+        <p className="mt-2 text-sm leading-6 text-ink/62">
+          Email alerts are{" "}
+          {snapshot?.preferences?.email_enabled === 0 ? "off" : "on"}.
+        </p>
+        {!isDemo ? (
+          <button
+            type="button"
+            onClick={() => {
+              toggleEmailPreference().catch((prefError: unknown) => {
                 setError(
-                  nearError instanceof Error
-                    ? nearError.message
-                    : "Could not refresh nearby records."
+                  prefError instanceof Error
+                    ? prefError.message
+                    : "Could not update preferences."
                 );
               });
             }}
-            placeFormMunicipalitySlug={placeForm.municipalitySlug}
-            suggestedQueries={suggestedQueries}
-          />
+            className="mt-4 w-full rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45 sm:w-auto"
+          >
+            Toggle email alerts
+          </button>
+        ) : null}
+      </Panel>
 
-          <RecordList
-            title="Saved places"
-            empty="No saved places yet."
-            items={savedPlaces.map((place) => ({
-              id: place.id,
-              title: place.label,
-              body: `${place.raw_address} - ${municipalityLabel(place.municipality_slug)}`,
-              actionLabel: "Delete",
-              onAction: () => removePlace(place.id)
-            }))}
-          />
+      <RecordList
+        title="Saved places"
+        empty="No saved places yet."
+        items={savedPlaces.map((place) => ({
+          id: place.id,
+          title: place.label,
+          body: `${place.raw_address} - ${municipalityLabel(place.municipality_slug)}`,
+          actionLabel: "Delete",
+          onAction: () => removePlace(place.id)
+        }))}
+      />
 
-          <RecordList
-            title="Watchlists"
-            empty="No watchlists yet."
-            items={watchlists.map((watchlist) => ({
-              id: watchlist.id,
-              title: watchlist.label,
-              body: `${watchlist.query} - ${watchlist.topic ?? "General"}`,
-              actionLabel: "Delete",
-              onAction: () => removeWatchlist(watchlist.id)
-            }))}
-          />
-        </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-6">
-          <PlacePanel
-            placeForm={placeForm}
-            onPlaceFormChange={setPlaceForm}
-            onCreatePlace={() => {
-              handleCreatePlace().catch((placeError: unknown) => {
-                setError(
-                  placeError instanceof Error
-                    ? placeError.message
-                    : "Could not save place."
-                );
-              });
-            }}
-          />
-
-          <WatchPanel
-            savedPlaces={savedPlaces}
-            watchForm={watchForm}
-            onWatchFormChange={setWatchForm}
-            onCreateWatchlist={() => {
-              handleCreateWatchlist().catch((watchError: unknown) => {
-                setError(
-                  watchError instanceof Error
-                    ? watchError.message
-                    : "Could not save watchlist."
-                );
-              });
-            }}
-          />
-
-          <Panel>
-            <p className="text-sm font-semibold text-moss">Notifications</p>
-            <p className="mt-2 text-sm leading-6 text-ink/62">
-              Email alerts are{" "}
-              {snapshot?.preferences?.email_enabled === 0 ? "off" : "on"}.
-            </p>
-            {!isDemo ? (
-              <button
-                type="button"
-                onClick={() => {
-                  toggleEmailPreference().catch((prefError: unknown) => {
-                    setError(
-                      prefError instanceof Error
-                        ? prefError.message
-                        : "Could not update preferences."
-                    );
-                  });
-                }}
-                className="mt-4 w-full rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-              >
-                Toggle email alerts
-              </button>
-            ) : null}
-          </Panel>
-        </aside>
-      </section>
+      <RecordList
+        title="Watchlists"
+        empty="No watchlists yet."
+        items={watchlists.map((watchlist) => ({
+          id: watchlist.id,
+          title: watchlist.label,
+          body: `${watchlist.query} - ${watchlist.topic ?? "General"}`,
+          actionLabel: "Delete",
+          onAction: () => removeWatchlist(watchlist.id)
+        }))}
+      />
     </PageWrap>
   );
 }
 
 function PageWrap({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-12">
       {children}
     </div>
   );
@@ -942,7 +934,7 @@ function NearbyPanel({
 }) {
   return (
     <Panel>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-moss">Latest near me</p>
           <h2 className="mt-1 font-serif text-3xl text-ink">
@@ -953,7 +945,7 @@ function NearbyPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45 sm:self-start"
           >
             Refresh
           </button>
@@ -1038,7 +1030,7 @@ function RecordList({
           items.map((item) => (
             <div
               key={item.id}
-              className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0"
             >
               <div>
                 <p className="font-semibold text-ink">{item.title}</p>
@@ -1051,7 +1043,7 @@ function RecordList({
                 onClick={() => {
                   Promise.resolve(item.onAction()).catch(() => undefined);
                 }}
-                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sand"
+                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sand sm:self-start"
               >
                 {item.actionLabel}
               </button>

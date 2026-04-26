@@ -139,7 +139,7 @@ export function NewsletterManageClient() {
         You&apos;re subscribed for <strong>{subscription.email}</strong>.
       </p>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+      <div className="mt-6 space-y-3">
         <label className="block">
           <span className="mb-2 block text-sm font-semibold text-moss">
             First name
@@ -156,7 +156,7 @@ export function NewsletterManageClient() {
           type="button"
           onClick={() => void updateSubscription("save")}
           disabled={saving}
-          className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
+          className="w-full rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50 sm:w-auto"
         >
           Save
         </button>

@@ -38,57 +38,51 @@ const civicSteps = [
 
 export function CommunityAtlas({ slug }: CommunityAtlasProps) {
   return (
-    <section className="overflow-hidden rounded-lg border border-ink/10 bg-white">
-      <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="bg-[#183f47] px-6 py-6 text-white sm:px-7">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#aee4ef]">
-            How residents use it
-          </p>
-          <h2 className="mt-3 font-serif text-3xl leading-tight text-white">
-            One search should answer the next obvious question.
-          </h2>
-          <div className="mt-6 grid gap-3">
-            {civicSteps.map((step, index) => (
-              <div
-                key={step}
-                className="flex items-center gap-3 rounded-md border border-white/12 bg-white/8 px-4 py-3"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#f5c76b] text-sm font-bold text-[#173238]">
-                  {index + 1}
-                </span>
-                <span className="text-sm font-semibold text-white">{step}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-xs leading-6 text-white/68">
-            This is not an official parcel search. It is a resident-friendly
-            scan of source-linked local records.
-          </p>
-        </div>
+    <section className="rounded-lg border border-ink/10 bg-white p-5">
+      <p className="text-sm font-semibold text-moss">How residents use it</p>
+      <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+        One search should answer the next obvious question.
+      </h2>
 
-        <div className="grid gap-3 bg-[#f8f6ef] p-5 sm:grid-cols-2 sm:p-6">
-          {residentScans.map((scan) => (
-            <a
-              key={scan.label}
-              href={`/${slug}?q=${encodeURIComponent(scan.query)}#records`}
-              className="group rounded-lg border border-ink/10 bg-white px-4 py-4 shadow-sm transition hover:border-[#183f47]/25 hover:bg-[#eef7f9]"
-              title={`Search the local record for ${scan.query}`}
-            >
-              <span className="inline-flex rounded-md bg-[#f5c76b]/35 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#173238]">
-                {scan.signal}
-              </span>
-              <h3 className="mt-3 text-lg font-semibold leading-6 text-moss">
-                {scan.label}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-ink/62">
-                {scan.detail}
-              </p>
-              <span className="mt-4 inline-flex text-sm font-semibold text-[#183f47] underline-offset-4 group-hover:underline">
-                Scan for {scan.query}
-              </span>
-            </a>
-          ))}
-        </div>
+      <div className="mt-5 divide-y divide-ink/8">
+        {civicSteps.map((step, index) => (
+          <div
+            key={step}
+            className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sky text-sm font-bold text-moss">
+              {index + 1}
+            </span>
+            <span className="text-sm font-semibold text-ink">{step}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-5 rounded-lg border border-ink/10 bg-sand/35 px-4 py-3 text-xs leading-6 text-ink/62">
+        This is not an official parcel search. It is a resident-friendly scan of
+        source-linked local records.
+      </p>
+
+      <div className="mt-5 divide-y divide-ink/8 border-t border-ink/8 pt-2">
+        {residentScans.map((scan) => (
+          <a
+            key={scan.label}
+            href={`/${slug}?q=${encodeURIComponent(scan.query)}#records`}
+            className="group block py-4 first:pt-0 last:pb-0"
+            title={`Search the local record for ${scan.query}`}
+          >
+            <span className="text-xs font-bold uppercase tracking-[0.12em] text-moss">
+              {scan.signal}
+            </span>
+            <h3 className="mt-2 text-lg font-semibold leading-6 text-ink">
+              {scan.label}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-ink/62">{scan.detail}</p>
+            <span className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 group-hover:underline">
+              Scan for {scan.query}
+            </span>
+          </a>
+        ))}
       </div>
     </section>
   );
