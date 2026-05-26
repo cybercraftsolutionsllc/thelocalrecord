@@ -67,8 +67,6 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         caption="Local updates should feel like checking the weather: quick, clear, and source-linked."
       />
 
-      <LocalityMeetingIntelligence slug={slug} />
-
       <section className="min-w-0">
         <LivePublishedEntries
           slug={slug}
@@ -80,6 +78,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
           }))}
         />
       </section>
+
+      <LocalityMeetingIntelligence slug={slug} />
 
       <LocalityNewsletterBox
         slug={slug}

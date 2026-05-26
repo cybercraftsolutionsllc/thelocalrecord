@@ -570,6 +570,10 @@ function isResidentFacingEntry(entry: PublicEntry) {
   const haystack =
     `${entry.title} ${entry.summary} ${entry.sourceLabel} ${entry.topicText ?? ""}`.toLowerCase();
 
+  if (entry.category === "agenda_posted" || entry.category === "approved_minutes") {
+    return false;
+  }
+
   if (
     topic === "permits_and_code" &&
     /permit|inspection|fee schedule|code compliance|faq|electrical|plumbing|deck|patio|fireworks|complaints|occupancy|rental housing/.test(
