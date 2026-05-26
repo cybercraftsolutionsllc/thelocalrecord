@@ -1278,6 +1278,11 @@ export async function listMeetingIntelligence(
           WHEN meeting_record.source_type = 'agenda' THEN 3
           ELSE 4
         END ASC,
+        CASE
+          WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') THEN 1
+          WHEN meeting_record.source_type = 'agenda' THEN 2
+          ELSE 3
+        END ASC,
         COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC
       LIMIT ?`
     )
