@@ -1266,7 +1266,19 @@ export async function listMeetingIntelligence(
       INNER JOIN content_entry ON content_entry.id = meeting_record.content_entry_id
       LEFT JOIN publication ON publication.content_entry_id = content_entry.id
       WHERE meeting_record.municipality_slug = ?
-      ORDER BY COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC
+      ORDER BY
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM meeting_fact
+            WHERE meeting_fact.meeting_record_id = meeting_record.id
+              AND meeting_fact.fact_kind IN ('decision', 'project_update', 'public_comment', 'condition')
+          ) THEN 1
+          WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') THEN 2
+          WHEN meeting_record.source_type = 'agenda' THEN 3
+          ELSE 4
+        END ASC,
+        COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC
       LIMIT ?`
     )
     .bind(slug, safeLimit)
