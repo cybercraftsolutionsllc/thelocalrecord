@@ -244,9 +244,14 @@ describe("evaluateItem", () => {
     const intelligence = extractMeetingIntelligence(item, decision);
 
     expect(intelligence?.meeting.body).toBe("Planning Commission");
-    expect(
-      intelligence?.facts.some((fact) => fact.kind === "decision")
-    ).toBe(true);
+    const decisionFact = intelligence?.facts.find(
+      (fact) => fact.kind === "decision"
+    );
+
+    expect(decisionFact?.summary).toContain("Ashford Meadows");
+    expect(decisionFact?.summary).toContain("117 lots");
+    expect(decisionFact?.summary).toContain("Motion carried 6-0");
+    expect(decisionFact?.summary).not.toMatch(/^Motion carried/i);
     expect(
       intelligence?.facts.some((fact) => fact.kind === "public_comment")
     ).toBe(true);
@@ -255,6 +260,99 @@ describe("evaluateItem", () => {
         project.projectName.includes("Ashford Meadows")
       )
     ).toBe(true);
+  });
+
+  it("merges standalone vote language into a contextual project brief", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-contextual-vote",
+      title: "18 February 2026 - Planning Commission Minutes",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3640",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "Planned Residential Development. McNees Wallace & Nurick LLC presented the concept plan which proposes a minor modification to the existing, approved Planned Residential Development within the Richmond Square Shopping Center. Motion was made by Alex Rohrbaugh and seconded by Sandy Kime to recommend approval of the plan and modifications conditioned upon satisfaction of Township Engineer and staff review letters. Motion carried 3-0 with 3 abstentions.",
+      eventDate: "2026-02-18T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-contextual-vote")
+    });
+    const intelligence = extractMeetingIntelligence(item, {
+      classification: "approved_minutes"
+    });
+    const summaries = intelligence?.facts.map((fact) => fact.summary) ?? [];
+    const decisionFact = intelligence?.facts.find(
+      (fact) => fact.kind === "decision"
+    );
+
+    expect(summaries.some((summary) => /^Motion carried/i.test(summary))).toBe(
+      false
+    );
+    expect(decisionFact?.summary).toContain("Richmond Square Shopping Center");
+    expect(decisionFact?.summary).toContain("McNees Wallace & Nurick LLC");
+    expect(decisionFact?.summary).toContain("recommended approval");
+    expect(decisionFact?.summary).toContain("Motion carried 3-0");
+    expect(decisionFact?.summary).toContain("Watch next");
+    expect(decisionFact?.quote).toContain("concept plan");
+  });
+
+  it("does not turn meeting access boilerplate into meeting intelligence", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-agenda",
+      externalId: "pc-agenda-boilerplate",
+      title: "15 April 2026 Planning Commission Agenda",
+      sourceUrl: "https://www.manheimtownship.org/AgendaCenter/ViewFile/Agenda/_04152026-2000",
+      sourcePageUrl: "https://www.manheimtownship.org/AgendaCenter",
+      normalizedText:
+        "Planning Commission Agenda. Land Development. The Zoom link can be found on the Township website through the meeting calendar located on the home page.",
+      eventDate: "2026-04-15T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-agenda-boilerplate")
+    });
+    const intelligence = extractMeetingIntelligence(item, {
+      classification: "agenda_posted"
+    });
+
+    expect(intelligence).toBeNull();
+  });
+
+  it("does not attach adjournment votes to the previous project", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-adjournment",
+      title: "18 February 2026 - Planning Commission Minutes",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3640",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "Preliminary Subdivision & Land Development Plan for Ashford Meadows - R-2 Residential Zoning District. Todd Kurl presented the plan which proposes 117 lots. Motion was made by Sandy Kime and seconded by Nathan van Name to table the plan. Motion carried 6-0. Motion was made to adjourn the meeting at 7:53 PM. Motion carried 3-0 with 3 abstentions.",
+      eventDate: "2026-02-18T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-adjournment")
+    });
+    const intelligence = extractMeetingIntelligence(item, {
+      classification: "approved_minutes"
+    });
+    const summaries = intelligence?.facts.map((fact) => fact.summary) ?? [];
+
+    expect(summaries.join(" ")).not.toContain("adjourn");
+    expect(summaries.join(" ")).not.toContain("3-0 with 3 abstentions");
+    expect(summaries.join(" ")).toContain("Motion carried 6-0");
   });
 
   it("keeps recording transcript timestamps in extracted facts", () => {

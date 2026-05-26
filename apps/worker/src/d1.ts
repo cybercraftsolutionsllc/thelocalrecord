@@ -1268,15 +1268,21 @@ export async function listMeetingIntelligence(
       WHERE meeting_record.municipality_slug = ?
       ORDER BY
         CASE
-          WHEN EXISTS (
+          WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') AND EXISTS (
             SELECT 1
             FROM meeting_fact
             WHERE meeting_fact.meeting_record_id = meeting_record.id
               AND meeting_fact.fact_kind IN ('decision', 'project_update', 'public_comment', 'condition')
           ) THEN 1
           WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') THEN 2
-          WHEN meeting_record.source_type = 'agenda' THEN 3
-          ELSE 4
+          WHEN EXISTS (
+            SELECT 1
+            FROM meeting_fact
+            WHERE meeting_fact.meeting_record_id = meeting_record.id
+              AND meeting_fact.fact_kind IN ('decision', 'project_update', 'public_comment', 'condition')
+          ) THEN 3
+          WHEN meeting_record.source_type = 'agenda' THEN 4
+          ELSE 5
         END ASC,
         CASE
           WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') THEN 1
@@ -1451,7 +1457,23 @@ export async function backfillMeetingIntelligenceForMunicipality(
           OR lower(source_item.title) LIKE '%recording%'
           OR lower(source_item.title) LIKE '%transcript%'
         )
-      ORDER BY COALESCE(source_item.event_date, source_item.published_at, content_entry.updated_at) DESC
+      ORDER BY
+        CASE
+          WHEN content_entry.category = 'approved_minutes'
+            OR source_item.source_slug LIKE '%minutes%'
+            OR lower(source_item.title) LIKE '%minutes%' THEN 1
+          WHEN source_item.source_slug LIKE '%transcript%'
+            OR source_item.source_slug LIKE '%recording%'
+            OR lower(source_item.title) LIKE '%transcript%'
+            OR lower(source_item.title) LIKE '%recording%' THEN 2
+          WHEN content_entry.category = 'meeting_notice'
+            OR lower(source_item.title) LIKE '%meeting%' THEN 3
+          WHEN content_entry.category = 'agenda_posted'
+            OR source_item.source_slug LIKE '%agenda%'
+            OR lower(source_item.title) LIKE '%agenda%' THEN 4
+          ELSE 5
+        END ASC,
+        COALESCE(source_item.event_date, source_item.published_at, content_entry.updated_at) DESC
       LIMIT ?`
     )
     .bind(slug, safeLimit)

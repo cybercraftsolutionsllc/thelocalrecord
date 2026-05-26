@@ -249,40 +249,13 @@ function MeetingIntelligencePanel({
         {meetingIntelligence.meeting_body}
       </h2>
       <p className="mt-2 text-sm leading-6 text-ink/62">
-        Structured facts extracted from the posted meeting record. Open the
-        source before acting on any detail.
+        Contextual briefs from the posted meeting record. Open the source
+        before acting on any detail.
       </p>
 
       <div className="mt-5 space-y-3">
         {meetingIntelligence.facts.map((fact) => (
-          <article
-            key={fact.id}
-            className="rounded-md border border-ink/10 bg-sand/45 p-4"
-          >
-            <div className="flex flex-wrap gap-2 text-xs font-semibold text-ink/50">
-              <span className="text-clay">{labelFactKind(fact.fact_kind)}</span>
-              {fact.project_name ? <span>{fact.project_name}</span> : null}
-              {fact.transcript_start_seconds !== null ? (
-                <span>{formatTimestamp(fact.transcript_start_seconds)}</span>
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm leading-6 text-ink/74">
-              {fact.summary}
-            </p>
-            {fact.quote ? (
-              <p className="mt-3 border-l-2 border-moss/25 pl-3 text-sm leading-6 text-ink/58">
-                {fact.quote}
-              </p>
-            ) : null}
-            <a
-              href={fact.source_url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
-            >
-              {fact.source_label}
-            </a>
-          </article>
+          <MeetingFactCard key={fact.id} fact={fact} />
         ))}
       </div>
 
@@ -307,7 +280,7 @@ function MeetingIntelligencePanel({
                   rel="noreferrer"
                   className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
                 >
-                  Open source
+                  Open source record
                 </a>
               </article>
             ))}
@@ -332,6 +305,82 @@ function MeetingIntelligencePanel({
       ) : null}
     </section>
   );
+}
+
+function MeetingFactCard({ fact }: { fact: MeetingFact }) {
+  const quote = shouldShowQuote(fact.summary, fact.quote) ? fact.quote : null;
+
+  return (
+    <article className="rounded-md border border-ink/10 bg-sand/45 p-4">
+      <div className="flex flex-wrap gap-2 text-xs font-semibold text-ink/50">
+        <span className="text-clay">{labelFactKind(fact.fact_kind)}</span>
+        {fact.transcript_start_seconds !== null ? (
+          <span>{formatTimestamp(fact.transcript_start_seconds)}</span>
+        ) : null}
+      </div>
+      <h3 className="mt-2 text-base font-semibold leading-6 text-ink">
+        {fact.project_name ?? fact.label}
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-ink/74">{fact.summary}</p>
+      {quote ? (
+        <div className="mt-3 border-l-2 border-moss/25 pl-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/42">
+            Source excerpt
+          </p>
+          <p className="mt-1 text-sm leading-6 text-ink/58">{quote}</p>
+        </div>
+      ) : null}
+      <a
+        href={fact.source_url}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
+      >
+        {sourceActionLabel(fact.source_label)}
+      </a>
+    </article>
+  );
+}
+
+function sourceActionLabel(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("transcript")) {
+    return "Open transcript";
+  }
+
+  if (normalized.includes("recording")) {
+    return "Open recording";
+  }
+
+  if (normalized.includes("agenda")) {
+    return "Open posted agenda";
+  }
+
+  if (normalized.includes("minutes")) {
+    return "Open posted minutes";
+  }
+
+  return "Open official source";
+}
+
+function shouldShowQuote(summary: string, quote: string | null) {
+  if (!quote) {
+    return false;
+  }
+
+  const normalizedSummary = normalizeComparableText(summary);
+  const normalizedQuote = normalizeComparableText(quote);
+
+  return (
+    normalizedQuote.length > 42 &&
+    normalizedQuote !== normalizedSummary &&
+    !normalizedSummary.includes(normalizedQuote)
+  );
+}
+
+function normalizeComparableText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function labelFactKind(kind: string) {

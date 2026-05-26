@@ -118,7 +118,11 @@ export function LocalityMeetingIntelligence({
   }, [slug]);
 
   const topFacts = useMemo(
-    () => meetings.flatMap((meeting) => meeting.facts).slice(0, 5),
+    () =>
+      meetings
+        .flatMap((meeting) => meeting.facts)
+        .filter((fact) => fact.fact_kind !== "recording_reference")
+        .slice(0, 6),
     [meetings]
   );
   const topProjects = useMemo(
@@ -147,11 +151,11 @@ export function LocalityMeetingIntelligence({
       <div className="border-b border-ink/8 pb-5">
         <p className="text-sm font-semibold text-moss">Meeting intelligence</p>
         <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
-          What the minutes add
+          Key items from posted minutes
         </h2>
         <p className="mt-2 text-sm leading-6 text-ink/62">
-          Decisions, project movement, public comment, and source links pulled
-          from posted meeting records.
+          Briefs group the project, action, vote, conditions, and follow-up
+          source so procedural motions stay attached to what they affected.
         </p>
       </div>
 
@@ -206,22 +210,29 @@ export function LocalityMeetingIntelligence({
 }
 
 function FactRow({ fact }: { fact: MeetingFact }) {
+  const quote = shouldShowQuote(fact.summary, fact.quote) ? fact.quote : null;
+
   return (
     <article className="rounded-md border border-ink/10 bg-sand/45 p-4">
       <div className="flex flex-wrap gap-2 text-xs font-semibold text-ink/50">
         <span className="text-clay">
           {factLabels[fact.fact_kind] ?? "Source fact"}
         </span>
-        {fact.project_name ? <span>{fact.project_name}</span> : null}
         {fact.transcript_start_seconds !== null ? (
           <span>{formatTimestamp(fact.transcript_start_seconds)}</span>
         ) : null}
       </div>
+      <h3 className="mt-2 text-base font-semibold leading-6 text-ink">
+        {fact.project_name ?? fact.label}
+      </h3>
       <p className="mt-2 text-sm leading-6 text-ink/74">{fact.summary}</p>
-      {fact.quote ? (
-        <p className="mt-3 border-l-2 border-moss/25 pl-3 text-sm leading-6 text-ink/58">
-          {fact.quote}
-        </p>
+      {quote ? (
+        <div className="mt-3 border-l-2 border-moss/25 pl-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/42">
+            Source excerpt
+          </p>
+          <p className="mt-1 text-sm leading-6 text-ink/58">{quote}</p>
+        </div>
       ) : null}
       <a
         href={fact.source_url}
@@ -229,7 +240,7 @@ function FactRow({ fact }: { fact: MeetingFact }) {
         rel="noreferrer"
         className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
       >
-        {fact.source_label}
+        {sourceActionLabel(fact.source_label)}
       </a>
     </article>
   );
@@ -246,10 +257,51 @@ function ProjectRow({ project }: { project: ProjectEvent }) {
         rel="noreferrer"
         className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
       >
-        Open source
+        Open source record
       </a>
     </article>
   );
+}
+
+function sourceActionLabel(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("transcript")) {
+    return "Open transcript";
+  }
+
+  if (normalized.includes("recording")) {
+    return "Open recording";
+  }
+
+  if (normalized.includes("agenda")) {
+    return "Open posted agenda";
+  }
+
+  if (normalized.includes("minutes")) {
+    return "Open posted minutes";
+  }
+
+  return "Open official source";
+}
+
+function shouldShowQuote(summary: string, quote: string | null) {
+  if (!quote) {
+    return false;
+  }
+
+  const normalizedSummary = normalizeComparableText(summary);
+  const normalizedQuote = normalizeComparableText(quote);
+
+  return (
+    normalizedQuote.length > 42 &&
+    normalizedQuote !== normalizedSummary &&
+    !normalizedSummary.includes(normalizedQuote)
+  );
+}
+
+function normalizeComparableText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function MeetingRow({
