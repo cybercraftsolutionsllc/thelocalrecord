@@ -1422,11 +1422,17 @@ export async function backfillMeetingIntelligenceForMunicipality(
         content_entry.municipality_slug = ?
         AND meeting_record.id IS NULL
         AND (
-          content_entry.category IN ('approved_minutes', 'agenda_posted', 'meeting_notice', 'planning_zoning')
+          content_entry.category IN ('approved_minutes', 'agenda_posted', 'meeting_notice')
           OR source_item.source_slug LIKE '%minutes%'
           OR source_item.source_slug LIKE '%agenda%'
-          OR source_item.source_slug LIKE '%commission%'
-          OR source_item.source_slug LIKE '%hearing%'
+          OR source_item.source_slug LIKE '%meeting%'
+          OR source_item.source_slug LIKE '%recording%'
+          OR source_item.source_slug LIKE '%transcript%'
+          OR lower(source_item.title) LIKE '%minutes%'
+          OR lower(source_item.title) LIKE '%agenda%'
+          OR lower(source_item.title) LIKE '%meeting%'
+          OR lower(source_item.title) LIKE '%recording%'
+          OR lower(source_item.title) LIKE '%transcript%'
         )
       ORDER BY COALESCE(source_item.event_date, source_item.published_at, content_entry.updated_at) DESC
       LIMIT ?`

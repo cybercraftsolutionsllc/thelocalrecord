@@ -160,22 +160,29 @@ function isMeetingRecord(
   decision?: Pick<ContentDecision, "classification">
 ) {
   const classification = decision?.classification;
-  const haystack = `${item.sourceSlug} ${item.title} ${item.normalizedText}`.toLowerCase();
-
-  if (
-    classification === "approved_minutes" ||
-    classification === "agenda_posted" ||
-    classification === "meeting_notice" ||
-    classification === "planning_zoning"
-  ) {
-    return /meeting|minutes|agenda|commission|board|hearing|zoning|planning/.test(
+  const surface = `${item.sourceSlug} ${item.title}`.toLowerCase();
+  const haystack = `${surface} ${item.normalizedText}`.toLowerCase();
+  const surfaceHasMeetingSignal =
+    /\b(minutes?|agendas?|meeting|packet|recording|transcript)\b/.test(
+      surface
+    ) ||
+    /\b(?:commission|board|hearing)\b.*\b(?:minutes?|agendas?|meeting|packet)\b/.test(
+      surface
+    );
+  const bodyHasMeetingSignal =
+    /\b(motion was made|motion carried|public comment|roll call|members present|call to order)\b/.test(
       haystack
     );
+
+  if (classification === "approved_minutes" || classification === "agenda_posted") {
+    return surfaceHasMeetingSignal || bodyHasMeetingSignal;
   }
 
-  return /minutes|agenda|meeting|commission|board|hearing|recording|transcript/.test(
-    haystack
-  );
+  if (classification === "meeting_notice" || classification === "planning_zoning") {
+    return surfaceHasMeetingSignal || bodyHasMeetingSignal;
+  }
+
+  return surfaceHasMeetingSignal || bodyHasMeetingSignal;
 }
 
 function inferSourceType(item: NormalizedSourceItem): MeetingSourceType {
