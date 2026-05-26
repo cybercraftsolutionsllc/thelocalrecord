@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { LocalityAskBox } from "../../components/locality-ask-box";
+import { LocalityMeetingIntelligence } from "../../components/locality-meeting-intelligence";
 import { LocalityNewsletterBox } from "../../components/locality-newsletter-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
@@ -65,6 +66,8 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         label={data.municipality.shortName}
         caption="Local updates should feel like checking the weather: quick, clear, and source-linked."
       />
+
+      <LocalityMeetingIntelligence slug={slug} />
 
       <section className="min-w-0">
         <LivePublishedEntries

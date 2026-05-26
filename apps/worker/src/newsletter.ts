@@ -1,13 +1,16 @@
 import { getMunicipalityBySlug } from "@thelocalrecord/core";
 
 import {
+  backfillMeetingIntelligenceForMunicipality,
   createOrUpdateNewsletterIssue,
   issueNewsletterManageToken,
   listActiveNewsletterSubscriptions,
   listNewsletterDigestEntries,
+  listNewsletterMeetingFacts,
   markNewsletterIssueSent,
   recordNewsletterDelivery,
-  type NewsletterDigestEntry
+  type NewsletterDigestEntry,
+  type NewsletterMeetingFact
 } from "./d1";
 import type { WorkerEnv } from "./env";
 
@@ -32,6 +35,24 @@ type NewsletterRenderableEntry = {
   sourceUrl: string | null;
   sourceUrlLabel: string;
   detailUrl: string;
+};
+
+type NewsletterMeetingDigest = {
+  decisions: NewsletterMeetingItem[];
+  projects: NewsletterMeetingItem[];
+  comments: NewsletterMeetingItem[];
+  recordings: NewsletterMeetingItem[];
+};
+
+type NewsletterMeetingItem = {
+  label: string;
+  summary: string;
+  sourceLabel: string;
+  sourceUrl: string;
+  detailUrl: string;
+  meetingBody: string;
+  meetingDate: string | null;
+  quote: string | null;
 };
 
 type NewsletterDraftEnrichment = {
@@ -93,8 +114,23 @@ export async function generateWeeklyNewsletterIssue(
   }))
     .filter(isResidentFacingNewsletterEntry)
     .sort(compareNewsletterEntries);
+  await backfillMeetingIntelligenceForMunicipality(
+    env.DB,
+    municipalitySlug,
+    40
+  );
+  const meetingFacts = await listNewsletterMeetingFacts(env.DB, municipalitySlug, {
+    startIso: periodStart.toISOString(),
+    endIso: periodEnd.toISOString(),
+    limit: 28
+  });
+  const meetingDigest = buildMeetingDigest(
+    meetingFacts,
+    municipalitySlug,
+    baseSiteUrl
+  );
 
-  if (sourceEntries.length === 0) {
+  if (sourceEntries.length === 0 && !hasMeetingDigestItems(meetingDigest)) {
     const emptyIssue = await createOrUpdateNewsletterIssue(env.DB, {
       municipalitySlug,
       weekKey,
@@ -102,7 +138,7 @@ export async function generateWeeklyNewsletterIssue(
       periodEnd: periodEnd.toISOString(),
       subject: `${municipality.shortName}: events of note for ${formatRange(periodStart, periodEnd)}`,
       intro: "No qualifying resident-facing items were found for this weekly digest window.",
-      entriesJson: JSON.stringify([]),
+      entriesJson: JSON.stringify({ entries: [], meetingIntelligence: meetingDigest }),
       status: "skipped_no_entries",
       deliveryNotes: "No qualifying entries in the weekly window."
     });
@@ -141,7 +177,7 @@ export async function generateWeeklyNewsletterIssue(
 
   const subject = `${municipality.shortName}: events of note for ${formatRange(periodStart, periodEnd)}`;
   const intro = normalizeIntro(
-    enrichment?.intro ?? buildIssueIntro(renderableEntries)
+    enrichment?.intro ?? buildIssueIntro(renderableEntries, meetingDigest)
   );
   const issue = await createOrUpdateNewsletterIssue(env.DB, {
     municipalitySlug,
@@ -150,7 +186,10 @@ export async function generateWeeklyNewsletterIssue(
     periodEnd: periodEnd.toISOString(),
     subject,
     intro,
-    entriesJson: JSON.stringify(renderableEntries),
+    entriesJson: JSON.stringify({
+      entries: renderableEntries,
+      meetingIntelligence: meetingDigest
+    }),
     status: "generated",
     deliveryNotes: "Issue generated."
   });
@@ -225,12 +264,14 @@ export async function generateWeeklyNewsletterIssue(
           municipalityName: municipality.shortName,
           intro,
           entries: renderableEntries,
+          meetingDigest,
           manageUrl
         }),
         text: renderNewsletterText({
           municipalityName: municipality.shortName,
           intro,
           entries: renderableEntries,
+          meetingDigest,
           manageUrl
         })
       });
@@ -621,7 +662,71 @@ function relabelSourceLink(label: string, url: string, index: number) {
   return label;
 }
 
-function buildIssueIntro(entries: NewsletterRenderableEntry[]) {
+function buildMeetingDigest(
+  facts: NewsletterMeetingFact[],
+  municipalitySlug: string,
+  baseSiteUrl: string
+): NewsletterMeetingDigest {
+  const items = facts.map((fact) => ({
+    label: fact.label,
+    summary: fact.summary,
+    sourceLabel: fact.source_label,
+    sourceUrl: fact.source_url,
+    detailUrl: `${baseSiteUrl}/${municipalitySlug}/item/?id=${encodeURIComponent(fact.content_entry_id)}`,
+    meetingBody: fact.meeting_body,
+    meetingDate: fact.meeting_date ?? fact.posted_at ?? fact.published_at,
+    quote: fact.quote
+  }));
+
+  return {
+    decisions: itemsForKinds(facts, items, ["decision"]).slice(0, 4),
+    projects: itemsForKinds(facts, items, [
+      "project_update",
+      "condition",
+      "next_step"
+    ]).slice(0, 5),
+    comments: itemsForKinds(facts, items, ["public_comment"]).slice(0, 3),
+    recordings: itemsForKinds(facts, items, ["recording_reference"]).slice(0, 2)
+  };
+}
+
+function itemsForKinds(
+  facts: NewsletterMeetingFact[],
+  items: NewsletterMeetingItem[],
+  kinds: string[]
+) {
+  return facts
+    .map((fact, index) => ({ fact, item: items[index] }))
+    .filter((entry) => kinds.includes(entry.fact.fact_kind))
+    .map((entry) => entry.item);
+}
+
+function hasMeetingDigestItems(meetingDigest: NewsletterMeetingDigest) {
+  return (
+    meetingDigest.decisions.length > 0 ||
+    meetingDigest.projects.length > 0 ||
+    meetingDigest.comments.length > 0 ||
+    meetingDigest.recordings.length > 0
+  );
+}
+
+function buildIssueIntro(
+  entries: NewsletterRenderableEntry[],
+  meetingDigest: NewsletterMeetingDigest
+) {
+  const meetingItemCount =
+    meetingDigest.decisions.length +
+    meetingDigest.projects.length +
+    meetingDigest.comments.length;
+
+  if (meetingItemCount > 0 && entries.length === 0) {
+    return "This week's useful signal came from meeting records: decisions, project movement, and public-comment details pulled from source-linked minutes.";
+  }
+
+  if (meetingItemCount > 0) {
+    return "This week's digest includes the latest source-linked items plus a meeting-minutes section for decisions, project movement, and comments that may not appear in short public notices.";
+  }
+
   const titles = entries.slice(0, 3).map((entry) => entry.title);
 
   if (titles.length === 0) {
@@ -639,6 +744,7 @@ function renderNewsletterHtml(args: {
   municipalityName: string;
   intro: string;
   entries: NewsletterRenderableEntry[];
+  meetingDigest: NewsletterMeetingDigest;
   manageUrl: string;
 }) {
   const entryMarkup = args.entries
@@ -670,6 +776,7 @@ function renderNewsletterHtml(args: {
         </li>`;
     })
     .join("");
+  const meetingMarkup = renderMeetingDigestHtml(args.meetingDigest);
 
   return `
     <div style="background:#f6f0e5;padding:32px 16px;font-family:Arial,sans-serif;">
@@ -678,6 +785,7 @@ function renderNewsletterHtml(args: {
         <h1 style="margin:0 0 16px 0;font-size:38px;line-height:1.05;color:#214d46;font-family:Georgia,serif;">${escapeHtml(args.municipalityName)}</h1>
         <p style="margin:0 0 24px 0;font-size:16px;line-height:1.8;color:#32433f;">${escapeHtml(args.intro)}</p>
         <ul style="list-style:none;margin:0;padding:0;">${entryMarkup}</ul>
+        ${meetingMarkup}
         <div style="margin-top:28px;padding-top:20px;border-top:1px solid #ece6d9;">
           <p style="margin:0 0 10px 0;font-size:13px;line-height:1.7;color:#5d6b67;">Independent resident-run digest. Not affiliated with or speaking for ${escapeHtml(args.municipalityName.replace(", PA", ""))}.</p>
           <p style="margin:0 0 10px 0;font-size:13px;line-height:1.7;color:#5d6b67;">Each item links to The Local Record entry and the original township source.</p>
@@ -692,6 +800,7 @@ function renderNewsletterText(args: {
   municipalityName: string;
   intro: string;
   entries: NewsletterRenderableEntry[];
+  meetingDigest: NewsletterMeetingDigest;
   manageUrl: string;
 }) {
   const entriesText = args.entries
@@ -710,6 +819,7 @@ function renderNewsletterText(args: {
         .join("\n")
     )
     .join("\n\n");
+  const meetingText = renderMeetingDigestText(args.meetingDigest);
 
   return [
     args.municipalityName,
@@ -717,9 +827,107 @@ function renderNewsletterText(args: {
     args.intro,
     "",
     entriesText,
+    meetingText ? `\n${meetingText}` : "",
     "",
     "Independent resident-run digest. Not affiliated with or speaking for the municipality.",
     `Manage your subscription: ${args.manageUrl}`
+  ].join("\n");
+}
+
+function renderMeetingDigestHtml(meetingDigest: NewsletterMeetingDigest) {
+  if (!hasMeetingDigestItems(meetingDigest)) {
+    return "";
+  }
+
+  const sections = [
+    renderMeetingSectionHtml("Decisions from minutes", meetingDigest.decisions),
+    renderMeetingSectionHtml("Projects to watch", meetingDigest.projects),
+    renderMeetingSectionHtml("Public comment", meetingDigest.comments),
+    renderMeetingSectionHtml("Recordings and transcripts", meetingDigest.recordings)
+  ].join("");
+
+  return `
+    <div style="margin:28px 0 0 0;padding:22px;border-radius:22px;background:#f8faf6;border:1px solid #dfe7df;">
+      <p style="margin:0 0 8px 0;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#9b5c3f;font-weight:700;">Meeting intelligence</p>
+      <h2 style="margin:0 0 12px 0;font-size:26px;line-height:1.18;color:#214d46;font-family:Georgia,serif;">What the minutes added</h2>
+      <p style="margin:0 0 16px 0;font-size:14px;line-height:1.7;color:#5d6b67;">Structured facts pulled from posted meeting records. Treat these as source observations and open the original record before acting.</p>
+      ${sections}
+    </div>
+  `;
+}
+
+function renderMeetingSectionHtml(
+  title: string,
+  items: NewsletterMeetingItem[]
+) {
+  if (items.length === 0) {
+    return "";
+  }
+
+  const itemMarkup = items
+    .map(
+      (item) => `
+        <li style="margin:0 0 14px 0;padding:0 0 14px 0;border-bottom:1px solid #e4ebe4;">
+          <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;color:#214d46;">${escapeHtml(item.label)}</p>
+          <p style="margin:0 0 8px 0;font-size:14px;line-height:1.7;color:#32433f;">${escapeHtml(item.summary)}</p>
+          ${
+            item.quote
+              ? `<p style="margin:0 0 8px 0;font-size:13px;line-height:1.65;color:#5d6b67;">Source text: ${escapeHtml(item.quote)}</p>`
+              : ""
+          }
+          <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5d6b67;">${escapeHtml(item.meetingBody)}${item.meetingDate ? ` | ${escapeHtml(formatDate(item.meetingDate))}` : ""}</p>
+          <a href="${escapeAttribute(item.detailUrl)}" style="color:#214d46;font-size:13px;font-weight:700;">Open record</a>
+          <span style="color:#9aa5a1;"> | </span>
+          <a href="${escapeAttribute(item.sourceUrl)}" style="color:#214d46;font-size:13px;font-weight:700;">${escapeHtml(item.sourceLabel)}</a>
+        </li>`
+    )
+    .join("");
+
+  return `
+    <div style="margin-top:18px;">
+      <h3 style="margin:0 0 10px 0;font-size:16px;color:#214d46;">${escapeHtml(title)}</h3>
+      <ul style="list-style:none;margin:0;padding:0;">${itemMarkup}</ul>
+    </div>
+  `;
+}
+
+function renderMeetingDigestText(meetingDigest: NewsletterMeetingDigest) {
+  if (!hasMeetingDigestItems(meetingDigest)) {
+    return "";
+  }
+
+  return [
+    "MEETING INTELLIGENCE - What the minutes added",
+    renderMeetingSectionText("Decisions from minutes", meetingDigest.decisions),
+    renderMeetingSectionText("Projects to watch", meetingDigest.projects),
+    renderMeetingSectionText("Public comment", meetingDigest.comments),
+    renderMeetingSectionText("Recordings and transcripts", meetingDigest.recordings)
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function renderMeetingSectionText(
+  title: string,
+  items: NewsletterMeetingItem[]
+) {
+  if (items.length === 0) {
+    return "";
+  }
+
+  return [
+    title,
+    ...items.map((item) =>
+      [
+        `- ${item.label}: ${item.summary}`,
+        item.quote ? `  Source text: ${item.quote}` : "",
+        `  Meeting: ${item.meetingBody}${item.meetingDate ? ` (${formatDate(item.meetingDate)})` : ""}`,
+        `  Record: ${item.detailUrl}`,
+        `  ${item.sourceLabel}: ${item.sourceUrl}`
+      ]
+        .filter(Boolean)
+        .join("\n")
+    )
   ].join("\n");
 }
 

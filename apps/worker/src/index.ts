@@ -2,10 +2,13 @@ import { getMunicipalityBySlug, municipalities } from "@thelocalrecord/core";
 
 import {
   ActiveFetchRunError,
+  backfillMeetingIntelligenceForEntry,
+  backfillMeetingIntelligenceForMunicipality,
   confirmNewsletterSubscriptionByToken,
   consumeRateLimit,
   createSavedPlace,
   createWatchlist,
+  getMeetingIntelligenceForEntry,
   getResidentSnapshot,
   getPublishedEntryById,
   getNewsletterSubscriptionByConfirmationToken,
@@ -14,6 +17,7 @@ import {
   listNearMeEntries,
   listSavedPlaces,
   listWatchlists,
+  listMeetingIntelligence,
   listPublishedEntries,
   listReviewQueue,
   softDeleteSavedPlace,
@@ -165,7 +169,25 @@ export default {
             );
           }
 
-          return jsonResponse(request, entry);
+          let meetingIntelligence = await getMeetingIntelligenceForEntry(
+            env.DB,
+            slug,
+            detailId
+          );
+
+          if (!meetingIntelligence) {
+            await backfillMeetingIntelligenceForEntry(env.DB, slug, detailId);
+            meetingIntelligence = await getMeetingIntelligenceForEntry(
+              env.DB,
+              slug,
+              detailId
+            );
+          }
+
+          return jsonResponse(request, {
+            ...entry,
+            meeting_intelligence: meetingIntelligence
+          });
         }
 
         const page = Number(url.searchParams.get("page") ?? "1");
@@ -174,6 +196,15 @@ export default {
           request,
           await listPublishedEntries(env.DB, slug, page, pageSize)
         );
+      }
+
+      if (view === "meetings") {
+        const limit = Number(url.searchParams.get("limit") ?? "8");
+        await backfillMeetingIntelligenceForMunicipality(env.DB, slug, 40);
+
+        return jsonResponse(request, {
+          meetings: await listMeetingIntelligence(env.DB, slug, limit)
+        });
       }
 
       if (view === "search") {

@@ -5,6 +5,16 @@ import type {
 
 import { compactText, contentDecisionSchema } from "@thelocalrecord/core";
 
+export {
+  extractMeetingIntelligence,
+  type ExtractedMeetingFact,
+  type ExtractedProjectEvent,
+  type MeetingFactKind,
+  type MeetingIntelligence,
+  type MeetingSourceTrailItem,
+  type MeetingSourceType
+} from "./meeting-intelligence";
+
 const HIGH_RISK_TERMS = [
   "subdivision",
   "rezoning",

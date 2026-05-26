@@ -7,7 +7,12 @@ import type {
 import { createHash } from "node:crypto";
 
 import { municipalities, sourceRegistry } from "@thelocalrecord/core";
-import { extractEntryEntities } from "@thelocalrecord/content";
+import {
+  extractEntryEntities,
+  extractMeetingIntelligence,
+  type ExtractedMeetingFact,
+  type MeetingIntelligence
+} from "@thelocalrecord/content";
 
 import type { D1Database } from "./cloudflare";
 
@@ -115,6 +120,88 @@ export type NewsletterDigestEntry = {
   source_material_date: string | null;
   source_name: string;
   topic_text: string;
+};
+
+export type MeetingFactRecord = {
+  id: string;
+  meeting_record_id: string;
+  municipality_slug: string;
+  content_entry_id: string;
+  source_item_id: string;
+  fact_kind: string;
+  label: string;
+  summary: string;
+  quote: string | null;
+  source_type: string;
+  source_url: string;
+  source_label: string;
+  transcript_start_seconds: number | null;
+  transcript_end_seconds: number | null;
+  confidence: number;
+  project_name: string | null;
+  created_at: string;
+};
+
+export type ProjectEventRecord = {
+  id: string;
+  project_record_id: string;
+  meeting_record_id: string;
+  municipality_slug: string;
+  content_entry_id: string;
+  event_kind: string;
+  summary: string;
+  quote: string | null;
+  source_type: string;
+  source_url: string;
+  confidence: number;
+  event_date: string | null;
+  created_at: string;
+  project_name: string;
+};
+
+export type MeetingRecordWithFacts = {
+  id: string;
+  municipality_slug: string;
+  source_item_id: string;
+  content_entry_id: string;
+  meeting_title: string;
+  meeting_body: string;
+  meeting_date: string | null;
+  posted_at: string | null;
+  source_type: string;
+  source_url: string;
+  source_label: string;
+  source_page_url: string | null;
+  recording_url: string | null;
+  transcript_url: string | null;
+  source_trail_json: string;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  entry_title: string;
+  facts: MeetingFactRecord[];
+  projects: ProjectEventRecord[];
+};
+
+export type NewsletterMeetingFact = MeetingFactRecord & {
+  meeting_title: string;
+  meeting_body: string;
+  meeting_date: string | null;
+  posted_at: string | null;
+  recording_url: string | null;
+  transcript_url: string | null;
+  entry_title: string;
+  published_at: string | null;
+};
+
+type MeetingBackfillRow = StoredSourceItemRecord & {
+  content_entry_id: string;
+  summary: string;
+  category: string;
+  impact_level: string;
+  risk_level: string;
+  review_state: string;
+  content_extraction_note: string | null;
 };
 
 export type NewsletterIssueRecord = {
@@ -702,6 +789,14 @@ async function createDiffAndContent(
     now
   });
 
+  await persistMeetingIntelligence(db, {
+    contentEntryId,
+    sourceItemId: args.sourceItemId,
+    item: args.item,
+    decision: args.decision,
+    now
+  });
+
   if (args.decision.autoPublishAllowed) {
     await db
       .prepare(
@@ -751,6 +846,279 @@ async function persistEntryEntities(
         args.now
       )
       .run();
+  }
+}
+
+async function persistMeetingIntelligence(
+  db: D1Database,
+  args: {
+    contentEntryId: string;
+    sourceItemId: string;
+    item: NormalizedSourceItem;
+    decision: ContentDecision;
+    now: string;
+  }
+) {
+  const intelligence = extractMeetingIntelligence(args.item, args.decision);
+
+  if (!intelligence) {
+    return null;
+  }
+
+  return persistExtractedMeetingIntelligence(db, {
+    ...args,
+    intelligence
+  });
+}
+
+async function persistExtractedMeetingIntelligence(
+  db: D1Database,
+  args: {
+    contentEntryId: string;
+    sourceItemId: string;
+    item: NormalizedSourceItem;
+    intelligence: MeetingIntelligence;
+    now: string;
+  }
+) {
+  const existing = await db
+    .prepare(
+      `SELECT id, created_at
+      FROM meeting_record
+      WHERE source_item_id = ? OR content_entry_id = ?
+      LIMIT 1`
+    )
+    .bind(args.sourceItemId, args.contentEntryId)
+    .first<{ id: string; created_at: string }>();
+  const meetingRecordId = existing?.id ?? crypto.randomUUID();
+  const createdAt = existing?.created_at ?? args.now;
+
+  await db
+    .prepare(
+      `INSERT INTO meeting_record (
+        id, municipality_slug, source_item_id, content_entry_id, meeting_title, meeting_body,
+        meeting_date, posted_at, source_type, source_url, source_label, source_page_url,
+        recording_url, transcript_url, source_trail_json, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(source_item_id) DO UPDATE SET
+        content_entry_id = excluded.content_entry_id,
+        meeting_title = excluded.meeting_title,
+        meeting_body = excluded.meeting_body,
+        meeting_date = excluded.meeting_date,
+        posted_at = excluded.posted_at,
+        source_type = excluded.source_type,
+        source_url = excluded.source_url,
+        source_label = excluded.source_label,
+        source_page_url = excluded.source_page_url,
+        recording_url = excluded.recording_url,
+        transcript_url = excluded.transcript_url,
+        source_trail_json = excluded.source_trail_json,
+        updated_at = excluded.updated_at`
+    )
+    .bind(
+      meetingRecordId,
+      args.item.municipalitySlug,
+      args.sourceItemId,
+      args.contentEntryId,
+      args.intelligence.meeting.title,
+      args.intelligence.meeting.body,
+      args.intelligence.meeting.meetingDate,
+      args.intelligence.meeting.postedAt,
+      args.intelligence.meeting.sourceType,
+      args.intelligence.meeting.sourceUrl,
+      args.intelligence.meeting.sourceLabel,
+      args.intelligence.meeting.sourcePageUrl,
+      args.intelligence.meeting.recordingUrl,
+      args.intelligence.meeting.transcriptUrl,
+      JSON.stringify(args.intelligence.sourceTrail),
+      createdAt,
+      args.now
+    )
+    .run();
+
+  await db
+    .prepare("DELETE FROM meeting_fact WHERE meeting_record_id = ?")
+    .bind(meetingRecordId)
+    .run();
+  await db
+    .prepare("DELETE FROM project_event WHERE meeting_record_id = ?")
+    .bind(meetingRecordId)
+    .run();
+
+  for (const fact of args.intelligence.facts) {
+    await persistMeetingFact(db, {
+      meetingRecordId,
+      contentEntryId: args.contentEntryId,
+      sourceItemId: args.sourceItemId,
+      municipalitySlug: args.item.municipalitySlug,
+      fact,
+      now: args.now
+    });
+  }
+
+  for (const event of args.intelligence.projects) {
+    const projectRecordId = await upsertProjectRecord(db, {
+      municipalitySlug: args.item.municipalitySlug,
+      projectName: event.projectName,
+      now: args.now
+    });
+
+    await db
+      .prepare(
+        `INSERT INTO project_event (
+          id, project_record_id, meeting_record_id, municipality_slug, content_entry_id,
+          event_kind, summary, quote, source_type, source_url, confidence, event_date, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        crypto.randomUUID(),
+        projectRecordId,
+        meetingRecordId,
+        args.item.municipalitySlug,
+        args.contentEntryId,
+        event.eventKind,
+        event.summary,
+        event.quote,
+        event.sourceType,
+        event.sourceUrl,
+        event.confidence,
+        args.intelligence.meeting.meetingDate,
+        args.now
+      )
+      .run();
+  }
+
+  return meetingRecordId;
+}
+
+async function persistMeetingFact(
+  db: D1Database,
+  args: {
+    meetingRecordId: string;
+    contentEntryId: string;
+    sourceItemId: string;
+    municipalitySlug: string;
+    fact: ExtractedMeetingFact;
+    now: string;
+  }
+) {
+  await db
+    .prepare(
+      `INSERT INTO meeting_fact (
+        id, meeting_record_id, municipality_slug, content_entry_id, source_item_id,
+        fact_kind, label, summary, quote, source_type, source_url, source_label,
+        transcript_start_seconds, transcript_end_seconds, confidence, project_name, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      args.meetingRecordId,
+      args.municipalitySlug,
+      args.contentEntryId,
+      args.sourceItemId,
+      args.fact.kind,
+      args.fact.label,
+      args.fact.summary,
+      args.fact.quote,
+      args.fact.sourceType,
+      args.fact.sourceUrl,
+      args.fact.sourceLabel,
+      args.fact.transcriptStartSeconds,
+      args.fact.transcriptEndSeconds,
+      args.fact.confidence,
+      args.fact.projectName,
+      args.now
+    )
+    .run();
+}
+
+async function upsertProjectRecord(
+  db: D1Database,
+  args: {
+    municipalitySlug: string;
+    projectName: string;
+    now: string;
+  }
+) {
+  const normalizedName = normalizeProjectName(args.projectName);
+  const projectId = crypto.randomUUID();
+
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO project_record (
+        id, municipality_slug, normalized_name, display_name, first_seen_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?)`
+    )
+    .bind(
+      projectId,
+      args.municipalitySlug,
+      normalizedName,
+      args.projectName,
+      args.now,
+      args.now
+    )
+    .run();
+
+  await db
+    .prepare(
+      `UPDATE project_record
+      SET display_name = ?, updated_at = ?
+      WHERE municipality_slug = ? AND normalized_name = ?`
+    )
+    .bind(args.projectName, args.now, args.municipalitySlug, normalizedName)
+    .run();
+
+  const record = await db
+    .prepare(
+      `SELECT id
+      FROM project_record
+      WHERE municipality_slug = ? AND normalized_name = ?
+      LIMIT 1`
+    )
+    .bind(args.municipalitySlug, normalizedName)
+    .first<{ id: string }>();
+
+  return record?.id ?? projectId;
+}
+
+function normalizeProjectName(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function normalizeExtractionMethod(
+  method: string
+): NormalizedSourceItem["extraction"]["method"] {
+  if (
+    method === "html" ||
+    method === "pdf" ||
+    method === "ical" ||
+    method === "manual"
+  ) {
+    return method;
+  }
+
+  return "manual";
+}
+
+function parseMetadataJson(metadataJson: string) {
+  try {
+    const parsed = JSON.parse(metadataJson) as unknown;
+
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string"
+      )
+    );
+  } catch {
+    return {};
   }
 }
 
@@ -864,6 +1232,380 @@ export async function getPublishedEntryById(
     .first<PublishedEntryDetail>();
 
   return result ?? null;
+}
+
+export async function listMeetingIntelligence(
+  db: D1Database,
+  slug: string,
+  limit = 8
+) {
+  const safeLimit = Math.min(Math.max(limit, 1), 24);
+  const result = await db
+    .prepare(
+      `SELECT
+        meeting_record.id,
+        meeting_record.municipality_slug,
+        meeting_record.source_item_id,
+        meeting_record.content_entry_id,
+        meeting_record.meeting_title,
+        meeting_record.meeting_body,
+        meeting_record.meeting_date,
+        meeting_record.posted_at,
+        meeting_record.source_type,
+        meeting_record.source_url,
+        meeting_record.source_label,
+        meeting_record.source_page_url,
+        meeting_record.recording_url,
+        meeting_record.transcript_url,
+        meeting_record.source_trail_json,
+        meeting_record.created_at,
+        meeting_record.updated_at,
+        publication.published_at,
+        content_entry.title as entry_title
+      FROM meeting_record
+      INNER JOIN content_entry ON content_entry.id = meeting_record.content_entry_id
+      LEFT JOIN publication ON publication.content_entry_id = content_entry.id
+      WHERE meeting_record.municipality_slug = ?
+      ORDER BY COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC
+      LIMIT ?`
+    )
+    .bind(slug, safeLimit)
+    .all<Omit<MeetingRecordWithFacts, "facts" | "projects">>();
+
+  return hydrateMeetingRecords(db, result.results ?? []);
+}
+
+export async function getMeetingIntelligenceForEntry(
+  db: D1Database,
+  slug: string,
+  contentEntryId: string
+) {
+  const result = await db
+    .prepare(
+      `SELECT
+        meeting_record.id,
+        meeting_record.municipality_slug,
+        meeting_record.source_item_id,
+        meeting_record.content_entry_id,
+        meeting_record.meeting_title,
+        meeting_record.meeting_body,
+        meeting_record.meeting_date,
+        meeting_record.posted_at,
+        meeting_record.source_type,
+        meeting_record.source_url,
+        meeting_record.source_label,
+        meeting_record.source_page_url,
+        meeting_record.recording_url,
+        meeting_record.transcript_url,
+        meeting_record.source_trail_json,
+        meeting_record.created_at,
+        meeting_record.updated_at,
+        publication.published_at,
+        content_entry.title as entry_title
+      FROM meeting_record
+      INNER JOIN content_entry ON content_entry.id = meeting_record.content_entry_id
+      LEFT JOIN publication ON publication.content_entry_id = content_entry.id
+      WHERE meeting_record.municipality_slug = ? AND meeting_record.content_entry_id = ?
+      LIMIT 1`
+    )
+    .bind(slug, contentEntryId)
+    .first<Omit<MeetingRecordWithFacts, "facts" | "projects">>();
+
+  if (!result) {
+    return null;
+  }
+
+  const [hydrated] = await hydrateMeetingRecords(db, [result]);
+
+  return hydrated ?? null;
+}
+
+export async function listNewsletterMeetingFacts(
+  db: D1Database,
+  slug: string,
+  args: {
+    startIso: string;
+    endIso: string;
+    limit?: number;
+  }
+) {
+  const limit = Math.min(Math.max(args.limit ?? 18, 1), 50);
+  const result = await db
+    .prepare(
+      `SELECT
+        meeting_fact.id,
+        meeting_fact.meeting_record_id,
+        meeting_fact.municipality_slug,
+        meeting_fact.content_entry_id,
+        meeting_fact.source_item_id,
+        meeting_fact.fact_kind,
+        meeting_fact.label,
+        meeting_fact.summary,
+        meeting_fact.quote,
+        meeting_fact.source_type,
+        meeting_fact.source_url,
+        meeting_fact.source_label,
+        meeting_fact.transcript_start_seconds,
+        meeting_fact.transcript_end_seconds,
+        meeting_fact.confidence,
+        meeting_fact.project_name,
+        meeting_fact.created_at,
+        meeting_record.meeting_title,
+        meeting_record.meeting_body,
+        meeting_record.meeting_date,
+        meeting_record.posted_at,
+        meeting_record.recording_url,
+        meeting_record.transcript_url,
+        content_entry.title as entry_title,
+        publication.published_at
+      FROM meeting_fact
+      INNER JOIN meeting_record ON meeting_record.id = meeting_fact.meeting_record_id
+      INNER JOIN content_entry ON content_entry.id = meeting_fact.content_entry_id
+      LEFT JOIN publication ON publication.content_entry_id = content_entry.id
+      WHERE
+        meeting_fact.municipality_slug = ?
+        AND COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_fact.created_at) >= ?
+        AND COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_fact.created_at) < ?
+      ORDER BY
+        CASE meeting_fact.fact_kind
+          WHEN 'decision' THEN 1
+          WHEN 'project_update' THEN 2
+          WHEN 'condition' THEN 3
+          WHEN 'next_step' THEN 4
+          WHEN 'public_comment' THEN 5
+          ELSE 6
+        END ASC,
+        COALESCE(meeting_record.meeting_date, publication.published_at, meeting_fact.created_at) DESC
+      LIMIT ?`
+    )
+    .bind(slug, args.startIso, args.endIso, limit)
+    .all<NewsletterMeetingFact>();
+
+  return result.results ?? [];
+}
+
+export async function backfillMeetingIntelligenceForMunicipality(
+  db: D1Database,
+  slug: string,
+  limit = 40
+) {
+  const safeLimit = Math.min(Math.max(limit, 1), 80);
+  const result = await db
+    .prepare(
+      `SELECT
+        source_item.id,
+        source_item.municipality_slug,
+        source_item.source_slug,
+        source_item.external_id,
+        source_item.title,
+        source_item.source_url,
+        source_item.source_page_url,
+        source_item.normalized_text,
+        source_item.published_at,
+        source_item.event_date,
+        source_item.content_hash,
+        source_item.metadata_json,
+        source_item.extraction_method,
+        source_item.extraction_confidence,
+        source_item.extraction_note,
+        content_entry.id as content_entry_id,
+        content_entry.summary,
+        content_entry.category,
+        content_entry.impact_level,
+        content_entry.risk_level,
+        content_entry.review_state,
+        content_entry.extraction_note as content_extraction_note
+      FROM content_entry
+      INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+      LEFT JOIN meeting_record ON meeting_record.source_item_id = source_item.id
+      WHERE
+        content_entry.municipality_slug = ?
+        AND meeting_record.id IS NULL
+        AND (
+          content_entry.category IN ('approved_minutes', 'agenda_posted', 'meeting_notice', 'planning_zoning')
+          OR source_item.source_slug LIKE '%minutes%'
+          OR source_item.source_slug LIKE '%agenda%'
+          OR source_item.source_slug LIKE '%commission%'
+          OR source_item.source_slug LIKE '%hearing%'
+        )
+      ORDER BY COALESCE(source_item.event_date, source_item.published_at, content_entry.updated_at) DESC
+      LIMIT ?`
+    )
+    .bind(slug, safeLimit)
+    .all<MeetingBackfillRow>();
+
+  return backfillMeetingRows(db, result.results ?? []);
+}
+
+export async function backfillMeetingIntelligenceForEntry(
+  db: D1Database,
+  slug: string,
+  contentEntryId: string
+) {
+  const result = await db
+    .prepare(
+      `SELECT
+        source_item.id,
+        source_item.municipality_slug,
+        source_item.source_slug,
+        source_item.external_id,
+        source_item.title,
+        source_item.source_url,
+        source_item.source_page_url,
+        source_item.normalized_text,
+        source_item.published_at,
+        source_item.event_date,
+        source_item.content_hash,
+        source_item.metadata_json,
+        source_item.extraction_method,
+        source_item.extraction_confidence,
+        source_item.extraction_note,
+        content_entry.id as content_entry_id,
+        content_entry.summary,
+        content_entry.category,
+        content_entry.impact_level,
+        content_entry.risk_level,
+        content_entry.review_state,
+        content_entry.extraction_note as content_extraction_note
+      FROM content_entry
+      INNER JOIN source_item ON source_item.id = content_entry.source_item_id
+      WHERE content_entry.municipality_slug = ? AND content_entry.id = ?
+      LIMIT 1`
+    )
+    .bind(slug, contentEntryId)
+    .first<MeetingBackfillRow>();
+
+  if (!result) {
+    return 0;
+  }
+
+  return backfillMeetingRows(db, [result]);
+}
+
+async function hydrateMeetingRecords(
+  db: D1Database,
+  meetings: Array<Omit<MeetingRecordWithFacts, "facts" | "projects">>
+) {
+  if (meetings.length === 0) {
+    return [] as MeetingRecordWithFacts[];
+  }
+
+  const placeholders = meetings.map(() => "?").join(", ");
+  const meetingIds = meetings.map((meeting) => meeting.id);
+  const factsResult = await db
+    .prepare(
+      `SELECT
+        id, meeting_record_id, municipality_slug, content_entry_id, source_item_id,
+        fact_kind, label, summary, quote, source_type, source_url, source_label,
+        transcript_start_seconds, transcript_end_seconds, confidence, project_name, created_at
+      FROM meeting_fact
+      WHERE meeting_record_id IN (${placeholders})
+      ORDER BY
+        CASE fact_kind
+          WHEN 'decision' THEN 1
+          WHEN 'project_update' THEN 2
+          WHEN 'condition' THEN 3
+          WHEN 'next_step' THEN 4
+          WHEN 'public_comment' THEN 5
+          ELSE 6
+        END ASC,
+        confidence DESC`
+    )
+    .bind(...meetingIds)
+    .all<MeetingFactRecord>();
+  const projectsResult = await db
+    .prepare(
+      `SELECT
+        project_event.id,
+        project_event.project_record_id,
+        project_event.meeting_record_id,
+        project_event.municipality_slug,
+        project_event.content_entry_id,
+        project_event.event_kind,
+        project_event.summary,
+        project_event.quote,
+        project_event.source_type,
+        project_event.source_url,
+        project_event.confidence,
+        project_event.event_date,
+        project_event.created_at,
+        project_record.display_name as project_name
+      FROM project_event
+      INNER JOIN project_record ON project_record.id = project_event.project_record_id
+      WHERE project_event.meeting_record_id IN (${placeholders})
+      ORDER BY project_event.event_date DESC, project_event.created_at DESC`
+    )
+    .bind(...meetingIds)
+    .all<ProjectEventRecord>();
+  const facts = factsResult.results ?? [];
+  const projects = projectsResult.results ?? [];
+
+  return meetings.map((meeting) => ({
+    ...meeting,
+    facts: facts.filter((fact) => fact.meeting_record_id === meeting.id),
+    projects: projects.filter(
+      (project) => project.meeting_record_id === meeting.id
+    )
+  }));
+}
+
+async function backfillMeetingRows(db: D1Database, rows: MeetingBackfillRow[]) {
+  let inserted = 0;
+  const now = nowIso();
+
+  for (const row of rows) {
+    const item = mapMeetingBackfillRowToItem(row);
+    const decision = mapMeetingBackfillRowToDecision(row);
+    const meetingRecordId = await persistMeetingIntelligence(db, {
+      contentEntryId: row.content_entry_id,
+      sourceItemId: row.id,
+      item,
+      decision,
+      now
+    });
+
+    if (meetingRecordId) {
+      inserted += 1;
+    }
+  }
+
+  return inserted;
+}
+
+function mapMeetingBackfillRowToItem(row: MeetingBackfillRow): NormalizedSourceItem {
+  return {
+    municipalitySlug: row.municipality_slug,
+    sourceSlug: row.source_slug,
+    externalId: row.external_id,
+    title: row.title,
+    sourceUrl: row.source_url,
+    sourcePageUrl: row.source_page_url,
+    normalizedText: row.normalized_text,
+    publishedAt: row.published_at ?? undefined,
+    eventDate: row.event_date ?? undefined,
+    extraction: {
+      method: normalizeExtractionMethod(row.extraction_method),
+      confidence: row.extraction_confidence,
+      note: row.extraction_note ?? undefined
+    },
+    metadata: parseMetadataJson(row.metadata_json),
+    contentHash: row.content_hash
+  };
+}
+
+function mapMeetingBackfillRowToDecision(
+  row: MeetingBackfillRow
+): ContentDecision {
+  return {
+    classification: row.category as ContentDecision["classification"],
+    impactLevel: row.impact_level as ContentDecision["impactLevel"],
+    riskLevel: row.risk_level as ContentDecision["riskLevel"],
+    reviewState: row.review_state as ContentDecision["reviewState"],
+    autoPublishAllowed: row.review_state !== "review_required",
+    summary: row.summary,
+    extractionNote: row.content_extraction_note ?? row.extraction_note ?? undefined,
+    rationale: ["Backfilled from stored source item and content entry"]
+  };
 }
 
 export async function listReviewQueue(db: D1Database, slug: string) {

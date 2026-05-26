@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { hashContent, normalizedSourceItemSchema } from "@thelocalrecord/core";
 
-import { evaluateItem, extractEntryEntities } from "./index";
+import {
+  evaluateItem,
+  extractEntryEntities,
+  extractMeetingIntelligence
+} from "./index";
 
 describe("evaluateItem", () => {
   it("auto-publishes low-risk agenda items", () => {
@@ -215,5 +219,77 @@ describe("evaluateItem", () => {
     expect(
       entities.some((entity) => entity.entityKind === "meeting_date")
     ).toBe(true);
+  });
+
+  it("extracts structured meeting intelligence from substantive minutes", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-minutes",
+      externalId: "pc-minutes-intel",
+      title: "18 February 2026 - Planning Commission Minutes",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3640",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=81",
+      normalizedText:
+        "Preliminary Subdivision & Land Development Plan for Ashford Meadows - R-2 Residential Zoning District. Todd Kurl of RGS Associates Inc. presented the plan which proposes 117 lots, with 111 lots being single family residential, and 6 being open space lots. The site is located at 120 Kreider Avenue, Lancaster, PA 17601 & 2325 Lititz Pike, Lancaster, PA 17601. Motion was made by Sandy Kime and seconded by Nathan van Name to table the plan. Motion carried 6-0. Public comment included concerns about traffic near Lititz Pike. The plan will return after Township Engineer and staff review letters are addressed.",
+      eventDate: "2026-02-18T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-minutes-intel")
+    });
+    const decision = evaluateItem(item);
+    const intelligence = extractMeetingIntelligence(item, decision);
+
+    expect(intelligence?.meeting.body).toBe("Planning Commission");
+    expect(
+      intelligence?.facts.some((fact) => fact.kind === "decision")
+    ).toBe(true);
+    expect(
+      intelligence?.facts.some((fact) => fact.kind === "public_comment")
+    ).toBe(true);
+    expect(
+      intelligence?.projects.some((project) =>
+        project.projectName.includes("Ashford Meadows")
+      )
+    ).toBe(true);
+  });
+
+  it("keeps recording transcript timestamps in extracted facts", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-recording",
+      externalId: "pc-recording-1",
+      title: "Planning Commission Recording - March 18, 2026",
+      sourceUrl: "https://www.manheimtownship.org/recording",
+      sourcePageUrl: "https://www.manheimtownship.org/882/Planning-Commission",
+      normalizedText: "Planning Commission meeting recording.",
+      eventDate: "2026-03-18T00:00:00.000Z",
+      extraction: {
+        method: "manual",
+        confidence: 0.86
+      },
+      metadata: {
+        recordingUrl: "https://www.manheimtownship.org/recording.mp4",
+        transcriptUrl: "https://www.manheimtownship.org/captions.vtt",
+        transcriptText:
+          "WEBVTT\n\n00:02:10.000 --> 00:02:28.000\nMotion was made to recommend approval of the Ashford Meadows plan conditioned upon staff review letters."
+      },
+      contentHash: hashContent("pc-recording-1")
+    });
+    const intelligence = extractMeetingIntelligence(item, {
+      classification: "meeting_notice"
+    });
+    const decisionFact = intelligence?.facts.find(
+      (fact) => fact.kind === "decision"
+    );
+
+    expect(decisionFact?.sourceType).toBe("recording_transcript");
+    expect(decisionFact?.transcriptStartSeconds).toBe(130);
+    expect(intelligence?.facts.some((fact) => fact.kind === "recording_reference")).toBe(
+      true
+    );
   });
 });
