@@ -34,6 +34,7 @@ import {
   syncRegistry,
   touchSourceItem,
   updateContentEntriesForSourceItem,
+  type ExistingSourceItemLookup,
   type StoredSourceItemRecord
 } from "./d1";
 import type { WorkerEnv } from "./env";
@@ -58,6 +59,11 @@ export type IngestResult = {
   sourceFailures: IngestSourceFailure[];
 };
 
+const PLANNING_ARCHIVE_SOURCE_SLUGS = new Set([
+  "planning-commission-agendas",
+  "planning-commission-minutes"
+]);
+
 export async function ingestMunicipality(env: WorkerEnv, slug: string) {
   const municipality = getMunicipalityBySlug(slug);
 
@@ -77,9 +83,7 @@ export async function ingestMunicipality(env: WorkerEnv, slug: string) {
   const seenCrossSourceKeys = new Set<string>();
 
   try {
-    for (const source of getSourcesForMunicipality(slug).filter(
-      (entry) => entry.implemented
-    )) {
+    for (const source of getHourlyIngestSources(slug)) {
       try {
         const response = await fetch(source.url, {
           headers: {
@@ -302,6 +306,18 @@ export async function importPlanningCommissionArchives(
     throw new Error(`Unknown municipality slug: ${slug}`);
   }
 
+  if (slug !== "manheimtownshippa") {
+    return {
+      stats: {
+        sourcesFetched: 0,
+        sourcesFailed: 0,
+        itemsSeen: 0,
+        diffEventsCreated: 0
+      },
+      sourceFailures: []
+    };
+  }
+
   const archiveSources = [
     {
       sourceSlug: "planning-commission-agendas" as const,
@@ -320,6 +336,8 @@ export async function importPlanningCommissionArchives(
   const importedItems: NormalizedSourceItem[] = [];
   const sourceFailures: IngestSourceFailure[] = [];
   let sourcesFetched = 0;
+  let itemsSeen = 0;
+  let existingItemsSeen = 0;
 
   for (const source of archiveSources) {
     try {
@@ -337,8 +355,33 @@ export async function importPlanningCommissionArchives(
 
       const html = await response.text();
       const parsed = source.parser(html, source.url);
+      itemsSeen += parsed.length;
+      const itemsNeedingDetail: NormalizedSourceItem[] = [];
+
+      for (const item of parsed) {
+        const existing = await findExistingSourceItem(
+          env.DB,
+          item.sourceSlug,
+          item.externalId
+        );
+
+        if (existing) {
+          existingItemsSeen += 1;
+
+          if (archiveItemNeedsDetailRefresh(existing)) {
+            itemsNeedingDetail.push(item);
+            continue;
+          }
+
+          await touchSourceItem(env.DB, existing.id);
+          continue;
+        }
+
+        itemsNeedingDetail.push(item);
+      }
+
       const enriched = await enrichSourceItemsWithFetchedDetails(
-        parsed,
+        itemsNeedingDetail,
         source.sourceSlug,
         {
           fetchImpl: fetch,
@@ -368,12 +411,13 @@ export async function importPlanningCommissionArchives(
 
     return {
       stats: {
-        sourcesFetched: 0,
-        sourcesFailed: 0,
-        itemsSeen: 0,
+        sourcesFetched,
+        sourcesFailed: sourceFailures.length,
+        itemsSeen,
         diffEventsCreated: 0
       },
-      sourceFailures: []
+      sourceFailures,
+      existingItemsSeen
     };
   }
 
@@ -388,10 +432,23 @@ export async function importPlanningCommissionArchives(
       ...importedResult.stats,
       sourcesFetched,
       sourcesFailed: sourceFailures.length,
-      itemsSeen: importedItems.length
+      itemsSeen
     },
-    sourceFailures
+    sourceFailures,
+    existingItemsSeen
   };
+}
+
+function getHourlyIngestSources(slug: string) {
+  return getSourcesForMunicipality(slug).filter(
+    (entry) => entry.implemented && !PLANNING_ARCHIVE_SOURCE_SLUGS.has(entry.slug)
+  );
+}
+
+function archiveItemNeedsDetailRefresh(existing: ExistingSourceItemLookup) {
+  const normalizedTextLength = existing.normalized_text.trim().length;
+
+  return existing.extraction_method !== "pdf" || normalizedTextLength < 700;
 }
 
 export async function resummarizeMunicipalityItems(

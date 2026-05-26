@@ -1,4 +1,8 @@
-import { getMunicipalityBySlug, municipalities } from "@thelocalrecord/core";
+import {
+  getMunicipalityBySlug,
+  municipalities,
+  normalizedSourceItemSchema
+} from "@thelocalrecord/core";
 
 import {
   ActiveFetchRunError,
@@ -32,7 +36,11 @@ import {
 } from "./d1";
 import { authenticateResident } from "./auth";
 import type { WorkerEnv } from "./env";
-import { importPlanningCommissionArchives, ingestMunicipality } from "./ingest";
+import {
+  importMunicipalityItems,
+  importPlanningCommissionArchives,
+  ingestMunicipality
+} from "./ingest";
 import {
   generateWeeklyNewsletterIssue,
   sendNewsletterConfirmationEmail
@@ -78,7 +86,7 @@ export default {
     }
 
     if (url.pathname.startsWith("/admin/")) {
-      if (!isLocalAdminRequest(url)) {
+      if (!isAdminRequest(request, env, url)) {
         return new Response("Not found", {
           status: 404,
           headers: buildJsonHeaders(request)
@@ -120,6 +128,62 @@ export default {
 
           throw error;
         }
+      }
+
+      if (
+        url.pathname === "/admin/import-planning-archives" &&
+        request.method === "POST"
+      ) {
+        const result = await importPlanningCommissionArchives(
+          env,
+          "manheimtownshippa"
+        );
+
+        return jsonResponse(request, {
+          ok: true,
+          slug: "manheimtownshippa",
+          stats: result.stats,
+          sourceFailures: result.sourceFailures
+        });
+      }
+
+      if (url.pathname === "/admin/import" && request.method === "POST") {
+        const slug = url.searchParams.get("slug") ?? "manheimtownshippa";
+        const municipality = getMunicipalityBySlug(slug);
+
+        if (!municipality) {
+          return jsonResponse(
+            request,
+            { ok: false, error: "unknown_municipality" },
+            { status: 400 }
+          );
+        }
+
+        const body = (await request.json().catch(() => null)) as {
+          items?: unknown[];
+        } | null;
+        const parsedItems = (body?.items ?? [])
+          .map((item) => normalizedSourceItemSchema.safeParse(item))
+          .filter((result) => result.success)
+          .map((result) => result.data)
+          .filter((item) => item.municipalitySlug === slug);
+
+        if (parsedItems.length === 0) {
+          return jsonResponse(
+            request,
+            { ok: false, error: "no_valid_items" },
+            { status: 400 }
+          );
+        }
+
+        const result = await importMunicipalityItems(env, slug, parsedItems);
+
+        return jsonResponse(request, {
+          ok: true,
+          slug,
+          stats: result.stats,
+          sourceFailures: result.sourceFailures
+        });
       }
 
       return new Response("Not found", {
@@ -546,29 +610,27 @@ export default {
         }
 
         if (event.cron === "37 6 * * *") {
-          for (const municipality of municipalities) {
-            try {
-              const result = await importPlanningCommissionArchives(
-                env,
-                municipality.slug
+          try {
+            const result = await importPlanningCommissionArchives(
+              env,
+              "manheimtownshippa"
+            );
+
+            if (result.sourceFailures.length > 0) {
+              console.warn(
+                "Archive import completed with source failures",
+                JSON.stringify({
+                  municipality: "manheimtownshippa",
+                  sourceFailures: result.sourceFailures
+                })
               );
-
-              if (result.sourceFailures.length > 0) {
-                console.warn(
-                  "Archive import completed with source failures",
-                  JSON.stringify({
-                    municipality: municipality.slug,
-                    sourceFailures: result.sourceFailures
-                  })
-                );
-              }
-            } catch (error) {
-              if (error instanceof ActiveFetchRunError) {
-                continue;
-              }
-
-              throw error;
             }
+          } catch (error) {
+            if (error instanceof ActiveFetchRunError) {
+              return;
+            }
+
+            throw error;
           }
 
           return;
@@ -924,8 +986,34 @@ function getAllowedOrigin(request: Request) {
   return PRIMARY_SITE_ORIGIN;
 }
 
-function isLocalAdminRequest(url: URL) {
-  return url.hostname === "localhost" || url.hostname === "127.0.0.1";
+function isAdminRequest(request: Request, env: WorkerEnv, url: URL) {
+  if (isLocalAdminRequest(request, url)) {
+    return true;
+  }
+
+  const token = env.ADMIN_TOKEN?.trim();
+
+  if (!token) {
+    return false;
+  }
+
+  const authHeader = request.headers.get("authorization")?.trim() ?? "";
+  const bearerToken = authHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  const headerToken = request.headers.get("x-admin-token")?.trim();
+
+  return bearerToken === token || headerToken === token;
+}
+
+function isLocalAdminRequest(request: Request, url: URL) {
+  if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+    return false;
+  }
+
+  return (
+    !request.headers.has("cf-connecting-ip") &&
+    !request.headers.has("cf-ray") &&
+    !request.headers.has("cf-worker")
+  );
 }
 
 async function enforceRateLimit(

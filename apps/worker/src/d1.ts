@@ -67,6 +67,13 @@ export type StoredSourceItemRecord = {
   extraction_note: string | null;
 };
 
+export type ExistingSourceItemLookup = {
+  id: string;
+  content_hash: string;
+  normalized_text: string;
+  extraction_method: string;
+};
+
 export type NewsletterSubscriptionRecord = {
   id: string;
   municipality_slug: string;
@@ -590,13 +597,15 @@ export async function findExistingSourceItem(
   db: D1Database,
   sourceSlug: string,
   externalId: string
-): QueryResult<{ id: string; content_hash: string }> {
+): QueryResult<ExistingSourceItemLookup> {
   return db
     .prepare(
-      "SELECT id, content_hash FROM source_item WHERE source_slug = ? AND external_id = ?"
+      `SELECT id, content_hash, normalized_text, extraction_method
+      FROM source_item
+      WHERE source_slug = ? AND external_id = ?`
     )
     .bind(sourceSlug, externalId)
-    .first<{ id: string; content_hash: string }>();
+    .first<ExistingSourceItemLookup>();
 }
 
 export async function touchSourceItem(db: D1Database, sourceItemId: string) {
@@ -1267,6 +1276,7 @@ export async function listMeetingIntelligence(
       LEFT JOIN publication ON publication.content_entry_id = content_entry.id
       WHERE meeting_record.municipality_slug = ?
       ORDER BY
+        COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC,
         CASE
           WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') AND EXISTS (
             SELECT 1
@@ -1288,8 +1298,7 @@ export async function listMeetingIntelligence(
           WHEN meeting_record.source_type IN ('minutes', 'recording_transcript') THEN 1
           WHEN meeting_record.source_type = 'agenda' THEN 2
           ELSE 3
-        END ASC,
-        COALESCE(meeting_record.meeting_date, meeting_record.posted_at, publication.published_at, meeting_record.updated_at) DESC
+        END ASC
       LIMIT ?`
     )
     .bind(slug, safeLimit)
@@ -1415,7 +1424,8 @@ export async function backfillMeetingIntelligenceForMunicipality(
   const safeLimit = Math.min(Math.max(limit, 1), 80);
   const result = await db
     .prepare(
-      `SELECT
+      `WITH meeting_candidates AS (
+      SELECT
         source_item.id,
         source_item.municipality_slug,
         source_item.source_slug,
@@ -1437,7 +1447,12 @@ export async function backfillMeetingIntelligenceForMunicipality(
         content_entry.impact_level,
         content_entry.risk_level,
         content_entry.review_state,
-        content_entry.extraction_note as content_extraction_note
+        content_entry.extraction_note as content_extraction_note,
+        content_entry.updated_at as content_entry_updated_at,
+        ROW_NUMBER() OVER (
+          PARTITION BY source_item.id
+          ORDER BY content_entry.updated_at DESC, content_entry.created_at DESC
+        ) as row_number
       FROM content_entry
       INNER JOIN source_item ON source_item.id = content_entry.source_item_id
       LEFT JOIN meeting_record ON meeting_record.source_item_id = source_item.id
@@ -1457,23 +1472,27 @@ export async function backfillMeetingIntelligenceForMunicipality(
           OR lower(source_item.title) LIKE '%recording%'
           OR lower(source_item.title) LIKE '%transcript%'
         )
+      )
+      SELECT *
+      FROM meeting_candidates
+      WHERE row_number = 1
       ORDER BY
+        COALESCE(event_date, published_at, content_entry_updated_at) DESC,
         CASE
-          WHEN content_entry.category = 'approved_minutes'
-            OR source_item.source_slug LIKE '%minutes%'
-            OR lower(source_item.title) LIKE '%minutes%' THEN 1
-          WHEN source_item.source_slug LIKE '%transcript%'
-            OR source_item.source_slug LIKE '%recording%'
-            OR lower(source_item.title) LIKE '%transcript%'
-            OR lower(source_item.title) LIKE '%recording%' THEN 2
-          WHEN content_entry.category = 'meeting_notice'
-            OR lower(source_item.title) LIKE '%meeting%' THEN 3
-          WHEN content_entry.category = 'agenda_posted'
-            OR source_item.source_slug LIKE '%agenda%'
-            OR lower(source_item.title) LIKE '%agenda%' THEN 4
+          WHEN category = 'approved_minutes'
+            OR source_slug LIKE '%minutes%'
+            OR lower(title) LIKE '%minutes%' THEN 1
+          WHEN source_slug LIKE '%transcript%'
+            OR source_slug LIKE '%recording%'
+            OR lower(title) LIKE '%transcript%'
+            OR lower(title) LIKE '%recording%' THEN 2
+          WHEN category = 'meeting_notice'
+            OR lower(title) LIKE '%meeting%' THEN 3
+          WHEN category = 'agenda_posted'
+            OR source_slug LIKE '%agenda%'
+            OR lower(title) LIKE '%agenda%' THEN 4
           ELSE 5
-        END ASC,
-        COALESCE(source_item.event_date, source_item.published_at, content_entry.updated_at) DESC
+        END ASC
       LIMIT ?`
     )
     .bind(slug, safeLimit)

@@ -64,7 +64,10 @@ async function main() {
   const importResponse = await fetch(`${apiBase}/admin/import?slug=${slug}`, {
     method: "POST",
     headers: {
-      "content-type": "application/json"
+      "content-type": "application/json",
+      ...(process.env.ADMIN_TOKEN
+        ? { authorization: `Bearer ${process.env.ADMIN_TOKEN}` }
+        : {})
     },
     body: JSON.stringify({
       items: imported

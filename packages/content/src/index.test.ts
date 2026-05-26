@@ -323,7 +323,41 @@ describe("evaluateItem", () => {
       classification: "agenda_posted"
     });
 
-    expect(intelligence).toBeNull();
+    expect(intelligence?.meeting.sourceType).toBe("agenda");
+    expect(intelligence?.facts).toEqual([]);
+    expect(intelligence?.projects).toEqual([]);
+  });
+
+  it("does not promote agenda sections marked none into resident-facing facts", () => {
+    const item = normalizedSourceItemSchema.parse({
+      municipalitySlug: "manheimtownshippa",
+      sourceSlug: "planning-commission-agendas",
+      externalId: "pc-agenda-action-none",
+      title: "20 May 2026 Planning Commission Agenda",
+      sourceUrl: "https://www.manheimtownship.org/Archive.aspx?ADID=3674",
+      sourcePageUrl: "https://www.manheimtownship.org/Archive.aspx?AMID=80",
+      normalizedText:
+        "Subdivision & Land Development Plans - Action - none. Staff Update / Status on LD Projects. B) Brethren Village Tapestrie Development Phase I LD Plan This plan includes Phase I - roadways, utilities, and stormwater management. Future phases will include the development of proposed Mixed Use for lots 2,3,4,&5.",
+      eventDate: "2026-05-20T00:00:00.000Z",
+      extraction: {
+        method: "pdf",
+        confidence: 0.91,
+        note: "Text extracted from the posted PDF document."
+      },
+      metadata: {},
+      contentHash: hashContent("pc-agenda-action-none")
+    });
+    const intelligence = extractMeetingIntelligence(item, {
+      classification: "agenda_posted"
+    });
+    const summaries = intelligence?.facts.map((fact) => fact.summary) ?? [];
+
+    expect(summaries.some((summary) => /action\s*-\s*none/i.test(summary))).toBe(
+      false
+    );
+    expect(summaries.some((summary) => /Brethren Village/i.test(summary))).toBe(
+      true
+    );
   });
 
   it("does not attach adjournment votes to the previous project", () => {

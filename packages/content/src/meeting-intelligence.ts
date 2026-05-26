@@ -157,7 +157,11 @@ export function extractMeetingIntelligence(
   });
   const projects = buildProjectEvents(facts, item);
 
-  if (facts.length === 0 && projects.length === 0) {
+  if (
+    facts.length === 0 &&
+    projects.length === 0 &&
+    !shouldKeepSourceOnlyMeeting(sourceType)
+  ) {
     return null;
   }
 
@@ -276,6 +280,10 @@ function inferSourceLabel(
     .join(" ");
 }
 
+function shouldKeepSourceOnlyMeeting(sourceType: MeetingSourceType) {
+  return sourceType === "agenda" || sourceType === "minutes";
+}
+
 function buildTextSegments(value: string, sourceType: MeetingSourceType) {
   return splitSentences(value).map((text) => ({
     text,
@@ -385,6 +393,10 @@ function buildFacts(args: {
     }
 
     const projectBrief = buildProjectBrief(block);
+
+    if (!block.projectName && args.sourceType === "agenda") {
+      continue;
+    }
 
     if (!decisionBrief && projectBrief && primaryEvidence) {
       addFact(facts, {
@@ -1040,13 +1052,13 @@ function buildSourceTrail(
 
 function splitSentences(value: string) {
   return compactText(value)
-    .split(/(?<=[.!?])\s+|(?=\bMotion was made\b)|(?=\bPreliminary\b)|(?=\bFinal\b)|(?=\bPublic Comment\b)/)
+    .split(/(?<=[.!?])\s+|(?=\bMotion was made\b)|(?=\bPreliminary\b)|(?=\bFinal\b)|(?=\bPublic Comment\b)|(?=\bComprehensive Plan\b)|(?=\bSubdivision (?:and|&) Land Development Plans\b)|(?=\bConditional Use Applications\b)|(?=\b[A-Za-z]\)\s+[A-Z])/)
     .map((sentence) => compactText(sentence))
     .filter((sentence) => sentence.length >= 24 || VOTE_PATTERNS.test(sentence));
 }
 
 function isLowSignalProcedure(value: string) {
-  return /call to order|roll call|pledge of allegiance|approval of (?:the )?minutes|approve the minutes|adjourn(?:ed|ment| the meeting)?|members present|attendance|zoom link|meeting calendar|located on the home page|join (?:the )?meeting|virtual meeting|public comment\s*[-–:]?\s*none\b/i.test(
+  return /call to order|roll call|pledge of allegiance|approval of (?:the )?minutes|approve the minutes|adjourn(?:ed|ment| the meeting)?|members present|attendance|zoom link|meeting calendar|located on the home page|join (?:the )?meeting|virtual meeting|(?:action|briefing|public comment)\s*[-–:]\s*none\b|plans?\s*[-–:]\s*action\s*[-–:]\s*none\b/i.test(
     value
   );
 }
@@ -1177,7 +1189,7 @@ function isBadProjectName(value: string) {
     value.length < 4 ||
     !/^[A-Z0-9]/.test(value) ||
     /^(?:preliminary|final)$/i.test(value) ||
-    /planning commission|board of commissioners|zoning hearing|meeting minutes|preliminary subdivision|land development plan|planned residential development|concept plan|approved planned|the plan|the land|purpose of|revisions to|township dedication|penndot permitting|review letters|satisfaction of/i.test(
+    /planning commission|board of commissioners|zoning hearing|meeting minutes|preliminary subdivision|land development(?: plan)?|subdivision|planned residential development|concept plan|approved planned|the plan|the land|purpose of|revisions to|township dedication|penndot permitting|review letters|satisfaction of/i.test(
       value
     )
   );

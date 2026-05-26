@@ -318,7 +318,7 @@ function MeetingRow({
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-ink/50">
         <span>{formatDate(meeting.meeting_date ?? meeting.posted_at)}</span>
         <span>{meeting.meeting_body}</span>
-        <span>{meeting.facts.length} facts</span>
+        <span>{meeting.facts.length > 0 ? `${meeting.facts.length} facts` : "Source linked"}</span>
       </div>
       <h3 className="mt-2 font-serif text-2xl leading-tight text-ink">
         {meeting.meeting_title}
