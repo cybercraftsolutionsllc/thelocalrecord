@@ -132,7 +132,7 @@ export function UpdateCard(props: UpdateCardProps) {
     props.summary,
     props.topicText
   );
-  const canExpand = expandedExcerpt.length > 0;
+  const canExpand = expandedExcerpt.length > 0 || props.summary.length > 220;
   const important =
     props.impactLevel === "important" ||
     props.impactLevel === "critical_source";
@@ -143,7 +143,7 @@ export function UpdateCard(props: UpdateCardProps) {
         important ? "border-clay/25" : "border-ink/10"
       }`}
     >
-      <div className="p-5 sm:p-6">
+      <div className="p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink/44">
           <span className="rounded-full bg-sky px-3 py-1 text-moss">
             {signal.laneLabel}
@@ -155,23 +155,27 @@ export function UpdateCard(props: UpdateCardProps) {
           <span>{datedLabel}</span>
         </div>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.36fr)]">
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.34fr)]">
           <div>
-            <h3 className="font-serif text-3xl leading-tight text-ink">
+            <h3 className="font-serif text-2xl leading-tight text-ink sm:text-3xl">
               {props.title}
             </h3>
-            <p className="mt-3 text-base leading-7 text-ink/72">
+            <p
+              className={`mt-2 text-sm leading-6 text-ink/70 sm:text-base sm:leading-7 ${
+                expanded ? "" : "clamp-2"
+              }`}
+            >
               {props.summary}
             </p>
           </div>
 
-          <aside className="border-t border-ink/8 pt-4 text-sm lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+          <aside className="rounded-2xl bg-sand/80 p-4 text-sm">
             <p className="font-semibold text-moss">Resident read</p>
-            <p className="mt-3 leading-6 text-ink/66">
+            <p className="mt-2 leading-6 text-ink/66">
               <span className="font-semibold text-ink">Why: </span>
               {signal.why}
             </p>
-            <p className="mt-3 leading-6 text-ink/66">
+            <p className="mt-2 leading-6 text-ink/66">
               <span className="font-semibold text-ink">Do next: </span>
               {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
               {signal.action}
@@ -188,9 +192,9 @@ export function UpdateCard(props: UpdateCardProps) {
                   onClick={() => setExpanded((current) => !current)}
                   className="text-sm font-semibold text-moss underline-offset-4 hover:underline"
                 >
-                  {expanded ? "Hide source context" : "Show source context"}
+                  {expanded ? "Less" : "More context"}
                 </button>
-                {expanded ? (
+                {expanded && expandedExcerpt ? (
                   <p className="mt-3 text-sm leading-7 text-ink/68">
                     {expandedExcerpt}
                   </p>
@@ -198,7 +202,7 @@ export function UpdateCard(props: UpdateCardProps) {
               </>
             ) : null}
 
-            {props.extractionNote ? (
+            {expanded && props.extractionNote ? (
               <p className="mt-3 text-sm leading-6 text-ink/58">
                 {props.extractionNote}
               </p>

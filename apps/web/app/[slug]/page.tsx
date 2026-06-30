@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { LocalityAskBox } from "../../components/locality-ask-box";
 import { LocalityMeetingIntelligence } from "../../components/locality-meeting-intelligence";
 import { LocalityNewsletterBox } from "../../components/locality-newsletter-box";
-import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
 import { getLocalityData } from "../../lib/data";
 import { municipalities } from "@thelocalrecord/core";
@@ -28,45 +28,12 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   const activeSources = data.municipality.sources.filter(
     (source) => source.implemented
   );
-  const sourceCategories = new Set(
-    activeSources.map((source) => source.publicCategory)
-  );
-
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-4 sm:gap-8 sm:px-6 lg:py-10">
-      <section className="rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-moss">
-              {data.municipality.name}
-            </p>
-            <h1 className="mt-2 max-w-4xl font-serif text-3xl leading-tight text-ink sm:text-5xl">
-              One calm place to find what local records say.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/64 sm:text-base sm:leading-7">
-              Search official posts, notices, agendas, minutes, projects, and
-              public documents without learning the municipal website first.
-            </p>
-          </div>
-
-          <div className="hidden grid-cols-3 gap-2 text-sm sm:grid lg:min-w-[390px]">
-            <Stat label="Sources" value={activeSources.length} />
-            <Stat label="Lanes" value={sourceCategories.size} />
-            <Stat
-              label="Status"
-              value={activeSources.length > 0 ? "Live" : "Planned"}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 hidden border-t border-ink/8 pt-3 sm:mt-5 sm:block sm:pt-4">
-          <LocalitySubnav slug={slug} currentSuffix="" />
-        </div>
-      </section>
-
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-4 sm:px-6 lg:py-8">
       <section className="min-w-0">
         <LivePublishedEntries
           slug={slug}
+          municipalityName={data.municipality.name}
           initialEntries={data.entries}
           trackedSources={activeSources.map((source) => ({
             name: source.name,
@@ -76,33 +43,41 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         />
       </section>
 
-      <LocalityMeetingIntelligence slug={slug} />
+      <section className="grid gap-3 md:grid-cols-3">
+        <ToolDetails title="Meeting details" summary="Decisions and project movement">
+          <LocalityMeetingIntelligence slug={slug} />
+        </ToolDetails>
 
-      <LocalityAskBox slug={slug} />
+        <ToolDetails title="Ask" summary="Plain answer with citations">
+          <LocalityAskBox slug={slug} />
+        </ToolDetails>
 
-      <LocalityNewsletterBox
-        slug={slug}
-        municipalityName={data.municipality.shortName}
-      />
+        <ToolDetails title="Weekly digest" summary="Source-linked email updates">
+          <LocalityNewsletterBox
+            slug={slug}
+            municipalityName={data.municipality.shortName}
+          />
+        </ToolDetails>
+      </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6">
-        <p className="text-sm font-semibold text-moss">Source trail</p>
-        <div className="mt-4 divide-y divide-ink/8 text-sm">
+      <section className="rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card">
+        <p className="text-sm font-semibold text-moss">Trust trail</p>
+        <div className="mt-3 flex flex-wrap gap-2 text-sm">
           <Link
             href={`/${slug}/source-inventory`}
-            className="block py-3 font-semibold text-ink/70 transition first:pt-0 last:pb-0 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
           >
-            Tracked sources
+            Sources
           </Link>
           <Link
             href={`/${slug}/corrections`}
-            className="block py-3 font-semibold text-ink/70 transition first:pt-0 last:pb-0 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
           >
             Fix a detail
           </Link>
           <Link
             href="/policy"
-            className="block py-3 font-semibold text-ink/70 transition first:pt-0 last:pb-0 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
           >
             Rules
           </Link>
@@ -112,21 +87,28 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   );
 }
 
-function Stat({
-  label,
-  value
+function ToolDetails({
+  title,
+  summary,
+  children
 }: {
-  label: string;
-  value: string | number;
+  title: string;
+  summary: string;
+  children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-sand/70 px-3 py-2 sm:px-4 sm:py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/42">
-        {label}
-      </p>
-      <p className="mt-1 font-serif text-2xl leading-none text-ink sm:mt-2">
-        {value}
-      </p>
-    </div>
+    <details className="group">
+      <summary className="cursor-pointer list-none rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card">
+        <p className="font-serif text-2xl leading-tight text-ink">{title}</p>
+        <p className="mt-1 text-sm leading-6 text-ink/58">{summary}</p>
+        <p className="mt-3 text-sm font-semibold text-moss group-open:hidden">
+          Open
+        </p>
+        <p className="mt-3 hidden text-sm font-semibold text-moss group-open:block">
+          Close
+        </p>
+      </summary>
+      <div className="mt-4">{children}</div>
+    </details>
   );
 }

@@ -18,6 +18,7 @@ import { UpdateCard } from "./update-card";
 
 type LivePublishedEntriesProps = {
   slug: string;
+  municipalityName: string;
   initialEntries: PublicEntry[];
   trackedSources?: Array<{
     name: string;
@@ -174,6 +175,7 @@ function getRecentEntries(entries: PublicEntry[]) {
 
 export function LivePublishedEntries({
   slug,
+  municipalityName,
   initialEntries,
   trackedSources = []
 }: LivePublishedEntriesProps) {
@@ -191,12 +193,14 @@ export function LivePublishedEntries({
   const [feedView, setFeedView] = useState<FeedViewKey>("events_of_note");
   const [activeLane, setActiveLane] = useState<ResidentLaneKey>("all");
   const [query, setQuery] = useState("");
+  const [visibleLimit, setVisibleLimit] = useState(4);
   const pageSize = 18;
 
   const applySearch = useCallback((nextQuery: string) => {
     setFeedView("all_records");
     setActiveLane("all");
     setPage(1);
+    setVisibleLimit(4);
     setQuery(nextQuery);
 
     if (typeof window !== "undefined") {
@@ -212,6 +216,7 @@ export function LivePublishedEntries({
     setActiveLane("all");
     setQuery("");
     setPage(1);
+    setVisibleLimit(4);
 
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -365,6 +370,10 @@ export function LivePublishedEntries({
     };
   }, [query, slug]);
 
+  useEffect(() => {
+    setVisibleLimit(4);
+  }, [activeLane, feedView, query]);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const loadedCount = entries.length;
   const normalizedQuery = query.trim().toLowerCase();
@@ -425,13 +434,18 @@ export function LivePublishedEntries({
   const displayEntries = filteredEntries.filter(
     (entry) => entry.id !== featuredEntry?.id
   );
+  const visibleDisplayEntries = displayEntries.slice(0, visibleLimit);
+  const remainingDisplayCount = Math.max(
+    0,
+    displayEntries.length - visibleDisplayEntries.length
+  );
   const hasAnyResult = Boolean(featuredEntry) || filteredEntries.length > 0;
 
   if (entries.length > 0) {
     return (
       <div id="records" className="space-y-5 scroll-mt-24">
         <CommunityBriefing
-          entries={visiblePool}
+          municipalityName={municipalityName}
           featuredEntry={featuredEntry}
           trackedSources={trackedSources}
           total={searchActive ? searchTotal : total}
@@ -451,29 +465,29 @@ export function LivePublishedEntries({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-moss">
-              {searchActive ? "More source matches" : "Source-linked record feed"}
+              {searchActive ? "Other matches" : "Also watch"}
             </p>
-            <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
+            <h2 className="mt-1 font-serif text-2xl leading-tight text-ink sm:text-3xl">
               {searchActive
                 ? `Records related to "${query.trim()}"`
                 : feedView === "events_of_note"
-                  ? "Important records after the top item"
-                  : "All records after the top item"}
+                  ? "More important records"
+                  : "More local records"}
             </h2>
           </div>
           <p className="text-sm leading-6 text-ink/58">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full live record."
-                : `${filteredEntries.length} source-linked match${
+                : `${filteredEntries.length} match${
                     filteredEntries.length === 1 ? "" : "es"
-                  } in view.`
-              : `Showing ${filteredEntries.length} of ${visiblePool.length} loaded records.`}
+                  }.`
+              : `${filteredEntries.length} in this view.`}
           </p>
         </div>
 
         <div className="space-y-3">
-          {displayEntries.map((entry) => (
+          {visibleDisplayEntries.map((entry) => (
             <UpdateCard key={entry.id} {...entry} />
           ))}
         </div>
@@ -492,11 +506,20 @@ export function LivePublishedEntries({
           <p className="text-sm text-ink/70">
             {searchActive
               ? searchStatus === "loading"
-                ? "Search is running across the full live locality record, not just loaded cards."
-                : "Search ran across the full live locality record, not just loaded cards."
+                ? "Searching every live record."
+                : "Search checked the full live record."
               : `Page ${Math.min(page, totalPages)} of ${totalPages}`}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
+            {remainingDisplayCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => setVisibleLimit((current) => current + 4)}
+                className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+              >
+                Show {Math.min(4, remainingDisplayCount)} more
+              </button>
+            ) : null}
             {searchActive ? (
               <button
                 type="button"
@@ -516,7 +539,10 @@ export function LivePublishedEntries({
                 Reset filters
               </button>
             ) : null}
-            {!searchActive && page < totalPages && loadedCount < total ? (
+            {!searchActive &&
+            remainingDisplayCount === 0 &&
+            page < totalPages &&
+            loadedCount < total ? (
               <button
                 type="button"
                 onClick={() =>
