@@ -8,11 +8,11 @@ type LocalitySubnavProps = {
 
 const items = [
   { suffix: "", label: "Overview" },
-  { suffix: "#records", label: "Search" },
-  { suffix: "#newsletter", label: "Subscribe" },
-  { suffix: "#ask", label: "Ask" },
+  { suffix: "#records", label: "Search record" },
+  { suffix: "#ask", label: "Ask a question" },
+  { suffix: "#newsletter", label: "Weekly digest" },
   { suffix: "/source-inventory", label: "Sources" },
-  { suffix: "/corrections", label: "Fix" }
+  { suffix: "/corrections", label: "Fix a detail" }
 ];
 
 export function LocalitySubnav({

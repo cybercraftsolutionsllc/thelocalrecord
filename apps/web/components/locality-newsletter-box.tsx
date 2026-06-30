@@ -101,14 +101,15 @@ export function LocalityNewsletterBox({
   return (
     <section
       id="newsletter"
-      className="rounded-lg border border-ink/10 bg-white p-5"
+      className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6"
     >
       <p className="text-sm font-semibold text-moss">Weekly digest</p>
-      <h2 className="mt-2 font-serif text-2xl leading-tight text-ink">
-        {municipalityName} by email
+      <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+        Keep an eye on {municipalityName}
       </h2>
       <p className="mt-2 text-sm leading-6 text-ink/62">
-        Source-linked weekly updates.
+        A weekly source-linked roundup for people who do not want to check the
+        record every day.
       </p>
 
       <form className="mt-4 space-y-2" onSubmit={handleSubmit}>

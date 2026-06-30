@@ -33,41 +33,34 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="relative overflow-hidden rounded-xl border border-ink/10 bg-ink text-white shadow-card">
-        <img
-          src="/images/manheim-hero.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-32"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/88 to-ink/52" />
-        <div className="relative p-5 sm:p-7">
-          <p className="text-sm font-semibold text-sky">
-            {data.municipality.name}
-          </p>
-          <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-white sm:text-6xl">
-            Your resident record for what is changing nearby.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/74">
-            Search roads, ordinances, projects, parks, meetings, permits, and
-            official updates. Every important claim points back to a public
-            source.
-          </p>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-4 sm:gap-8 sm:px-6 lg:py-10">
+      <section className="rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-moss">
+              {data.municipality.name}
+            </p>
+            <h1 className="mt-2 max-w-4xl font-serif text-3xl leading-tight text-ink sm:text-5xl">
+              One calm place to find what local records say.
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/64 sm:text-base sm:leading-7">
+              Search official posts, notices, agendas, minutes, projects, and
+              public documents without learning the municipal website first.
+            </p>
+          </div>
 
-          <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
-            <Stat label="Tracked sources" value={activeSources.length} dark />
-            <Stat label="Coverage lanes" value={sourceCategories.size} dark />
+          <div className="hidden grid-cols-3 gap-2 text-sm sm:grid lg:min-w-[390px]">
+            <Stat label="Sources" value={activeSources.length} />
+            <Stat label="Lanes" value={sourceCategories.size} />
             <Stat
               label="Status"
               value={activeSources.length > 0 ? "Live" : "Planned"}
-              dark
             />
           </div>
+        </div>
 
-          <div className="mt-6">
-            <LocalitySubnav slug={slug} currentSuffix="" tone="dark" />
-          </div>
+        <div className="mt-4 hidden border-t border-ink/8 pt-3 sm:mt-5 sm:block sm:pt-4">
+          <LocalitySubnav slug={slug} currentSuffix="" />
         </div>
       </section>
 
@@ -85,14 +78,14 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
       <LocalityMeetingIntelligence slug={slug} />
 
+      <LocalityAskBox slug={slug} />
+
       <LocalityNewsletterBox
         slug={slug}
         municipalityName={data.municipality.shortName}
       />
 
-      <LocalityAskBox slug={slug} />
-
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
+      <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6">
         <p className="text-sm font-semibold text-moss">Source trail</p>
         <div className="mt-4 divide-y divide-ink/8 text-sm">
           <Link
@@ -121,27 +114,17 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
 function Stat({
   label,
-  value,
-  dark = false
+  value
 }: {
   label: string;
   value: string | number;
-  dark?: boolean;
 }) {
   return (
-    <div
-      className={`flex items-center justify-between gap-4 border-t px-0 py-3 text-sm sm:border-t-0 ${
-        dark ? "border-white/16" : "border-ink/8 px-4"
-      }`}
-    >
-      <p className={`font-semibold ${dark ? "text-white/58" : "text-ink/58"}`}>
+    <div className="rounded-xl border border-ink/8 bg-sand/70 px-3 py-2 sm:px-4 sm:py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/42">
         {label}
       </p>
-      <p
-        className={`font-serif text-2xl leading-none ${
-          dark ? "text-white" : "text-ink"
-        }`}
-      >
+      <p className="mt-1 font-serif text-2xl leading-none text-ink sm:mt-2">
         {value}
       </p>
     </div>

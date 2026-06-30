@@ -7,6 +7,7 @@ import { contentApiBase } from "../lib/public-config";
 import {
   buildRecordSignal,
   getResidentLane,
+  isImportantEntry,
   residentLaneLabels,
   residentLaneOrder,
   type ResidentLaneKey
@@ -150,6 +151,25 @@ function mapApiEntry(entry: ApiEntry, slug: string): PublicEntry {
     detailUrl: `/${slug}/item/?id=${encodeURIComponent(entry.id)}`,
     topicText: entry.topic_text ?? ""
   };
+}
+
+function parseEntryDate(entry: PublicEntry) {
+  const date = new Date(entry.sourceMaterialDate ?? entry.publishedAt);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getRecentEntries(entries: PublicEntry[]) {
+  return entries
+    .map((entry) => ({
+      entry,
+      date: parseEntryDate(entry)
+    }))
+    .filter((item): item is { entry: PublicEntry; date: Date } =>
+      Boolean(item.date)
+    )
+    .sort((left, right) => right.date.getTime() - left.date.getTime())
+    .map((item) => item.entry);
 }
 
 export function LivePublishedEntries({
@@ -396,107 +416,70 @@ export function LivePublishedEntries({
       `${entry.title} ${entry.summary} ${entry.category} ${entry.sourceLabel} ${entry.topicText ?? ""}`.toLowerCase();
     return haystack.includes(normalizedQuery);
   });
+  const recentVisibleEntries = searchActive
+    ? visiblePool
+    : getRecentEntries(visiblePool);
+  const featuredEntry = searchActive
+    ? visiblePool[0]
+    : (recentVisibleEntries.find(isImportantEntry) ?? recentVisibleEntries[0]);
+  const displayEntries = filteredEntries.filter(
+    (entry) => entry.id !== featuredEntry?.id
+  );
+  const hasAnyResult = Boolean(featuredEntry) || filteredEntries.length > 0;
 
   if (entries.length > 0) {
     return (
-      <div id="records" className="space-y-4 scroll-mt-24">
+      <div id="records" className="space-y-5 scroll-mt-24">
         <CommunityBriefing
           entries={visiblePool}
+          featuredEntry={featuredEntry}
           trackedSources={trackedSources}
           total={searchActive ? searchTotal : total}
+          filteredCount={filteredEntries.length}
           status={searchActive ? searchStatus : status}
           searchActive={searchActive}
           query={query}
+          laneOptions={laneOptions}
+          activeLane={activeLane}
+          feedView={feedView}
           onClearSearch={resetView}
           onSearch={applySearch}
+          onSelectLane={setActiveLane}
+          onSelectFeedView={setFeedView}
         />
 
-        <div
-          id="record-results"
-          className="scroll-mt-24 rounded-lg border border-ink/10 bg-white/92 p-5 shadow-card"
-        >
-          <div className="space-y-5">
-            <div>
-              <p className="text-sm font-semibold text-moss">
-                {searchActive ? "Search results" : "Filter the record"}
-              </p>
-              <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
-                {searchActive ? "Matches from official sources" : "Latest source-linked records"}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-ink/62">
-                {searchActive
-                  ? "Search runs across the live locality record, then keeps the same resident filters below."
-                  : "Use one simple lane filter. The first view favors records with practical resident impact."}
-              </p>
-            </div>
-
-            <div className="space-y-4 border-t border-ink/8 pt-5">
-              {searchActive ? (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <span className="rounded-md border border-clay/20 px-3 py-2 text-sm font-semibold text-clay">
-                    {searchStatus === "loading"
-                      ? `Searching "${query.trim()}"`
-                      : `${filteredEntries.length} matches for "${query.trim()}"`}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={resetView}
-                    className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-                  >
-                    Clear search
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 rounded-lg border border-ink/10 bg-sand p-1">
-                  <button
-                    type="button"
-                    onClick={() => setFeedView("events_of_note")}
-                    className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-                      feedView === "events_of_note"
-                        ? "bg-white text-moss shadow-sm"
-                        : "text-ink/58 hover:text-moss"
-                    }`}
-                  >
-                    Important
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFeedView("all_records")}
-                    className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-                      feedView === "all_records"
-                        ? "bg-white text-moss shadow-sm"
-                        : "text-ink/58 hover:text-moss"
-                    }`}
-                  >
-                    Everything
-                  </button>
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-2 border-t border-ink/8 pt-4">
-                {laneOptions.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setActiveLane(option.key)}
-                    className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
-                      activeLane === option.key
-                        ? "bg-moss text-white"
-                        : "border border-ink/10 text-ink/68 hover:border-moss/25 hover:text-moss"
-                    }`}
-                  >
-                    {option.label} ({option.count})
-                  </button>
-                ))}
-              </div>
-            </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-moss">
+              {searchActive ? "More source matches" : "Source-linked record feed"}
+            </p>
+            <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
+              {searchActive
+                ? `Records related to "${query.trim()}"`
+                : feedView === "events_of_note"
+                  ? "Important records after the top item"
+                  : "All records after the top item"}
+            </h2>
           </div>
+          <p className="text-sm leading-6 text-ink/58">
+            {searchActive
+              ? searchStatus === "loading"
+                ? "Searching the full live record."
+                : `${filteredEntries.length} source-linked match${
+                    filteredEntries.length === 1 ? "" : "es"
+                  } in view.`
+              : `Showing ${filteredEntries.length} of ${visiblePool.length} loaded records.`}
+          </p>
         </div>
-        {filteredEntries.map((entry) => (
-          <UpdateCard key={entry.id} {...entry} />
-        ))}
-        {filteredEntries.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-ink/15 bg-white p-5 text-sm leading-6 text-ink/64">
+
+        <div className="space-y-3">
+          {displayEntries.map((entry) => (
+            <UpdateCard key={entry.id} {...entry} />
+          ))}
+        </div>
+
+        {!hasAnyResult ? (
+          <div className="rounded-xl border border-dashed border-ink/15 bg-white p-5 text-sm leading-6 text-ink/64">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
@@ -504,7 +487,8 @@ export function LivePublishedEntries({
               : "No entries match that filter on this page of results."}
           </div>
         ) : null}
-        <div className="flex flex-col gap-4 rounded-lg border border-ink/10 bg-white px-5 py-4">
+
+        <div className="flex flex-col gap-4 rounded-xl border border-ink/10 bg-white px-5 py-4">
           <p className="text-sm text-ink/70">
             {searchActive
               ? searchStatus === "loading"

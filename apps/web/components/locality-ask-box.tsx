@@ -94,12 +94,18 @@ export function LocalityAskBox({ slug }: LocalityAskBoxProps) {
   return (
     <section
       id="ask"
-      className="scroll-mt-24 rounded-lg border border-ink/10 bg-white p-5"
+      className="scroll-mt-24 rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6"
     >
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-moss">Ask</p>
+        <p className="text-sm font-semibold text-moss">
+          Ask a source-linked question
+        </p>
+        <h2 className="font-serif text-3xl leading-tight text-ink">
+          Need a plain-English answer?
+        </h2>
         <p className="text-sm leading-6 text-ink/62">
-          Source-linked answers for specific local questions.
+          Use this after search when you need the record summarized into an
+          answer with citations.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {askExamples.map((example) => (

@@ -13,7 +13,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f4f3ed;
+  background: #eef4f2;
   color: #1f2a2a;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -43,18 +43,27 @@ a {
 }
 
 .record-shell {
-  background-color: #f4f3ed;
+  background-color: #eef4f2;
   background-image:
     linear-gradient(
       180deg,
-      rgba(244, 243, 237, 0.62) 0%,
-      rgba(244, 243, 237, 0.86) 22rem,
-      rgba(244, 243, 237, 0.96) 42rem
+      rgba(238, 244, 242, 0.36) 0%,
+      rgba(238, 244, 242, 0.88) 26rem,
+      rgba(247, 247, 244, 0.98) 52rem
+    ),
+    linear-gradient(
+      90deg,
+      rgba(32, 64, 58, 0.1) 0%,
+      rgba(223, 236, 239, 0.34) 44%,
+      rgba(159, 85, 57, 0.08) 100%
     ),
     url("/images/site-background.png");
   background-position: top center;
   background-repeat: no-repeat;
-  background-size: 1500px auto;
+  background-size:
+    auto,
+    auto,
+    1680px auto;
 }
 
 .record-glass {

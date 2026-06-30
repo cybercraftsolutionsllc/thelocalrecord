@@ -33,7 +33,7 @@ export function SiteShell({ children }: SiteShellProps) {
   return (
     <div className="record-shell min-h-screen text-ink">
       <header className="record-glass border-b border-white/70">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
             <img
               src="/icon.svg"
@@ -49,7 +49,7 @@ export function SiteShell({ children }: SiteShellProps) {
             </span>
           </Link>
 
-          <nav className="flex gap-1 overflow-x-auto text-sm">
+          <nav className="flex gap-1 overflow-x-auto text-sm lg:justify-end">
             {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
@@ -66,7 +66,7 @@ export function SiteShell({ children }: SiteShellProps) {
       <main>{children}</main>
 
       <footer className="record-glass border-t border-white/70">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>
             <p className="max-w-2xl leading-6 text-ink/58">

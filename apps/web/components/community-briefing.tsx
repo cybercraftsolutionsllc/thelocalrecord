@@ -6,8 +6,6 @@ import type { PublicEntry } from "../lib/data";
 import {
   buildRecordSignal,
   formatRecordDate,
-  getResidentLane,
-  residentLaneLabels,
   type ResidentLaneKey
 } from "../lib/record-signals";
 
@@ -17,71 +15,67 @@ type TrackedSource = {
   url: string;
 };
 
+type LaneOption = {
+  key: ResidentLaneKey;
+  label: string;
+  count: number;
+};
+
+type FeedViewKey = "events_of_note" | "all_records";
+
 type CommunityBriefingProps = {
   entries: PublicEntry[];
+  featuredEntry?: PublicEntry;
   trackedSources: TrackedSource[];
   total: number;
+  filteredCount: number;
   status: "idle" | "loading" | "ready" | "error";
   searchActive: boolean;
   query: string;
+  laneOptions: LaneOption[];
+  activeLane: ResidentLaneKey;
+  feedView: FeedViewKey;
   onClearSearch: () => void;
   onSearch: (query: string) => void;
+  onSelectLane: (lane: ResidentLaneKey) => void;
+  onSelectFeedView: (view: FeedViewKey) => void;
 };
 
 const quickChecks = [
-  "Line painting",
-  "Butter Road",
-  "Ordinance 2026-11",
-  "High Meadow",
-  "Planning Commission"
+  { label: "Road closures", query: "road closure" },
+  { label: "Butter Road", query: "Butter Road" },
+  { label: "Ordinance votes", query: "ordinance vote" },
+  { label: "High Meadow", query: "High Meadow" },
+  { label: "Budget or debt", query: "indebtedness" }
 ];
-
-const featuredLaneOrder: ResidentLaneKey[] = [
-  "roads",
-  "hearings",
-  "money",
-  "growth",
-  "parks",
-  "permits",
-  "meetings",
-  "general"
-];
-
-function parseDate(value?: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
 
 function formatDate(value?: string | null) {
   return formatRecordDate(value);
 }
 
-function getRecentEntries(entries: PublicEntry[]) {
-  return entries
-    .map((entry) => ({
-      entry,
-      date: parseDate(entry.sourceMaterialDate ?? entry.publishedAt)
-    }))
-    .filter((item): item is { entry: PublicEntry; date: Date } =>
-      Boolean(item.date)
-    )
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .map((item) => item.entry);
+function formatSourceCategory(value: string) {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function CommunityBriefing({
   entries,
+  featuredEntry,
   trackedSources,
   total,
+  filteredCount,
   status,
   onClearSearch,
   searchActive,
   query,
-  onSearch
+  laneOptions,
+  activeLane,
+  feedView,
+  onSearch,
+  onSelectLane,
+  onSelectFeedView
 }: CommunityBriefingProps) {
   const [draftQuery, setDraftQuery] = useState(query);
   const sourceLanes = useMemo(
@@ -91,34 +85,10 @@ export function CommunityBriefing({
       ).sort(),
     [trackedSources]
   );
-  const recentEntries = useMemo(() => getRecentEntries(entries), [entries]);
-  const featuredEntry = useMemo(
-    () =>
-      searchActive
-        ? entries[0]
-        : (recentEntries.find(
-            (entry) =>
-              entry.impactLevel === "critical_source" ||
-              entry.impactLevel === "important"
-          ) ?? recentEntries[0]),
-    [entries, recentEntries, searchActive]
-  );
-  const latestEntries = (searchActive ? entries : recentEntries)
-    .filter((entry) => entry.id !== featuredEntry?.id)
-    .slice(0, 4);
-  const mostRecent = recentEntries[0];
-  const laneCounts = useMemo(
-    () =>
-      featuredLaneOrder
-        .map((lane) => ({
-          lane,
-          label: residentLaneLabels[lane],
-          count: entries.filter((entry) => getResidentLane(entry) === lane)
-            .length
-        }))
-        .filter((item) => item.count > 0),
-    [entries]
-  );
+  const latestEntry = entries[0];
+  const featuredSignal = featuredEntry
+    ? buildRecordSignal(featuredEntry)
+    : null;
 
   useEffect(() => {
     setDraftQuery(query);
@@ -134,288 +104,276 @@ export function CommunityBriefing({
   }
 
   return (
-    <section className="overflow-hidden rounded-xl border border-ink/10 bg-white shadow-card">
-      <div className="relative overflow-hidden bg-ink px-5 py-6 text-white sm:px-6 sm:py-7">
-        <img
-          src="/images/manheim-hero.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-28"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/86 to-ink/58" />
-        <div className="relative">
-          <p className="text-sm font-semibold text-sky">
-            {searchActive ? "Search brief" : "Resident brief"}
+    <section className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-card">
+      <div className="grid min-h-[540px] lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
+        <div className="p-5 sm:p-7 lg:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+            {searchActive ? "Live search" : "Resident command center"}
           </p>
-          <h2 className="mt-2 max-w-2xl font-serif text-4xl leading-tight text-white sm:text-5xl">
-            {searchActive ? `What the record says about "${query}"` : "What matters right now"}
+          <h2 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-ink sm:text-5xl">
+            {searchActive
+              ? `Results for "${query}"`
+              : "Search the local record."}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/76">
-            Source-linked local information, organized by what residents can do:
-            travel, show up, comment, watch, or open the official record.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/68 sm:mt-4 sm:text-base sm:leading-7">
+            Type what you saw or what you care about. The record turns township
+            posts, notices, agendas, minutes, and project records into one
+            source-linked resident view.
           </p>
 
-          <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-            <Metric
-              label={searchActive ? "Matches" : "Published records"}
-              value={status === "loading" ? "..." : total || entries.length}
-              inverted
-            />
-            <Metric
-              label="Latest source date"
-              value={
-                mostRecent
-                  ? formatDate(mostRecent.sourceMaterialDate ?? mostRecent.publishedAt)
-                  : "None"
-              }
-              inverted
-            />
-            <Metric
-              label="Issue lanes in view"
-              value={laneCounts.length || "..."}
-              inverted
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-6 p-5 sm:p-6">
-        <div>
-          <p className="text-sm font-semibold text-moss">Search this locality</p>
-          <p className="mt-1 text-sm leading-6 text-ink/60">
-            Use a street, project, route, ordinance number, park, or plain
-            question fragment.
-          </p>
-          <form className="mt-3 space-y-3" onSubmit={submitLookup}>
-          <label className="block">
-            <span className="sr-only">Search local records</span>
-            <input
-              type="search"
-              value={draftQuery}
-              onChange={(event) => setDraftQuery(event.target.value)}
-              placeholder="Address, street, project, road, park..."
-              className="h-12 w-full rounded-lg border border-ink/15 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-moss"
-            />
-          </label>
+          <form
+            className="mt-4 overflow-hidden rounded-xl border border-ink/12 bg-white shadow-card sm:mt-6 sm:flex"
+            onSubmit={submitLookup}
+          >
+            <label className="block min-w-0 flex-1">
+              <span className="sr-only">Search local records</span>
+              <input
+                type="search"
+                value={draftQuery}
+                onChange={(event) => setDraftQuery(event.target.value)}
+                placeholder="Try a street, project, ordinance, park, or question..."
+                className="h-14 w-full border-0 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:bg-sky/35"
+              />
+            </label>
             <button
               type="submit"
               disabled={draftQuery.trim().length < 3}
-              className="h-12 w-full rounded-lg bg-moss px-5 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              className="h-14 w-full bg-moss px-6 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
-              Search
+              Search record
             </button>
           </form>
 
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
+          <div className="mt-3 flex flex-wrap gap-2">
             {quickChecks.map((check) => (
               <button
-                key={check}
+                key={check.label}
                 type="button"
-                onClick={() => onSearch(check)}
-                className="rounded-md border border-ink/10 px-3 py-2 text-ink/68 transition hover:border-moss/25 hover:text-moss"
+                onClick={() => onSearch(check.query)}
+                className="rounded-lg border border-ink/10 bg-sand/70 px-3 py-2 text-sm font-semibold text-ink/68 transition hover:border-moss/25 hover:bg-white hover:text-moss"
               >
-                {check}
+                {check.label}
               </button>
             ))}
             {searchActive ? (
               <button
                 type="button"
                 onClick={onClearSearch}
-                className="rounded-md border border-ink/10 px-3 py-2 font-semibold text-moss transition hover:bg-sky/45"
+                className="rounded-lg border border-clay/20 bg-white px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sky/40"
               >
-                Clear
+                Clear search
               </button>
             ) : null}
           </div>
+
+          <div className="mt-7 grid gap-4 border-t border-ink/8 pt-5 text-sm sm:grid-cols-3">
+            <Metric
+              label={searchActive ? "Matches found" : "Records indexed"}
+              value={status === "loading" ? "..." : total || entries.length}
+            />
+            <Metric
+              label="Latest source date"
+              value={
+                latestEntry
+                  ? formatDate(
+                      latestEntry.sourceMaterialDate ?? latestEntry.publishedAt
+                    )
+                  : "None"
+              }
+            />
+            <Metric
+              label="In this view"
+              value={status === "loading" ? "..." : filteredCount}
+            />
+          </div>
         </div>
 
-        {featuredEntry ? (
-          <FeaturedEntry entry={featuredEntry} searchActive={searchActive} />
-        ) : (
-          <p className="rounded-md border border-dashed border-ink/15 px-4 py-3 text-sm leading-6 text-ink/60">
-            {status === "loading"
-              ? "Loading the latest source-linked records..."
-              : "No latest items are available yet."}
-          </p>
-        )}
+        <FeaturePanel
+          entry={featuredEntry}
+          signal={featuredSignal}
+          searchActive={searchActive}
+        />
+      </div>
 
-        {laneCounts.length > 0 ? (
-          <div className="border-t border-ink/8 pt-5">
-            <p className="text-sm font-semibold text-moss">Issue lanes</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {laneCounts.map((lane) => (
-                <span
-                  key={lane.lane}
-                  className="rounded-md border border-ink/10 bg-sand/55 px-3 py-2 text-sm font-semibold text-ink/68"
+      <div className="border-t border-ink/8 px-5 py-5 sm:px-7 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)]">
+          <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-moss">
+                  Browse by resident need
+                </p>
+                <p className="mt-1 text-sm leading-6 text-ink/58">
+                  Start broad, then narrow by the kind of thing that could
+                  affect your day, property, route, or meeting.
+                </p>
+              </div>
+              {!searchActive ? (
+                <div className="grid grid-cols-2 rounded-xl border border-ink/10 bg-sand p-1">
+                  <button
+                    type="button"
+                    onClick={() => onSelectFeedView("events_of_note")}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      feedView === "events_of_note"
+                        ? "bg-white text-moss shadow-sm"
+                        : "text-ink/58 hover:text-moss"
+                    }`}
+                  >
+                    Important
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectFeedView("all_records")}
+                    className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      feedView === "all_records"
+                        ? "bg-white text-moss shadow-sm"
+                        : "text-ink/58 hover:text-moss"
+                    }`}
+                  >
+                    Everything
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {laneOptions.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  aria-pressed={activeLane === option.key}
+                  onClick={() => onSelectLane(option.key)}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    activeLane === option.key
+                      ? "bg-moss text-white"
+                      : "border border-ink/10 bg-white text-ink/66 hover:border-moss/25 hover:text-moss"
+                  }`}
                 >
-                  {lane.label} ({lane.count})
-                </span>
+                  {option.label} ({option.count})
+                </button>
               ))}
             </div>
           </div>
-        ) : null}
 
-        {latestEntries.length > 0 ? (
-          <div className="border-t border-ink/8 pt-5">
-            <p className="text-sm font-semibold text-moss">
-              {searchActive ? "More matches" : "Also recent"}
-            </p>
-            <div className="mt-1 divide-y divide-ink/8">
-              {latestEntries.map((entry) => (
-                <LatestItem key={entry.id} entry={entry} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {trackedSources.length > 0 ? (
-          <div className="border-t border-ink/8 pt-5">
-            <p className="text-sm font-semibold text-moss">Source coverage</p>
-            <p className="mt-2 text-sm leading-6 text-ink/64">
+          <div className="border-t border-ink/8 pt-5 text-sm lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <p className="font-semibold text-moss">Source coverage</p>
+            <p className="mt-2 leading-6 text-ink/62">
               Watching {trackedSources.length} official sources across{" "}
-              {sourceLanes.length} registry lanes. The latest feed favors newly
-              posted public notices; meeting archives, agendas, minutes,
-              calendar items, code, parks, and planning sources remain
-              searchable and source-linked.
+              {sourceLanes.length} source lanes. Every useful item links back
+              to an original post, document, agenda, minutes, or public notice.
             </p>
+            {sourceLanes.length > 0 ? (
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink/40">
+                {sourceLanes.map(formatSourceCategory).join(" / ")}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
     </section>
   );
 }
 
-function FeaturedEntry({
+function FeaturePanel({
   entry,
+  signal,
   searchActive
 }: {
-  entry: PublicEntry;
+  entry?: PublicEntry;
+  signal: ReturnType<typeof buildRecordSignal> | null;
   searchActive: boolean;
 }) {
-  const primarySource = entry.sourceLinks[0];
-  const signal = buildRecordSignal(entry);
+  const primarySource = entry?.sourceLinks[0];
 
   return (
-    <article className="border-t border-ink/8 pt-5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink/46">
-        <span className="text-clay">
-          {searchActive ? "Best match" : "Top latest news"}
-        </span>
-        <span>{signal.laneLabel}</span>
-        <span>{signal.importanceLabel}</span>
-        <span>{signal.sourceDate}</span>
-      </div>
-      <h3 className="mt-3 font-serif text-3xl leading-tight text-ink">
-        {entry.title}
-      </h3>
-      <p className="mt-3 text-base leading-7 text-ink/74">{entry.summary}</p>
-      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-        <p className="rounded-md bg-sand/70 px-3 py-2 leading-6 text-ink/66">
-          <span className="font-semibold text-ink">Why it matters: </span>
-          {signal.why}
-        </p>
-        <p className="rounded-md bg-sand/70 px-3 py-2 leading-6 text-ink/66">
-          <span className="font-semibold text-ink">Next step: </span>
-          {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
-          {signal.action}
-        </p>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {primarySource ? (
-          <a
-            href={primarySource.url}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
-          >
-            Open official source
-          </a>
+    <aside className="relative min-h-[360px] overflow-hidden bg-ink p-5 text-white sm:p-7 lg:p-8">
+      <img
+        src="/images/manheim-hero.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover opacity-24"
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/90 to-[#284b45]/80" />
+      <div className="relative flex h-full flex-col justify-between gap-8">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky">
+            {searchActive ? "Best match" : "Top latest news"}
+          </p>
+          {entry && signal ? (
+            <>
+              <h3 className="mt-3 font-serif text-3xl leading-tight text-white">
+                {entry.title}
+              </h3>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-white/70">
+                <span>{signal.laneLabel}</span>
+                <span>{signal.importanceLabel}</span>
+                <span>{signal.sourceDate}</span>
+              </div>
+              <p className="mt-5 text-sm leading-6 text-white/78">
+                {entry.summary}
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="mt-3 font-serif text-3xl leading-tight text-white">
+                The live record is loading.
+              </h3>
+              <p className="mt-5 text-sm leading-6 text-white/78">
+                Records will appear here as soon as the source feed responds.
+              </p>
+            </>
+          )}
+        </div>
+
+        {entry && signal ? (
+          <div className="border-t border-white/16 pt-5">
+            <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-1">
+              <p className="leading-6 text-white/72">
+                <span className="font-semibold text-white">
+                  Why it matters:{" "}
+                </span>
+                {signal.why}
+              </p>
+              <p className="leading-6 text-white/72">
+                <span className="font-semibold text-white">Do next: </span>
+                {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
+                {signal.action}
+              </p>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {primarySource ? (
+                <a
+                  href={primarySource.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky"
+                >
+                  Open official source
+                </a>
+              ) : null}
+              {entry.detailUrl ? (
+                <a
+                  href={entry.detailUrl}
+                  className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Read record
+                </a>
+              ) : null}
+            </div>
+          </div>
         ) : null}
-        {entry.detailUrl ? (
-          <a
-            href={entry.detailUrl}
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-          >
-            Details
-          </a>
-        ) : null}
       </div>
-    </article>
+    </aside>
   );
 }
 
-function LatestItem({ entry }: { entry: PublicEntry }) {
-  const primarySource = entry.sourceLinks[0];
-  const signal = buildRecordSignal(entry);
-
+function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <article className="py-4 first:pt-0 last:pb-0">
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-ink/50">
-        <span className="text-moss">{signal.laneLabel}</span>
-        <span>{signal.sourceDate}</span>
-        <span>{entry.sourceLabel}</span>
-      </div>
-      <h3 className="mt-2 font-serif text-2xl leading-tight text-ink">
-        {entry.title}
-      </h3>
-      <p className="mt-2 text-sm leading-6 text-ink/68">{entry.summary}</p>
-      <p className="mt-2 text-sm leading-6 text-ink/56">
-        {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
-        {signal.action}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {primarySource ? (
-          <a
-            href={primarySource.url}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
-          >
-            Open source
-          </a>
-        ) : null}
-        {entry.detailUrl ? (
-          <a
-            href={entry.detailUrl}
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
-          >
-            Details
-          </a>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
-function Metric({
-  label,
-  value,
-  inverted = false
-}: {
-  label: string;
-  value: string | number;
-  inverted?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0 ${
-        inverted ? "border-t border-white/16 sm:border-t-0" : ""
-      }`}
-    >
-      <p
-        className={`text-xs font-semibold ${
-          inverted ? "text-white/58" : "text-ink/50"
-        }`}
-      >
+    <div className="border-t border-ink/8 pt-3 sm:border-t-0 sm:pt-0">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/42">
         {label}
       </p>
-      <p
-        className={`text-right font-serif text-2xl leading-none ${
-          inverted ? "text-white" : "text-ink"
-        }`}
-      >
-        {value}
-      </p>
+      <p className="mt-2 font-serif text-3xl leading-none text-ink">{value}</p>
     </div>
   );
 }

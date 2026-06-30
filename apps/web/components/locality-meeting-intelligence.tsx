@@ -238,9 +238,9 @@ export function LocalityMeetingIntelligence({
   return (
     <section
       id="meeting-intelligence"
-      className="scroll-mt-24 border-y border-ink/10 bg-white/80 py-6"
+      className="scroll-mt-24 rounded-2xl border border-ink/10 bg-white/92 shadow-card"
     >
-      <div className="space-y-6 px-5">
+      <div className="space-y-6 p-5 sm:p-6">
         <div>
           <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-moss">
             <span>Meeting records</span>
@@ -249,12 +249,12 @@ export function LocalityMeetingIntelligence({
             </span>
           </div>
           <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
-            Actions, projects, and source documents
+            Meeting details that affect real projects
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/62">
-            This view is for agendas, minutes, and meeting PDFs. The broader
-            record above carries news, alerts, calendar items, roads, permits,
-            parks, and services.
+            Parsed agenda and minutes records show decisions, conditions,
+            public comments, and source documents without making residents dig
+            through PDFs first.
           </p>
         </div>
 
