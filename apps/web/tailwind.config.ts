@@ -13,14 +13,14 @@ const config: Config = {
         sans: ["var(--font-sans)", "sans-serif"]
       },
       colors: {
-        ink: "#14171f",
-        moss: "#2f5f7d",
-        sand: "#f7f8f5",
-        clay: "#b35b3d",
-        sky: "#e9f4f8"
+        ink: "#071114",
+        moss: "#2d7ff9",
+        sand: "#f4f7fb",
+        clay: "#ff7a1a",
+        sky: "#d9edff"
       },
       boxShadow: {
-        card: "0 18px 50px rgba(20, 23, 31, 0.07)"
+        card: "0 24px 80px rgba(0, 0, 0, 0.28)"
       }
     }
   },

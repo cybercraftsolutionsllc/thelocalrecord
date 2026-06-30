@@ -9,17 +9,17 @@ export default function LocalitiesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">Locality selector</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-ink sm:text-5xl">
+      <section className="border-b border-white/12 pb-8">
+        <p className="text-sm font-semibold text-sky">Locality selector</p>
+        <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
           Choose a locality
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-ink/70">
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-white/70">
           The Local Record is organized by locality. Pick a municipality to view
           its digest, source inventory, corrections page, and future archive
           pages.
         </p>
-        <p className="mt-5 rounded-lg border border-ink/10 bg-white p-4 text-sm leading-7 text-ink/65">
+        <p className="mt-5 rounded-lg border border-white/12 bg-white/8 p-4 text-sm leading-7 text-white/65">
           Each locality keeps its own public digest and source pages underneath
           its own slug.
         </p>

@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 export function PolicyPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">Platform policy</p>
-        <h1 className="mt-3 font-serif text-4xl text-ink">
+      <section className="border-b border-white/12 pb-8">
+        <p className="text-sm font-semibold text-sky">Platform policy</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
           How The Local Record works
         </h1>
       </section>

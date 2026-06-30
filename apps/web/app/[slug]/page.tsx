@@ -60,24 +60,24 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </ToolDetails>
       </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white p-4">
-        <p className="text-sm font-semibold text-ink">Trust trail</p>
+      <section className="rounded-2xl border border-white/12 bg-white/8 p-4">
+        <p className="text-sm font-semibold text-white">Trust trail</p>
         <div className="mt-3 flex flex-wrap gap-2 text-sm">
           <Link
             href={`/${slug}/source-inventory`}
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
+            className="rounded-lg border border-white/12 px-3 py-2 font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             Sources
           </Link>
           <Link
             href={`/${slug}/corrections`}
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
+            className="rounded-lg border border-white/12 px-3 py-2 font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             Fix a detail
           </Link>
           <Link
             href="/policy"
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
+            className="rounded-lg border border-white/12 px-3 py-2 font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             Rules
           </Link>
@@ -98,15 +98,15 @@ function ToolDetails({
 }) {
   return (
     <details className="group">
-      <summary className="cursor-pointer list-none rounded-2xl border border-ink/10 bg-white p-4 transition hover:border-moss/25">
-        <p className="text-2xl font-semibold leading-tight tracking-tight text-ink">
+      <summary className="cursor-pointer list-none rounded-2xl border border-white/12 bg-white/8 p-4 transition hover:border-moss/45">
+        <p className="text-2xl font-semibold leading-tight tracking-tight text-white">
           {title}
         </p>
-        <p className="mt-1 text-sm leading-6 text-ink/58">{summary}</p>
-        <p className="mt-3 text-sm font-semibold text-moss group-open:hidden">
+        <p className="mt-1 text-sm leading-6 text-white/58">{summary}</p>
+        <p className="mt-3 text-sm font-semibold text-sky group-open:hidden">
           Open
         </p>
-        <p className="mt-3 hidden text-sm font-semibold text-moss group-open:block">
+        <p className="mt-3 hidden text-sm font-semibold text-sky group-open:block">
           Close
         </p>
       </summary>

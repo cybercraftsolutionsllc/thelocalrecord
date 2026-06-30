@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html {
@@ -13,8 +13,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f6f7f4;
-  color: #14171f;
+  background: #071114;
+  color: #f4f7fb;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -30,8 +30,8 @@ a {
 }
 
 ::selection {
-  background: rgba(47, 95, 125, 0.16);
-  color: #14171f;
+  background: rgba(45, 127, 249, 0.34);
+  color: #ffffff;
 }
 
 .text-balance {
@@ -43,21 +43,24 @@ a {
 }
 
 .record-shell {
-  background-color: #f6f7f4;
+  background-color: #071114;
   background-image:
+    radial-gradient(circle at 18% 0%, rgba(45, 127, 249, 0.26), transparent 28rem),
+    radial-gradient(circle at 90% 8%, rgba(255, 122, 26, 0.18), transparent 24rem),
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.82) 0%,
-      rgba(246, 247, 244, 0.98) 30rem,
-      rgba(246, 247, 244, 1) 100%
-    );
+      rgba(7, 17, 20, 0.4) 0%,
+      rgba(7, 17, 20, 1) 36rem
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-position: top center;
-  background-repeat: no-repeat;
-  background-size: auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
+  background-size: auto, auto, auto, 44px 44px, 44px 44px;
 }
 
 .record-glass {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(7, 17, 20, 0.82);
   backdrop-filter: blur(16px);
 }
 
@@ -65,6 +68,21 @@ a {
   box-shadow:
     0 18px 55px rgba(20, 23, 31, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dispatch-grid {
+  background:
+    linear-gradient(135deg, rgba(45, 127, 249, 0.22), transparent 30%),
+    radial-gradient(circle at 84% 16%, rgba(255, 122, 26, 0.18), transparent 18rem),
+    linear-gradient(rgba(255, 255, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.075) 1px, transparent 1px),
+    #071114;
+  background-size:
+    auto,
+    auto,
+    32px 32px,
+    32px 32px,
+    auto;
 }
 
 .clamp-2,

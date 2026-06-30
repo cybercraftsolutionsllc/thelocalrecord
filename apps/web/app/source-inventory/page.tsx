@@ -5,10 +5,14 @@ import { municipalities } from "@thelocalrecord/core";
 export default function SourceInventoryPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">Platform transparency</p>
-        <h1 className="mt-3 font-serif text-4xl text-ink">Source inventory</h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-ink/70">
+      <section className="border-b border-white/12 pb-8">
+        <p className="text-sm font-semibold text-sky">
+          Platform transparency
+        </p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
+          Source inventory
+        </h1>
+        <p className="mt-4 max-w-3xl text-base leading-8 text-white/70">
           Source inventories now live underneath each municipality so every
           locality keeps its own source trail. Start with a locality below to
           view the exact pages, feeds, and categories tracked for that digest.

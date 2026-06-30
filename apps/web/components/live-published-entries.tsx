@@ -464,10 +464,10 @@ export function LivePublishedEntries({
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-moss">
+            <p className="text-sm font-semibold text-sky">
               {searchActive ? "Other matches" : "Also watch"}
             </p>
-            <h2 className="mt-1 text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl">
+            <h2 className="mt-1 text-2xl font-semibold leading-tight tracking-tight text-white sm:text-3xl">
               {searchActive
                 ? `Records related to "${query.trim()}"`
                 : feedView === "events_of_note"
@@ -475,7 +475,7 @@ export function LivePublishedEntries({
                   : "More local records"}
             </h2>
           </div>
-          <p className="text-sm leading-6 text-ink/58">
+          <p className="text-sm leading-6 text-white/58">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full live record."
@@ -493,7 +493,7 @@ export function LivePublishedEntries({
         </div>
 
         {!hasAnyResult ? (
-          <div className="rounded-xl border border-dashed border-ink/15 bg-white p-5 text-sm leading-6 text-ink/64">
+          <div className="rounded-xl border border-dashed border-white/18 bg-white/8 p-5 text-sm leading-6 text-white/64">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
@@ -502,8 +502,8 @@ export function LivePublishedEntries({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-4">
-          <p className="text-sm text-ink/70">
+        <div className="flex flex-col gap-4 rounded-2xl border border-white/12 bg-white/8 px-5 py-4">
+          <p className="text-sm text-white/66">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching every live record."
@@ -515,7 +515,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={() => setVisibleLimit((current) => current + 4)}
-                className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-moss"
+                className="rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#1d66d8]"
               >
                 Show {Math.min(4, remainingDisplayCount)} more
               </button>
@@ -524,7 +524,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
+                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
               >
                 Clear search
               </button>
@@ -534,7 +534,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
+                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
               >
                 Reset filters
               </button>
@@ -548,7 +548,7 @@ export function LivePublishedEntries({
                 onClick={() =>
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
-                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
+                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
               >
                 Load more records
               </button>
@@ -562,9 +562,9 @@ export function LivePublishedEntries({
   return (
     <div
       id="records"
-      className="scroll-mt-24 rounded-lg border border-dashed border-ink/15 bg-white p-5 text-ink/64"
+      className="scroll-mt-24 rounded-lg border border-dashed border-white/18 bg-white/8 p-5 text-white/64"
     >
-      <h3 className="text-2xl font-semibold tracking-tight text-ink">
+      <h3 className="text-2xl font-semibold tracking-tight text-white">
         {status === "loading"
           ? "Loading published entries"
           : "No published entries yet"}

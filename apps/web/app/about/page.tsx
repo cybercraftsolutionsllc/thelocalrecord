@@ -4,12 +4,12 @@ import type { ReactNode } from "react";
 export default function AboutPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">About the project</p>
-        <h1 className="mt-3 font-serif text-4xl text-ink">
+      <section className="border-b border-white/12 pb-8">
+        <p className="text-sm font-semibold text-sky">About the project</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
           Why The Local Record exists
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-ink/70">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-white/70">
           The Local Record is an independent digest for people who want an
           easier way to follow local government activity without wading through
           scattered pages, notices, and attachments.

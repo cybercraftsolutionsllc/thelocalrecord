@@ -31,8 +31,8 @@ export function SiteShell({ children }: SiteShellProps) {
   );
 
   return (
-    <div className="record-shell min-h-screen text-ink">
-      <header className="record-glass sticky top-0 z-30 border-b border-ink/8">
+    <div className="record-shell min-h-screen text-sand">
+      <header className="record-glass sticky top-0 z-30 border-b border-white/10">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
             <img
@@ -42,10 +42,10 @@ export function SiteShell({ children }: SiteShellProps) {
               className="h-8 w-8 rounded-md"
             />
             <span className="flex flex-col">
-              <span className="text-xl font-semibold leading-none tracking-tight text-ink">
+              <span className="text-xl font-semibold leading-none tracking-tight text-white">
                 The Local Record
               </span>
-              <span className="text-xs font-medium uppercase tracking-[0.14em] text-ink/42">
+              <span className="text-xs font-medium uppercase tracking-[0.14em] text-sky/70">
                 resident utility
               </span>
             </span>
@@ -56,7 +56,7 @@ export function SiteShell({ children }: SiteShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-3 py-2 font-medium text-ink/62 transition hover:bg-ink/5 hover:text-ink"
+                className="rounded-full px-3 py-2 font-medium text-white/64 transition hover:bg-white/10 hover:text-white"
               >
                 {item.label}
               </Link>
@@ -67,11 +67,11 @@ export function SiteShell({ children }: SiteShellProps) {
 
       <main>{children}</main>
 
-      <footer className="record-glass border-t border-ink/8">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
+      <footer className="record-glass border-t border-white/10">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-white/58 sm:px-6">
           <div className="space-y-1">
-            <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>
-            <p className="max-w-2xl leading-6 text-ink/58">
+            <p className="font-semibold text-white">{PLATFORM_DISCLAIMER}</p>
+            <p className="max-w-2xl leading-6 text-white/52">
               Source-linked local updates for residents.
             </p>
           </div>
@@ -87,7 +87,7 @@ export function SiteShell({ children }: SiteShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="hover:text-ink"
+                  className="hover:text-white"
                 >
                   {item.label}
                 </Link>
