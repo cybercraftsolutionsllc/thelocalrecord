@@ -94,14 +94,16 @@ export function CommunityBriefing({
   const recentEntries = useMemo(() => getRecentEntries(entries), [entries]);
   const featuredEntry = useMemo(
     () =>
-      recentEntries.find(
-        (entry) =>
-          entry.impactLevel === "critical_source" ||
-          entry.impactLevel === "important"
-      ) ?? recentEntries[0],
-    [recentEntries]
+      searchActive
+        ? entries[0]
+        : (recentEntries.find(
+            (entry) =>
+              entry.impactLevel === "critical_source" ||
+              entry.impactLevel === "important"
+          ) ?? recentEntries[0]),
+    [entries, recentEntries, searchActive]
   );
-  const latestEntries = recentEntries
+  const latestEntries = (searchActive ? entries : recentEntries)
     .filter((entry) => entry.id !== featuredEntry?.id)
     .slice(0, 4);
   const mostRecent = recentEntries[0];
