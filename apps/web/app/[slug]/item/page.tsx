@@ -19,7 +19,7 @@ export default async function LocalityItemPage({
     <Suspense
       fallback={
         <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:py-12">
-          <div className="rounded-lg border border-ink/10 bg-white p-8">
+          <div className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-8 text-white/[0.70]">
             Loading digest item...
           </div>
         </div>

@@ -475,7 +475,7 @@ export function LivePublishedEntries({
                   : "More local records"}
             </h2>
           </div>
-          <p className="text-sm leading-6 text-white/58">
+          <p className="text-sm leading-6 text-white/[0.58]">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full live record."
@@ -493,7 +493,7 @@ export function LivePublishedEntries({
         </div>
 
         {!hasAnyResult ? (
-          <div className="rounded-xl border border-dashed border-white/18 bg-white/8 p-5 text-sm leading-6 text-white/64">
+          <div className="rounded-xl border border-dashed border-white/[0.18] bg-white/[0.08] p-5 text-sm leading-6 text-white/[0.64]">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching the full locality record..."
@@ -502,8 +502,8 @@ export function LivePublishedEntries({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-white/12 bg-white/8 px-5 py-4">
-          <p className="text-sm text-white/66">
+        <div className="flex flex-col gap-4 rounded-2xl border border-white/[0.12] bg-white/[0.08] px-5 py-4">
+          <p className="text-sm text-white/[0.66]">
             {searchActive
               ? searchStatus === "loading"
                 ? "Searching every live record."
@@ -524,7 +524,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.72] transition hover:bg-white/[0.10] hover:text-white"
               >
                 Clear search
               </button>
@@ -534,7 +534,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.72] transition hover:bg-white/[0.10] hover:text-white"
               >
                 Reset filters
               </button>
@@ -548,7 +548,7 @@ export function LivePublishedEntries({
                 onClick={() =>
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
-                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/72 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.72] transition hover:bg-white/[0.10] hover:text-white"
               >
                 Load more records
               </button>
@@ -562,7 +562,7 @@ export function LivePublishedEntries({
   return (
     <div
       id="records"
-      className="scroll-mt-24 rounded-lg border border-dashed border-white/18 bg-white/8 p-5 text-white/64"
+      className="scroll-mt-24 rounded-lg border border-dashed border-white/[0.18] bg-white/[0.08] p-5 text-white/[0.64]"
     >
       <h3 className="text-2xl font-semibold tracking-tight text-white">
         {status === "loading"

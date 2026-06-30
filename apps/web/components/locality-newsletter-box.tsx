@@ -101,13 +101,13 @@ export function LocalityNewsletterBox({
   return (
     <section
       id="newsletter"
-      className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6"
+      className="rounded-2xl border border-white/[0.12] bg-[#0b171d]/95 p-5 text-white shadow-card sm:p-6"
     >
-      <p className="text-sm font-semibold text-moss">Weekly digest</p>
-      <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+      <p className="text-sm font-semibold text-sky">Weekly digest</p>
+      <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-white">
         Keep an eye on {municipalityName}
       </h2>
-      <p className="mt-2 text-sm leading-6 text-ink/62">
+      <p className="mt-2 text-sm leading-6 text-white/[0.62]">
         A weekly source-linked roundup for people who do not want to check the
         record every day.
       </p>
@@ -118,32 +118,32 @@ export function LocalityNewsletterBox({
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-3 text-sm text-ink outline-none transition focus:border-moss"
+          className="w-full rounded-lg border border-white/[0.12] bg-white/[0.045] px-3 py-3 text-sm text-white outline-none transition placeholder:text-white/[0.34] focus:border-moss"
         />
         <input
           type="text"
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           placeholder="First name (optional)"
-          className="w-full rounded-lg border border-ink/15 bg-white px-3 py-3 text-sm text-ink outline-none transition focus:border-moss"
+          className="w-full rounded-lg border border-white/[0.12] bg-white/[0.045] px-3 py-3 text-sm text-white outline-none transition placeholder:text-white/[0.34] focus:border-moss"
         />
         <button
           type="submit"
           disabled={status === "loading" || !email.trim()}
-          className="w-full rounded-lg bg-moss px-4 py-3 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-moss px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1d66d8] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {status === "loading" ? "Saving..." : "Subscribe"}
         </button>
       </form>
 
       {status === "success" ? (
-        <div className="mt-3 rounded-lg border border-moss/15 bg-sky/35 px-3 py-3 text-sm leading-6 text-ink/72">
+        <div className="mt-3 rounded-lg border border-moss/[0.30] bg-moss/[0.14] px-3 py-3 text-sm leading-6 text-white/[0.72]">
           {successMessage}
         </div>
       ) : null}
 
       {status === "error" ? (
-        <div className="mt-3 rounded-lg border border-clay/20 bg-white px-3 py-3 text-sm leading-6 text-clay">
+        <div className="mt-3 rounded-lg border border-clay/[0.30] bg-clay/[0.10] px-3 py-3 text-sm leading-6 text-white/[0.78]">
           {errorMessage}
         </div>
       ) : null}

@@ -22,8 +22,8 @@ export function LocalitySubnav({
 }: LocalitySubnavProps) {
   const itemClass =
     tone === "dark"
-      ? "rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-      : "rounded-md border border-ink/10 bg-white px-3 py-2 text-sm font-semibold text-ink/68 transition hover:border-moss/25 hover:text-moss";
+      ? "rounded-md border border-white/[0.20] px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.10]"
+      : "rounded-md border border-ink/[0.10] bg-white px-3 py-2 text-sm font-semibold text-ink/[0.68] transition hover:border-moss/[0.25] hover:text-moss";
 
   return (
     <div className="flex flex-wrap gap-2">

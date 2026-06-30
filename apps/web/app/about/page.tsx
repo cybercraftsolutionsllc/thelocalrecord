@@ -4,20 +4,20 @@ import type { ReactNode } from "react";
 export default function AboutPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-white/12 pb-8">
+      <section className="border-b border-white/[0.12] pb-8">
         <p className="text-sm font-semibold text-sky">About the project</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
           Why The Local Record exists
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-white/70">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-white/[0.70]">
           The Local Record is an independent digest for people who want an
           easier way to follow local government activity without wading through
           scattered pages, notices, and attachments.
         </p>
       </section>
 
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
-        <div className="divide-y divide-ink/8">
+      <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
+        <div className="divide-y divide-ink/[0.08]">
           <Principle title="Independence">
             This is not an official government website and does not speak for
             any municipality.
@@ -33,8 +33,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
-        <div className="space-y-7 text-base leading-8 text-ink/70">
+      <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
+        <div className="space-y-7 text-base leading-8 text-ink/[0.70]">
           <section className="space-y-3">
             <h2 className="font-serif text-2xl text-ink">What it does</h2>
             <p>
@@ -50,7 +50,7 @@ export default function AboutPage() {
             </p>
           </section>
 
-          <section className="space-y-3 border-t border-ink/8 pt-7">
+          <section className="space-y-3 border-t border-ink/[0.08] pt-7">
             <h2 className="font-serif text-2xl text-ink">How it works</h2>
             <p>
               Sources are registered per municipality and checked for changes.
@@ -70,13 +70,13 @@ export default function AboutPage() {
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href="/localities"
-          className="rounded-md bg-moss px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-moss/90"
+          className="rounded-md bg-moss px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-moss/[0.90]"
         >
           Browse localities
         </Link>
         <Link
           href="/policy"
-          className="rounded-md border border-moss/15 px-5 py-3 text-center text-sm font-semibold text-moss transition hover:bg-sky/40"
+          className="rounded-md border border-moss/[0.15] px-5 py-3 text-center text-sm font-semibold text-moss transition hover:bg-sky/[0.40]"
         >
           Read the policy
         </Link>
@@ -95,7 +95,7 @@ function Principle({
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <p className="text-sm font-semibold text-moss">{title}</p>
-      <p className="mt-2 text-sm leading-7 text-ink/70">{children}</p>
+      <p className="mt-2 text-sm leading-7 text-ink/[0.70]">{children}</p>
     </div>
   );
 }

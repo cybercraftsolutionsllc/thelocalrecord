@@ -238,20 +238,20 @@ export function LocalityMeetingIntelligence({
   return (
     <section
       id="meeting-intelligence"
-      className="scroll-mt-24 rounded-2xl border border-ink/10 bg-white/92 shadow-card"
+      className="scroll-mt-24 rounded-2xl border border-white/[0.12] bg-[#0b171d]/95 text-white shadow-card"
     >
       <div className="space-y-6 p-5 sm:p-6">
         <div>
-          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-moss">
+          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-sky">
             <span>Meeting records</span>
-            <span className="rounded-md border border-ink/10 px-2 py-1 text-xs text-ink/54">
+            <span className="rounded-md border border-white/[0.10] bg-white/[0.045] px-2 py-1 text-xs text-white/[0.58]">
               Planning Commission parsed in detail
             </span>
           </div>
-          <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+          <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-white">
             Meeting details that affect real projects
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/62">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/[0.62]">
             Parsed agenda and minutes records show decisions, conditions,
             public comments, and source documents without making residents dig
             through PDFs first.
@@ -259,20 +259,20 @@ export function LocalityMeetingIntelligence({
         </div>
 
         {status === "loading" || status === "idle" ? (
-          <p className="border-t border-ink/8 pt-5 text-sm leading-6 text-ink/62">
+          <p className="border-t border-white/[0.10] pt-5 text-sm leading-6 text-white/[0.62]">
             Loading meeting records...
           </p>
         ) : null}
 
         {status === "ready" && meetings.length === 0 ? (
-          <p className="border-t border-ink/8 pt-5 text-sm leading-6 text-ink/62">
+          <p className="border-t border-white/[0.10] pt-5 text-sm leading-6 text-white/[0.62]">
             No structured meeting records are available yet.
           </p>
         ) : null}
 
         {meetings.length > 0 ? (
           <>
-            <div className="grid gap-4 border-t border-ink/8 pt-5 md:grid-cols-2">
+            <div className="grid gap-4 border-t border-white/[0.10] pt-5 md:grid-cols-2">
               <FilterGroup
                 label="Source"
                 options={sourceOptions}
@@ -287,7 +287,7 @@ export function LocalityMeetingIntelligence({
               />
             </div>
 
-            <div className="divide-y divide-ink/10 border-t border-ink/8">
+            <div className="divide-y divide-white/[0.10] border-t border-white/[0.10]">
               {filteredMeetings.map((view) => (
                 <MeetingPanel
                   key={view.meeting.id}
@@ -310,7 +310,7 @@ export function LocalityMeetingIntelligence({
             </div>
 
             {filteredMeetings.length === 0 ? (
-              <div className="border-t border-dashed border-ink/15 py-6 text-sm leading-6 text-ink/64">
+              <div className="border-t border-dashed border-white/[0.15] py-6 text-sm leading-6 text-white/[0.64]">
                 No meeting records match those filters.
               </div>
             ) : null}
@@ -334,7 +334,7 @@ function FilterGroup({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/42">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/[0.42]">
         {label}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -347,7 +347,7 @@ function FilterGroup({
             className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
               active === option.key
                 ? "bg-moss text-white"
-                : "border border-ink/10 bg-white text-ink/64 hover:border-moss/25 hover:text-moss"
+                : "border border-white/[0.10] bg-white/[0.06] text-white/[0.64] hover:border-moss/[0.35] hover:bg-moss/[0.14] hover:text-white"
             }`}
           >
             {option.label} ({option.count})
@@ -382,8 +382,8 @@ function MeetingPanel({
 
   return (
     <article className="py-6 first:pt-0 last:pb-0">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ink/54">
-        <span className="font-semibold text-moss">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-white/[0.54]">
+        <span className="font-semibold text-sky">
           {formatSourceType(meeting.source_type)}
         </span>
         <span>{formatDate(meeting.meeting_date ?? meeting.posted_at)}</span>
@@ -392,20 +392,20 @@ function MeetingPanel({
       </div>
 
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h3 className="max-w-2xl font-serif text-2xl leading-tight text-ink">
+        <h3 className="max-w-2xl text-2xl font-semibold leading-tight tracking-tight text-white">
           {meeting.meeting_title}
         </h3>
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
             type="button"
             onClick={onToggleOpen}
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+            className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.70] transition hover:bg-white/[0.10] hover:text-white"
           >
             {open ? "Hide items" : "Show items"}
           </button>
           <a
             href={`/${slug}/item/?id=${encodeURIComponent(meeting.content_entry_id)}`}
-            className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+            className="rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#1d66d8]"
           >
             Local record
           </a>
@@ -413,7 +413,7 @@ function MeetingPanel({
             href={primarySource.url}
             target="_blank"
             rel="noreferrer"
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+            className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.70] transition hover:bg-white/[0.10] hover:text-white"
           >
             {sourceActionLabel(primarySource.label)}
           </a>
@@ -421,13 +421,13 @@ function MeetingPanel({
       </div>
 
       {!open && facts.length > 0 ? (
-        <p className="mt-3 text-sm leading-6 text-ink/58">
+        <p className="mt-3 text-sm leading-6 text-white/[0.58]">
           {facts.slice(0, 3).map(cleanFactTitle).join(", ")}
         </p>
       ) : null}
 
       {open && facts.length > 0 ? (
-        <div className="mt-5 divide-y divide-ink/8 border-y border-ink/8">
+        <div className="mt-5 divide-y divide-white/[0.10] border-y border-white/[0.10]">
           {facts.map((fact) => (
             <FactItem
               key={fact.id}
@@ -440,7 +440,7 @@ function MeetingPanel({
       ) : null}
 
       {open && facts.length === 0 ? (
-        <p className="mt-4 border-y border-ink/8 py-4 text-sm leading-6 text-ink/62">
+        <p className="mt-4 border-y border-white/[0.10] py-4 text-sm leading-6 text-white/[0.62]">
           No resident-facing action was extracted from this source yet.
         </p>
       ) : null}
@@ -453,7 +453,7 @@ function MeetingPanel({
               href={source.url}
               target="_blank"
               rel="noreferrer"
-              className="text-sm font-semibold text-moss underline-offset-4 hover:underline"
+              className="text-sm font-semibold text-sky underline-offset-4 hover:underline"
             >
               {source.label}
             </a>
@@ -477,7 +477,7 @@ function FactItem({
 
   return (
     <div className="py-4 first:pt-0 last:pb-0">
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-ink/46">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-white/[0.46]">
         <span className="text-clay">
           {factLabels[fact.fact_kind] ?? "Source item"}
         </span>
@@ -485,17 +485,17 @@ function FactItem({
           <span>{formatTimestamp(fact.transcript_start_seconds)}</span>
         ) : null}
       </div>
-      <h4 className="mt-2 text-base font-semibold leading-6 text-ink">
+      <h4 className="mt-2 text-base font-semibold leading-6 text-white">
         {cleanFactTitle(fact)}
       </h4>
-      <p className="mt-2 text-sm leading-6 text-ink/72">{fact.summary}</p>
+      <p className="mt-2 text-sm leading-6 text-white/[0.68]">{fact.summary}</p>
 
       <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
         <a
           href={fact.source_url}
           target="_blank"
           rel="noreferrer"
-          className="text-moss underline-offset-4 hover:underline"
+          className="text-sky underline-offset-4 hover:underline"
         >
           {sourceActionLabel(fact.source_label)}
         </a>
@@ -503,7 +503,7 @@ function FactItem({
           <button
             type="button"
             onClick={onToggle}
-            className="text-ink/54 underline-offset-4 hover:text-moss hover:underline"
+            className="text-white/[0.54] underline-offset-4 hover:text-sky hover:underline"
           >
             {open ? "Hide excerpt" : "View excerpt"}
           </button>
@@ -511,7 +511,7 @@ function FactItem({
       </div>
 
       {quote && open ? (
-        <p className="mt-3 border-l-2 border-moss/25 pl-3 text-sm leading-6 text-ink/58">
+        <p className="mt-3 border-l-2 border-moss/[0.35] pl-3 text-sm leading-6 text-white/[0.58]">
           {quote}
         </p>
       ) : null}

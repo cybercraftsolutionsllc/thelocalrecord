@@ -13,7 +13,7 @@ export default function CorrectionsPage() {
             Report an issue or request a correction
           </h1>
         </div>
-        <div className="mt-6 space-y-4 text-base leading-8 text-ink/75">
+        <div className="mt-6 space-y-4 text-base leading-8 text-ink/[0.75]">
           <p>
             If you see a broken source link, missing context, or a factual
             error, send a report to

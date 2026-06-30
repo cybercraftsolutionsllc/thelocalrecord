@@ -167,34 +167,34 @@ export function LocalityEntryClient({ slug }: LocalityEntryClientProps) {
       <div className="mb-6">
         <Link
           href={`/${slug}`}
-          className="inline-flex rounded-md border border-moss/10 bg-white px-4 py-2 text-sm font-semibold text-moss transition hover:bg-sky/50"
+          className="inline-flex rounded-lg border border-white/[0.12] px-4 py-2 text-sm font-semibold text-white/[0.70] transition hover:bg-white/[0.10] hover:text-white"
         >
           Back to digest
         </Link>
       </div>
 
       {!entryId ? (
-        <div className="rounded-lg border border-ink/10 bg-white p-8">
+        <div className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-8 text-white/[0.70]">
           This item link is incomplete. Go back to the digest and open the item
           again.
         </div>
       ) : null}
 
       {entryId && !contentApiBase ? (
-        <div className="rounded-lg border border-ink/10 bg-white p-8">
+        <div className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-8 text-white/[0.70]">
           The live digest API is not available from this build, so this item
           page cannot load yet.
         </div>
       ) : null}
 
       {entryId && contentApiBase && status === "loading" ? (
-        <div className="rounded-lg border border-ink/10 bg-white p-8">
+        <div className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-8 text-white/[0.70]">
           Loading digest item...
         </div>
       ) : null}
 
       {entryId && contentApiBase && status === "error" ? (
-        <div className="rounded-lg border border-ink/10 bg-white p-8">
+        <div className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-8 text-white/[0.70]">
           That item could not be loaded right now. Try again in a moment.
         </div>
       ) : null}
@@ -214,11 +214,13 @@ export function LocalityEntryClient({ slug }: LocalityEntryClientProps) {
           />
 
           {sourceText ? (
-            <section className="rounded-lg border border-ink/10 bg-white p-6 sm:p-7">
+            <section className="rounded-2xl border border-white/[0.12] bg-[#0b171d]/95 p-6 text-white shadow-card sm:p-7">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
                 Source text
               </p>
-              <p className="mt-4 text-sm leading-8 text-ink/78">{sourceText}</p>
+              <p className="mt-4 text-sm leading-8 text-white/[0.68]">
+                {sourceText}
+              </p>
             </section>
           ) : null}
 
@@ -241,14 +243,14 @@ function MeetingIntelligencePanel({
   const trail = parseSourceTrail(meetingIntelligence.source_trail_json);
 
   return (
-    <section className="rounded-lg border border-ink/10 bg-white p-6 sm:p-7">
+    <section className="rounded-2xl border border-white/[0.12] bg-[#0b171d]/95 p-6 text-white shadow-card sm:p-7">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
         Meeting intelligence
       </p>
-      <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+      <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-white">
         {meetingIntelligence.meeting_body}
       </h2>
-      <p className="mt-2 text-sm leading-6 text-ink/62">
+      <p className="mt-2 text-sm leading-6 text-white/[0.62]">
         Contextual briefs from the posted meeting record. Open the source
         before acting on any detail.
       </p>
@@ -260,25 +262,25 @@ function MeetingIntelligencePanel({
       </div>
 
       {meetingIntelligence.projects.length > 0 ? (
-        <div className="mt-6 border-t border-ink/8 pt-5">
-          <p className="text-sm font-semibold text-moss">Project timeline</p>
+        <div className="mt-6 border-t border-white/[0.10] pt-5">
+          <p className="text-sm font-semibold text-sky">Project timeline</p>
           <div className="mt-3 space-y-3">
             {meetingIntelligence.projects.map((project) => (
               <article
                 key={project.id}
-                className="rounded-md border border-ink/10 p-4"
+                className="rounded-xl border border-white/[0.10] bg-white/[0.045] p-4"
               >
-                <p className="text-sm font-semibold text-ink">
+                <p className="text-sm font-semibold text-white">
                   {project.project_name}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-ink/68">
+                <p className="mt-2 text-sm leading-6 text-white/[0.64]">
                   {project.summary}
                 </p>
                 <a
                   href={project.source_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
+                  className="mt-3 inline-flex text-sm font-semibold text-sky underline-offset-4 hover:underline"
                 >
                   Open source record
                 </a>
@@ -289,14 +291,14 @@ function MeetingIntelligencePanel({
       ) : null}
 
       {trail.length > 0 ? (
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-ink/8 pt-5">
+        <div className="mt-6 flex flex-wrap gap-2 border-t border-white/[0.10] pt-5">
           {trail.map((source) => (
             <a
               key={source.url}
               href={source.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+              className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.70] transition hover:bg-white/[0.10] hover:text-white"
             >
               {source.label}
             </a>
@@ -311,30 +313,30 @@ function MeetingFactCard({ fact }: { fact: MeetingFact }) {
   const quote = shouldShowQuote(fact.summary, fact.quote) ? fact.quote : null;
 
   return (
-    <article className="rounded-md border border-ink/10 bg-sand/45 p-4">
-      <div className="flex flex-wrap gap-2 text-xs font-semibold text-ink/50">
+    <article className="rounded-xl border border-white/[0.10] bg-white/[0.045] p-4">
+      <div className="flex flex-wrap gap-2 text-xs font-semibold text-white/[0.46]">
         <span className="text-clay">{labelFactKind(fact.fact_kind)}</span>
         {fact.transcript_start_seconds !== null ? (
           <span>{formatTimestamp(fact.transcript_start_seconds)}</span>
         ) : null}
       </div>
-      <h3 className="mt-2 text-base font-semibold leading-6 text-ink">
+      <h3 className="mt-2 text-base font-semibold leading-6 text-white">
         {fact.project_name ?? fact.label}
       </h3>
-      <p className="mt-2 text-sm leading-6 text-ink/74">{fact.summary}</p>
+      <p className="mt-2 text-sm leading-6 text-white/[0.68]">{fact.summary}</p>
       {quote ? (
-        <div className="mt-3 border-l-2 border-moss/25 pl-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/42">
+        <div className="mt-3 border-l-2 border-moss/[0.25] pl-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/[0.42]">
             Source excerpt
           </p>
-          <p className="mt-1 text-sm leading-6 text-ink/58">{quote}</p>
+          <p className="mt-1 text-sm leading-6 text-white/[0.58]">{quote}</p>
         </div>
       ) : null}
       <a
         href={fact.source_url}
         target="_blank"
         rel="noreferrer"
-        className="mt-3 inline-flex text-sm font-semibold text-moss underline-offset-4 hover:underline"
+        className="mt-3 inline-flex text-sm font-semibold text-sky underline-offset-4 hover:underline"
       >
         {sourceActionLabel(fact.source_label)}
       </a>

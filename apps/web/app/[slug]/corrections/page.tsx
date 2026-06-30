@@ -36,7 +36,7 @@ export default async function LocalityCorrectionsPage({
             <h1 className="font-serif text-4xl text-moss">
               Report an issue on this digest
             </h1>
-            <p className="max-w-3xl text-base leading-8 text-ink/75">
+            <p className="max-w-3xl text-base leading-8 text-ink/[0.75]">
               If a digest entry is missing context, links to the wrong source,
               or states something inaccurately, send the entry URL and the
               official source material so it can be checked.
@@ -45,7 +45,7 @@ export default async function LocalityCorrectionsPage({
           <LocalitySubnav slug={slug} currentSuffix="/corrections" />
         </div>
 
-        <div className="mt-6 space-y-4 text-base leading-8 text-ink/75">
+        <div className="mt-6 space-y-4 text-base leading-8 text-ink/[0.75]">
           <p>
             Send reports to
             <a
@@ -70,13 +70,13 @@ export default async function LocalityCorrectionsPage({
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href={`/${slug}`}
-            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+            className="rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/[0.90]"
           >
             Return to digest
           </Link>
           <Link
             href="/corrections"
-            className="rounded-md border border-moss/15 px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/40"
+            className="rounded-md border border-moss/[0.15] px-5 py-3 text-sm font-semibold text-moss transition hover:bg-sky/[0.40]"
           >
             Platform-wide corrections policy
           </Link>

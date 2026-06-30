@@ -46,14 +46,14 @@ export default async function LocalitySourceInventoryPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
+      <section className="border-b border-ink/[0.10] pb-8">
         <p className="text-sm font-semibold text-moss">
           {data.municipality.shortName} source inventory
         </p>
         <h1 className="mt-3 font-serif text-4xl text-ink">
           Tracked source pages for this digest
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-ink/70">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-ink/[0.70]">
           These are the official pages and feeds this locality digest is
           designed to watch. The inventory is separated per municipality so
           future township pages can keep their own source trail.
@@ -63,32 +63,32 @@ export default async function LocalitySourceInventoryPage({
         </div>
       </section>
 
-      <section className="divide-y divide-ink/8 rounded-lg border border-ink/10 bg-white">
+      <section className="divide-y divide-ink/[0.08] rounded-lg border border-ink/[0.10] bg-white">
         <Metric label="Active sources" value={activeSources.length} />
         <Metric label="Planned sources" value={plannedSources.length} />
         <div className="px-4 py-3">
           <p className="text-sm font-semibold text-moss">Coverage model</p>
-          <p className="mt-2 text-sm leading-7 text-ink/70">
+          <p className="mt-2 text-sm leading-7 text-ink/[0.70]">
             Official township pages, feeds, agendas, minutes, and archives.
           </p>
         </div>
       </section>
 
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
+      <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
         <p className="text-sm font-semibold text-moss">Coverage lanes</p>
         <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
           What this source set can answer
         </h2>
-        <p className="mt-3 text-sm leading-7 text-ink/70">
+        <p className="mt-3 text-sm leading-7 text-ink/[0.70]">
           The digest is strongest when a resident searches for a project,
           meeting, ordinance, public notice, park item, road impact, or planning
           document and then opens the original source trail.
         </p>
-        <div className="mt-5 divide-y divide-ink/8">
+        <div className="mt-5 divide-y divide-ink/[0.08]">
           {categoryCounts.map((category) => (
             <div key={category.label} className="py-4 first:pt-0 last:pb-0">
               <p className="font-semibold text-moss">{category.label}</p>
-              <p className="mt-2 text-sm leading-6 text-ink/62">
+              <p className="mt-2 text-sm leading-6 text-ink/[0.62]">
                 {category.count} active source
                 {category.count === 1 ? "" : "s"} feeding the locality record.
               </p>
@@ -107,7 +107,7 @@ export default async function LocalitySourceInventoryPage({
         {activeSources.map((source) => (
           <article
             key={source.slug}
-            className="rounded-lg border border-ink/10 bg-white p-5"
+            className="rounded-lg border border-ink/[0.10] bg-white p-5"
           >
             <div className="flex flex-wrap items-center gap-3">
               <h3 className="font-serif text-2xl text-ink">{source.name}</h3>
@@ -118,7 +118,7 @@ export default async function LocalitySourceInventoryPage({
                 Active
               </span>
             </div>
-            <p className="mt-3 text-base leading-7 text-ink/70">
+            <p className="mt-3 text-base leading-7 text-ink/[0.70]">
               {source.description}
             </p>
             <a
@@ -144,7 +144,7 @@ export default async function LocalitySourceInventoryPage({
           {plannedSources.map((source) => (
             <article
               key={source.slug}
-              className="rounded-lg border border-ink/10 bg-white p-5"
+              className="rounded-lg border border-ink/[0.10] bg-white p-5"
             >
               <div className="flex flex-wrap items-center gap-3">
                 <h3 className="font-serif text-2xl text-ink">{source.name}</h3>
@@ -155,7 +155,7 @@ export default async function LocalitySourceInventoryPage({
                   Planned
                 </span>
               </div>
-              <p className="mt-3 text-base leading-7 text-ink/70">
+              <p className="mt-3 text-base leading-7 text-ink/[0.70]">
                 {source.description}
               </p>
               <a
@@ -177,7 +177,7 @@ export default async function LocalitySourceInventoryPage({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3">
-      <p className="text-sm font-semibold text-ink/58">{label}</p>
+      <p className="text-sm font-semibold text-ink/[0.58]">{label}</p>
       <p className="font-serif text-2xl leading-none text-ink">{value}</p>
     </div>
   );

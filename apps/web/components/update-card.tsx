@@ -140,12 +140,12 @@ export function UpdateCard(props: UpdateCardProps) {
   return (
     <article
       className={`overflow-hidden rounded-2xl border bg-[#0b171d]/95 shadow-card ${
-        important ? "border-white/16" : "border-white/12"
+        important ? "border-white/[0.16]" : "border-white/[0.12]"
       }`}
     >
       <div className="p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/44">
-          <span className="rounded-full border border-moss/30 bg-moss/14 px-3 py-1 text-sky">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/[0.44]">
+          <span className="rounded-full border border-moss/[0.30] bg-moss/[0.14] px-3 py-1 text-sky">
             {signal.laneLabel}
           </span>
           <span className={important ? "text-clay" : ""}>
@@ -161,7 +161,7 @@ export function UpdateCard(props: UpdateCardProps) {
               {props.title}
             </h3>
             <p
-              className={`mt-2 text-sm leading-6 text-white/68 sm:text-base sm:leading-7 ${
+              className={`mt-2 text-sm leading-6 text-white/[0.68] sm:text-base sm:leading-7 ${
                 expanded ? "" : "clamp-2"
               }`}
             >
@@ -169,13 +169,13 @@ export function UpdateCard(props: UpdateCardProps) {
             </p>
           </div>
 
-          <aside className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-sm">
+          <aside className="rounded-2xl border border-white/[0.10] bg-white/[0.045] p-4 text-sm">
             <p className="font-semibold text-white">Resident read</p>
-            <p className="mt-2 leading-6 text-white/64">
+            <p className="mt-2 leading-6 text-white/[0.64]">
               <span className="font-semibold text-white">Why: </span>
               {signal.why}
             </p>
-            <p className="mt-2 leading-6 text-white/64">
+            <p className="mt-2 leading-6 text-white/[0.64]">
               <span className="font-semibold text-white">Do next: </span>
               {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
               {signal.action}
@@ -184,7 +184,7 @@ export function UpdateCard(props: UpdateCardProps) {
         </div>
 
         {canExpand || props.extractionNote ? (
-          <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="mt-5 border-t border-white/[0.10] pt-4">
             {canExpand ? (
               <>
                 <button
@@ -195,7 +195,7 @@ export function UpdateCard(props: UpdateCardProps) {
                   {expanded ? "Less" : "More context"}
                 </button>
                 {expanded && expandedExcerpt ? (
-                  <p className="mt-3 text-sm leading-7 text-white/64">
+                  <p className="mt-3 text-sm leading-7 text-white/[0.64]">
                     {expandedExcerpt}
                   </p>
                 ) : null}
@@ -203,15 +203,15 @@ export function UpdateCard(props: UpdateCardProps) {
             ) : null}
 
             {expanded && props.extractionNote ? (
-              <p className="mt-3 text-sm leading-6 text-white/54">
+              <p className="mt-3 text-sm leading-6 text-white/[0.54]">
                 {props.extractionNote}
               </p>
             ) : null}
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-6 text-white/52">
+        <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.10] pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-white/[0.52]">
             Source:{" "}
             <span className="font-semibold text-white">
               {props.sourceLabel}
@@ -232,7 +232,7 @@ export function UpdateCard(props: UpdateCardProps) {
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white/70 transition hover:border-moss/35 hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white/[0.70] transition hover:border-moss/[0.35] hover:bg-white/[0.10] hover:text-white"
               >
                 {sourceButtonLabel(link.label)}
               </a>

@@ -106,7 +106,7 @@ export function NewsletterConfirmClient() {
 
   if (status === "loading") {
     return (
-      <div className="rounded-lg border border-ink/10 bg-white p-8">
+      <div className="rounded-lg border border-ink/[0.10] bg-white p-8">
         Loading confirmation details...
       </div>
     );
@@ -114,11 +114,11 @@ export function NewsletterConfirmClient() {
 
   if (status === "error" || !lookup) {
     return (
-      <div className="rounded-lg border border-ink/10 bg-white p-8">
+      <div className="rounded-lg border border-ink/[0.10] bg-white p-8">
         <h1 className="font-serif text-3xl text-moss">
           Confirmation link not found
         </h1>
-        <p className="mt-3 max-w-2xl text-base leading-8 text-ink/75">
+        <p className="mt-3 max-w-2xl text-base leading-8 text-ink/[0.75]">
           This confirmation link is missing, expired, or invalid. Subscribe
           again from the locality page to get a fresh email.
         </p>
@@ -128,20 +128,20 @@ export function NewsletterConfirmClient() {
 
   if (status === "confirmed") {
     return (
-      <div className="rounded-lg border border-ink/10 bg-white p-8">
+      <div className="rounded-lg border border-ink/[0.10] bg-white p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
           Subscription confirmed
         </p>
         <h1 className="mt-3 font-serif text-4xl leading-tight text-moss">
           You&apos;re on the weekly digest
         </h1>
-        <p className="mt-4 text-base leading-8 text-ink/75">
+        <p className="mt-4 text-base leading-8 text-ink/[0.75]">
           Your email is confirmed. You can manage your subscription settings any
           time from the link below.
         </p>
         <a
           href={manageUrl}
-          className="mt-6 inline-flex rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90"
+          className="mt-6 inline-flex rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/[0.90]"
         >
           Manage subscription
         </a>
@@ -150,14 +150,14 @@ export function NewsletterConfirmClient() {
   }
 
   return (
-    <div className="rounded-lg border border-ink/10 bg-white p-8">
+    <div className="rounded-lg border border-ink/[0.10] bg-white p-8">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-clay">
         Confirm newsletter
       </p>
       <h1 className="mt-3 font-serif text-4xl leading-tight text-moss">
         Finish weekly digest signup
       </h1>
-      <p className="mt-4 text-base leading-8 text-ink/75">
+      <p className="mt-4 text-base leading-8 text-ink/[0.75]">
         Confirm <strong>{lookup.email}</strong> for the{" "}
         {lookup.municipalityName} weekly digest.
       </p>
@@ -166,7 +166,7 @@ export function NewsletterConfirmClient() {
         type="button"
         onClick={() => void handleConfirm()}
         disabled={saving}
-        className="mt-6 rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/90 disabled:opacity-50"
+        className="mt-6 rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white transition hover:bg-moss/[0.90] disabled:opacity-50"
       >
         {saving ? "Confirming..." : "Confirm subscription"}
       </button>

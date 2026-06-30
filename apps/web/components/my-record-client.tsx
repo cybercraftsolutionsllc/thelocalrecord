@@ -446,7 +446,7 @@ export function MyRecordClient() {
     return (
       <PageWrap>
         <Panel>
-          <p className="text-sm text-ink/60">Loading sign-in...</p>
+          <p className="text-sm text-ink/[0.60]">Loading sign-in...</p>
         </Panel>
       </PageWrap>
     );
@@ -455,12 +455,12 @@ export function MyRecordClient() {
   if (!canUsePrivateApi && !isDemo) {
     return (
       <PageWrap>
-        <section className="border-b border-ink/10 pb-8">
+        <section className="border-b border-ink/[0.10] pb-8">
           <p className="text-sm font-semibold text-moss">My Record</p>
           <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-ink sm:text-6xl">
             Save your place. Watch what changes.
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-ink/64">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-ink/[0.64]">
             Keep addresses private, track topics, and open official sources when
             something matches.
           </p>
@@ -512,14 +512,14 @@ export function MyRecordClient() {
 
   return (
     <PageWrap>
-      <section className="border-b border-ink/10 pb-6">
+      <section className="border-b border-ink/[0.10] pb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-moss">My Record</p>
             <h1 className="mt-2 font-serif text-5xl leading-none text-ink">
               What affects me?
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/60">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-ink/[0.60]">
               Signed in as {profileEmail}. Saved places stay private.
             </p>
           </div>
@@ -533,7 +533,7 @@ export function MyRecordClient() {
                     signOut(auth).catch(() => undefined);
                   }
                 }}
-                className="rounded-md border border-ink/10 px-3 py-2 text-ink/68 transition hover:border-moss/25 hover:text-moss"
+                className="rounded-md border border-ink/[0.10] px-3 py-2 text-ink/[0.68] transition hover:border-moss/[0.25] hover:text-moss"
               >
                 Sign out
               </button>
@@ -542,7 +542,7 @@ export function MyRecordClient() {
               <button
                 type="button"
                 onClick={() => setDemoState(null)}
-                className="rounded-md border border-ink/10 px-3 py-2 text-ink/68 transition hover:border-moss/25 hover:text-moss"
+                className="rounded-md border border-ink/[0.10] px-3 py-2 text-ink/[0.68] transition hover:border-moss/[0.25] hover:text-moss"
               >
                 Exit demo
               </button>
@@ -557,7 +557,7 @@ export function MyRecordClient() {
       />
 
       {error ? (
-        <div className="rounded-lg border border-clay/20 bg-white px-4 py-3 text-sm text-clay">
+        <div className="rounded-lg border border-clay/[0.20] bg-white px-4 py-3 text-sm text-clay">
           {error}
         </div>
       ) : null}
@@ -609,7 +609,7 @@ export function MyRecordClient() {
 
       <Panel>
         <p className="text-sm font-semibold text-moss">Notifications</p>
-        <p className="mt-2 text-sm leading-6 text-ink/62">
+        <p className="mt-2 text-sm leading-6 text-ink/[0.62]">
           Email alerts are{" "}
           {snapshot?.preferences?.email_enabled === 0 ? "off" : "on"}.
         </p>
@@ -625,7 +625,7 @@ export function MyRecordClient() {
                 );
               });
             }}
-            className="mt-4 w-full rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45 sm:w-auto"
+            className="mt-4 w-full rounded-md border border-ink/[0.10] px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/[0.45] sm:w-auto"
           >
             Toggle email alerts
           </button>
@@ -669,7 +669,7 @@ function PageWrap({ children }: { children: ReactNode }) {
 
 function Panel({ children }: { children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-ink/10 bg-white p-5">
+    <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
       {children}
     </section>
   );
@@ -705,7 +705,7 @@ function AuthPanel({
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
             type="email"
-            className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+            className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
             placeholder="you@example.com"
           />
           <button
@@ -718,27 +718,27 @@ function AuthPanel({
           <button
             type="button"
             onClick={onGoogle}
-            className="h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-ink/72 transition hover:border-moss/25 hover:text-moss"
+            className="h-11 w-full rounded-lg border border-ink/[0.10] px-4 text-sm font-semibold text-ink/[0.72] transition hover:border-moss/[0.25] hover:text-moss"
           >
             Continue with Google
           </button>
           <button
             type="button"
             onClick={onApple}
-            className="h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-ink/72 transition hover:border-moss/25 hover:text-moss"
+            className="h-11 w-full rounded-lg border border-ink/[0.10] px-4 text-sm font-semibold text-ink/[0.72] transition hover:border-moss/[0.25] hover:text-moss"
           >
             Continue with Apple
           </button>
         </div>
       ) : (
-        <p className="mt-4 text-sm leading-6 text-ink/62">
+        <p className="mt-4 text-sm leading-6 text-ink/[0.62]">
           Firebase sign-in is not configured for this build.
         </p>
       )}
       <button
         type="button"
         onClick={onDemo}
-        className="mt-3 h-11 w-full rounded-lg border border-ink/10 px-4 text-sm font-semibold text-moss transition hover:bg-sky/45"
+        className="mt-3 h-11 w-full rounded-lg border border-ink/[0.10] px-4 text-sm font-semibold text-moss transition hover:bg-sky/[0.45]"
       >
         Try demo
       </button>
@@ -779,7 +779,7 @@ function PlacePanel({
               label: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
           placeholder="Label"
         />
         <input
@@ -790,7 +790,7 @@ function PlacePanel({
               rawAddress: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
           placeholder="Address, ZIP, street..."
         />
         <select
@@ -801,7 +801,7 @@ function PlacePanel({
               municipalitySlug: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
         >
           {residentCommunities.map((municipality) => (
             <option key={municipality.slug} value={municipality.slug}>
@@ -858,7 +858,7 @@ function WatchPanel({
               label: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
           placeholder="Watch name"
         />
         <input
@@ -869,7 +869,7 @@ function WatchPanel({
               query: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
           placeholder="Topic, street, project..."
         />
         <select
@@ -880,7 +880,7 @@ function WatchPanel({
               savedPlaceId: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
         >
           <option value="">No saved place</option>
           {savedPlaces.map((place) => (
@@ -897,7 +897,7 @@ function WatchPanel({
               topic: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
         >
           {starterWatchTopics.map((topic) => (
             <option key={topic} value={topic}>
@@ -913,7 +913,7 @@ function WatchPanel({
               notificationLevel: event.target.value
             }))
           }
-          className="h-11 w-full rounded-lg border border-ink/15 bg-white px-3 text-sm outline-none transition focus:border-moss"
+          className="h-11 w-full rounded-lg border border-ink/[0.15] bg-white px-3 text-sm outline-none transition focus:border-moss"
         >
           <option value="important">Important and above</option>
           <option value="critical_source">Critical only</option>
@@ -957,7 +957,7 @@ function NearbyPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45 sm:self-start"
+            className="rounded-md border border-ink/[0.10] px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/[0.45] sm:self-start"
           >
             Refresh
           </button>
@@ -970,10 +970,10 @@ function NearbyPanel({
             <Link
               key={query}
               href={`/${placeFormMunicipalitySlug}?q=${encodeURIComponent(query)}#records`}
-              className="block rounded-md border border-ink/10 px-4 py-3 text-sm transition hover:border-moss/25"
+              className="block rounded-md border border-ink/[0.10] px-4 py-3 text-sm transition hover:border-moss/[0.25]"
             >
               <span className="font-semibold text-ink">{query}</span>
-              <span className="mt-1 block text-ink/54">Open public search</span>
+              <span className="mt-1 block text-ink/[0.54]">Open public search</span>
             </Link>
           ))
         ) : nearby.length > 0 ? (
@@ -983,7 +983,7 @@ function NearbyPanel({
             return (
               <article
                 key={entry.id}
-                className="rounded-md border border-ink/10 px-4 py-3"
+                className="rounded-md border border-ink/[0.10] px-4 py-3"
               >
                 <p className="text-xs font-semibold text-moss">
                   {entry.match_reason} - {entry.impact_level.replace("_", " ")}
@@ -991,7 +991,7 @@ function NearbyPanel({
                 <h3 className="mt-2 font-serif text-2xl leading-tight text-ink">
                   {entry.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-ink/68">
+                <p className="mt-2 text-sm leading-6 text-ink/[0.68]">
                   {entry.summary}
                 </p>
                 {source ? (
@@ -1008,7 +1008,7 @@ function NearbyPanel({
             );
           })
         ) : (
-          <p className="rounded-md border border-dashed border-ink/15 px-4 py-3 text-sm leading-6 text-ink/60">
+          <p className="rounded-md border border-dashed border-ink/[0.15] px-4 py-3 text-sm leading-6 text-ink/[0.60]">
             Add a place or watchlist, then refresh.
           </p>
         )}
@@ -1035,9 +1035,9 @@ function RecordList({
   return (
     <Panel>
       <h2 className="font-serif text-3xl text-ink">{title}</h2>
-      <div className="mt-4 divide-y divide-ink/8">
+      <div className="mt-4 divide-y divide-ink/[0.08]">
         {items.length === 0 ? (
-          <p className="text-sm text-ink/58">{empty}</p>
+          <p className="text-sm text-ink/[0.58]">{empty}</p>
         ) : (
           items.map((item) => (
             <div
@@ -1046,7 +1046,7 @@ function RecordList({
             >
               <div>
                 <p className="font-semibold text-ink">{item.title}</p>
-                <p className="mt-1 text-sm leading-6 text-ink/58">
+                <p className="mt-1 text-sm leading-6 text-ink/[0.58]">
                   {item.body}
                 </p>
               </div>
@@ -1055,7 +1055,7 @@ function RecordList({
                 onClick={() => {
                   Promise.resolve(item.onAction()).catch(() => undefined);
                 }}
-                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sand sm:self-start"
+                className="rounded-md border border-ink/[0.10] px-3 py-2 text-sm font-semibold text-clay transition hover:bg-sand sm:self-start"
               >
                 {item.actionLabel}
               </button>

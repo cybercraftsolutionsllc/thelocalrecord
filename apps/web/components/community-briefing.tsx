@@ -88,24 +88,24 @@ export function CommunityBriefing({
   }
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-white/12 bg-[#081216] shadow-card">
+    <section className="overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[#081216] shadow-card">
       <div className="dispatch-grid relative overflow-hidden px-4 py-5 text-white sm:px-6 sm:py-6">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-moss to-transparent" />
         <div className="relative">
           <div className="max-w-3xl">
-            <p className="inline-flex rounded-full border border-moss/35 bg-moss/12 px-3 py-1 text-sm font-semibold text-sky">
+            <p className="inline-flex rounded-full border border-moss/[0.35] bg-moss/[0.12] px-3 py-1 text-sm font-semibold text-sky">
               {municipalityName}
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-tight text-white sm:text-5xl">
               What changed near you?
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:text-base sm:leading-7">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/[0.70] sm:text-base sm:leading-7">
               Search a road, project, ordinance, park, meeting, or plain
               question. Every answer stays tied to an official source.
             </p>
 
             <form
-              className="mt-5 flex max-w-2xl overflow-hidden rounded-2xl border border-white/12 bg-white"
+              className="mt-5 flex max-w-2xl overflow-hidden rounded-2xl border border-white/[0.12] bg-white"
               onSubmit={submitLookup}
             >
               <label className="block min-w-0 flex-1">
@@ -115,7 +115,7 @@ export function CommunityBriefing({
                   value={draftQuery}
                   onChange={(event) => setDraftQuery(event.target.value)}
                   placeholder="Road, project, vote..."
-                  className="h-12 w-full border-0 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:bg-sky/70"
+                  className="h-12 w-full border-0 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/[0.38] focus:bg-sky/[0.70]"
                 />
               </label>
               <button
@@ -133,7 +133,7 @@ export function CommunityBriefing({
                   key={check.label}
                   type="button"
                   onClick={() => onSearch(check.query)}
-                  className="shrink-0 rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-sm font-semibold text-white/72 transition hover:border-moss/55 hover:bg-moss/18 hover:text-white"
+                  className="shrink-0 rounded-full border border-white/[0.12] bg-white/[0.08] px-3 py-1.5 text-sm font-semibold text-white/[0.72] transition hover:border-moss/[0.55] hover:bg-moss/[0.18] hover:text-white"
                 >
                   {check.label}
                 </button>
@@ -158,9 +158,9 @@ export function CommunityBriefing({
         </div>
       </div>
 
-      <div className="space-y-3 border-t border-white/10 bg-white/[0.035] px-4 py-3 sm:px-6">
+      <div className="space-y-3 border-t border-white/[0.10] bg-white/[0.035] px-4 py-3 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm leading-6 text-white/58">
+          <div className="text-sm leading-6 text-white/[0.58]">
             <p>
               <span className="font-semibold text-white">
                 {status === "loading" ? "..." : total}
@@ -180,14 +180,14 @@ export function CommunityBriefing({
             </p>
           </div>
           {!searchActive ? (
-            <div className="grid grid-cols-2 rounded-xl border border-white/10 bg-white/6 p-1">
+            <div className="grid grid-cols-2 rounded-xl border border-white/[0.10] bg-white/[0.06] p-1">
               <button
                 type="button"
                 onClick={() => onSelectFeedView("events_of_note")}
                 className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition ${
                   feedView === "events_of_note"
                     ? "bg-white text-ink shadow-sm"
-                    : "text-white/58 hover:text-white"
+                    : "text-white/[0.58] hover:text-white"
                 }`}
               >
                 Important
@@ -198,7 +198,7 @@ export function CommunityBriefing({
                 className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition ${
                   feedView === "all_records"
                     ? "bg-white text-ink shadow-sm"
-                    : "text-white/58 hover:text-white"
+                    : "text-white/[0.58] hover:text-white"
                 }`}
               >
                 All
@@ -217,7 +217,7 @@ export function CommunityBriefing({
               className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                 activeLane === option.key
                   ? "bg-moss text-white"
-                  : "border border-white/10 bg-white/6 text-white/64 hover:border-moss/40 hover:bg-moss/14 hover:text-white"
+                  : "border border-white/[0.10] bg-white/[0.06] text-white/[0.64] hover:border-moss/[0.40] hover:bg-moss/[0.14] hover:text-white"
               }`}
             >
               {option.label} ({option.count})
@@ -242,9 +242,9 @@ function FeaturedRecord({
 
   if (!entry || !signal) {
     return (
-      <aside className="mt-5 border-t border-white/10 pt-4 text-white">
+      <aside className="mt-5 border-t border-white/[0.10] pt-4 text-white">
         <p className="text-sm font-semibold text-sky">Loading record</p>
-        <p className="mt-2 text-sm leading-6 text-white/62">
+        <p className="mt-2 text-sm leading-6 text-white/[0.62]">
           Waiting for the live source feed.
         </p>
       </aside>
@@ -252,7 +252,7 @@ function FeaturedRecord({
   }
 
   return (
-    <aside className="mt-5 border-t border-white/10 pt-4 text-white">
+    <aside className="mt-5 border-t border-white/[0.10] pt-4 text-white">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky">
@@ -276,7 +276,7 @@ function FeaturedRecord({
           {entry.detailUrl ? (
             <a
               href={entry.detailUrl}
-              className="rounded-lg border border-white/12 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="rounded-lg border border-white/[0.12] px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.10]"
             >
               Details
             </a>

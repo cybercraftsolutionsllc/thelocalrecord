@@ -8,16 +8,16 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 lg:py-10">
-      <section className="dispatch-grid relative overflow-hidden rounded-[2rem] border border-white/12 shadow-card">
+      <section className="dispatch-grid relative overflow-hidden rounded-[2rem] border border-white/[0.12] shadow-card">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-moss to-transparent" />
         <div className="relative p-5 sm:p-8 lg:p-10">
-          <p className="inline-flex rounded-full border border-moss/35 bg-moss/12 px-3 py-1 text-sm font-semibold text-sky">
+          <p className="inline-flex rounded-full border border-moss/[0.35] bg-moss/[0.12] px-3 py-1 text-sm font-semibold text-sky">
             Resident lookup
           </p>
           <h1 className="mt-4 max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
             Find the local record before it affects your street.
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-white/70">
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-white/[0.70]">
             Search streets, projects, roads, parks, ordinances, permits, and
             meetings. The useful parts are summarized, dated, and tied back to
             official sources.
@@ -36,7 +36,7 @@ export default function HomePage() {
                 minLength={3}
                 required
                 placeholder="Street, project, ordinance, road, park..."
-                className="h-14 w-full rounded-xl border border-white/12 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-moss/60"
+                className="h-14 w-full rounded-xl border border-white/[0.12] bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/[0.38] focus:border-moss/[0.60]"
               />
             </label>
             <button
@@ -57,7 +57,7 @@ export default function HomePage() {
               <Link
                 key={query}
                 href={`/${launchLocality.slug}?q=${encodeURIComponent(query)}#records`}
-                className="rounded-lg border border-white/12 bg-white/8 px-3 py-2 text-white/72 transition hover:bg-moss/18 hover:text-white"
+                className="rounded-lg border border-white/[0.12] bg-white/[0.08] px-3 py-2 text-white/[0.72] transition hover:bg-moss/[0.18] hover:text-white"
               >
                 {query}
               </Link>
@@ -66,12 +66,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/12 bg-white p-5 text-ink sm:p-6">
+      <section className="rounded-2xl border border-white/[0.12] bg-white p-5 text-ink sm:p-6">
         <p className="text-sm font-semibold text-moss">First coverage area</p>
         <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-ink">
           {launchLocality.shortName}
         </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/62">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/[0.62]">
           Manheim is the model locality for the resident record workflow.
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
@@ -83,16 +83,16 @@ export default function HomePage() {
           </Link>
           <Link
             href="/my-record"
-            className="rounded-lg border border-ink/10 px-4 py-3 text-center text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
+            className="rounded-lg border border-ink/[0.10] px-4 py-3 text-center text-sm font-semibold text-ink/[0.72] transition hover:bg-sky/[0.55] hover:text-ink"
           >
             Save My Place
           </Link>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/12 bg-white p-5 text-ink sm:p-6">
+      <section className="rounded-2xl border border-white/[0.12] bg-white p-5 text-ink sm:p-6">
         <p className="text-sm font-semibold text-moss">How it works</p>
-        <div className="mt-4 divide-y divide-ink/8">
+        <div className="mt-4 divide-y divide-ink/[0.08]">
           {[
             [
               "Search the record",
@@ -108,18 +108,18 @@ export default function HomePage() {
               <h2 className="text-2xl font-semibold tracking-tight text-ink">
                 {title}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-ink/62">{body}</p>
+              <p className="mt-2 text-sm leading-6 text-ink/[0.62]">{body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/12 bg-white p-5 text-ink sm:p-6">
+      <section className="rounded-2xl border border-white/[0.12] bg-white p-5 text-ink sm:p-6">
         <p className="text-sm font-semibold text-moss">Source trail</p>
         <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight text-ink">
           Built to answer one resident question at a time.
         </h2>
-        <div className="mt-5 divide-y divide-ink/8 text-sm text-ink/68">
+        <div className="mt-5 divide-y divide-ink/[0.08] text-sm text-ink/[0.68]">
           {[
             "Road closure mentioned near my route",
             "Planning item tied to a development name",

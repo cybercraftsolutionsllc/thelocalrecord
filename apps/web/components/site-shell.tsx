@@ -32,7 +32,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
   return (
     <div className="record-shell min-h-screen text-sand">
-      <header className="record-glass sticky top-0 z-30 border-b border-white/10">
+      <header className="record-glass sticky top-0 z-30 border-b border-white/[0.10]">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
             <img
@@ -45,18 +45,18 @@ export function SiteShell({ children }: SiteShellProps) {
               <span className="text-xl font-semibold leading-none tracking-tight text-white">
                 The Local Record
               </span>
-              <span className="text-xs font-medium uppercase tracking-[0.14em] text-sky/70">
+              <span className="text-xs font-medium uppercase tracking-[0.14em] text-sky/[0.70]">
                 resident utility
               </span>
             </span>
           </Link>
 
-          <nav className="flex gap-1 overflow-x-auto text-sm lg:justify-end">
+          <nav className="flex flex-wrap gap-1 text-sm lg:justify-end">
             {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-3 py-2 font-medium text-white/64 transition hover:bg-white/10 hover:text-white"
+                className="whitespace-nowrap rounded-full px-3 py-2 font-medium text-white/[0.64] transition hover:bg-white/[0.10] hover:text-white"
               >
                 {item.label}
               </Link>
@@ -67,11 +67,11 @@ export function SiteShell({ children }: SiteShellProps) {
 
       <main>{children}</main>
 
-      <footer className="record-glass border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-white/58 sm:px-6">
+      <footer className="record-glass border-t border-white/[0.10]">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-white/[0.58] sm:px-6">
           <div className="space-y-1">
             <p className="font-semibold text-white">{PLATFORM_DISCLAIMER}</p>
-            <p className="max-w-2xl leading-6 text-white/52">
+            <p className="max-w-2xl leading-6 text-white/[0.52]">
               Source-linked local updates for residents.
             </p>
           </div>

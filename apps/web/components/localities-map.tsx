@@ -25,24 +25,24 @@ export function LocalitiesMap({ activeSlug }: LocalitiesMapProps) {
   const locality = LOCALITY_AREAS[activeSlug];
 
   return (
-    <div className="rounded-lg border border-ink/10 bg-white p-5">
+    <div className="rounded-lg border border-ink/[0.10] bg-white p-5">
       <div className="space-y-3">
         <div>
           <p className="text-sm font-semibold text-moss">Locality map</p>
           <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
             Pennsylvania launch footprint
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-7 text-ink/68">
+          <p className="mt-3 max-w-xl text-sm leading-7 text-ink/[0.68]">
             Supported localities can be selected from the map or the directory.
             The highlighted area marks the current launch locality.
           </p>
         </div>
-        <span className="inline-flex rounded-md border border-ink/10 bg-sand/35 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-ink/58">
+        <span className="inline-flex rounded-md border border-ink/[0.10] bg-sand/[0.35] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-ink/[0.58]">
           Static boundary preview
         </span>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-lg bg-sky/35 p-4">
+      <div className="mt-5 overflow-hidden rounded-lg bg-sky/[0.35] p-4">
         <svg
           viewBox="0 0 520 300"
           role="img"

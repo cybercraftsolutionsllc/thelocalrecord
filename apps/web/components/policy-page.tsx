@@ -3,15 +3,15 @@ import type { ReactNode } from "react";
 export function PolicyPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-white/12 pb-8">
+      <section className="border-b border-white/[0.12] pb-8">
         <p className="text-sm font-semibold text-sky">Platform policy</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
           How The Local Record works
         </h1>
       </section>
 
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
-        <div className="divide-y divide-ink/8">
+      <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
+        <div className="divide-y divide-ink/[0.08]">
           <PolicyNote title="Independent">
             This is not an official notice system and does not speak for any
             municipality.
@@ -26,8 +26,8 @@ export function PolicyPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-ink/10 bg-white p-5">
-        <div className="space-y-7 text-base leading-8 text-ink/70">
+      <section className="rounded-lg border border-ink/[0.10] bg-white p-5">
+        <div className="space-y-7 text-base leading-8 text-ink/[0.70]">
           <section className="space-y-3">
             <h2 className="font-serif text-2xl text-ink">Publishing rules</h2>
             <p>
@@ -40,7 +40,7 @@ export function PolicyPage() {
             </p>
           </section>
 
-          <section className="space-y-3 border-t border-ink/8 pt-7">
+          <section className="space-y-3 border-t border-ink/[0.08] pt-7">
             <h2 className="font-serif text-2xl text-ink">Transparency rules</h2>
             <p>
               Every public entry links back to the underlying source material.
@@ -56,11 +56,11 @@ export function PolicyPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-clay/20 bg-white p-5">
+      <section className="rounded-lg border border-clay/[0.20] bg-white p-5">
         <h2 className="font-serif text-2xl text-ink">
           AI and liability disclaimer
         </h2>
-        <div className="mt-4 space-y-3 text-base leading-8 text-ink/70">
+        <div className="mt-4 space-y-3 text-base leading-8 text-ink/[0.70]">
           <p>
             Summaries may be assisted by automated systems, including AI, but
             they are intended as informational digests only.
@@ -90,7 +90,7 @@ function PolicyNote({
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <p className="text-sm font-semibold text-moss">{title}</p>
-      <p className="mt-2 text-sm leading-7 text-ink/70">{children}</p>
+      <p className="mt-2 text-sm leading-7 text-ink/[0.70]">{children}</p>
     </div>
   );
 }
