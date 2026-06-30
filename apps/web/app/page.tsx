@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { RecordVisual } from "../components/record-visual";
 import { getHomepageData } from "../lib/data";
 
 export default function HomePage() {
@@ -9,59 +8,66 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">Resident lookup</p>
-        <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-ink sm:text-6xl">
-          What affects this place?
-        </h1>
-        <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/68">
-          Search local records by address, street, project, road, park, or
-          meeting. Open the official source before you act.
-        </p>
+      <section className="relative overflow-hidden rounded-xl border border-ink/10 bg-ink text-white shadow-card">
+        <img
+          src="/images/site-background.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/88 to-ink/60" />
+        <div className="relative p-5 sm:p-7">
+          <p className="text-sm font-semibold text-sky">Resident lookup</p>
+          <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-white sm:text-6xl">
+            Know what local records say about your place.
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-white/76">
+            Search streets, projects, roads, parks, ordinances, permits, and
+            meetings. Every useful result stays tied to an official source.
+          </p>
 
-        <form
-          action={`/${launchLocality.slug}`}
-          method="get"
-          className="mt-8 space-y-3"
-        >
-          <label className="block">
-            <span className="sr-only">Search local records</span>
-            <input
-              name="q"
-              type="search"
-              minLength={3}
-              required
-              placeholder="Address, street, project, road..."
-              className="h-12 w-full rounded-lg border border-ink/15 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-moss"
-            />
-          </label>
-          <button
-            type="submit"
-            className="h-12 w-full rounded-lg bg-moss px-5 text-sm font-semibold text-white transition hover:bg-ink sm:w-auto"
+          <form
+            action={`/${launchLocality.slug}`}
+            method="get"
+            className="mt-8 space-y-3"
           >
-            Search
-          </button>
-        </form>
+            <label className="block">
+              <span className="sr-only">Search local records</span>
+              <input
+                name="q"
+                type="search"
+                minLength={3}
+                required
+                placeholder="Address, street, project, road..."
+                className="h-12 w-full rounded-lg border border-white/20 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-sky"
+              />
+            </label>
+            <button
+              type="submit"
+              className="h-12 w-full rounded-lg bg-white px-5 text-sm font-semibold text-moss transition hover:bg-sky sm:w-auto"
+            >
+              Search Manheim
+            </button>
+          </form>
 
-        <div className="mt-4 flex flex-wrap gap-2 text-sm">
-          {["Ashford Meadows", "Route 30", "Planning Commission"].map(
-            (query) => (
+          <div className="mt-4 flex flex-wrap gap-2 text-sm">
+            {[
+              "Line painting",
+              "Butter Road",
+              "Ordinance 2026-11",
+              "Planning Commission"
+            ].map((query) => (
               <Link
                 key={query}
                 href={`/${launchLocality.slug}?q=${encodeURIComponent(query)}#records`}
-                className="rounded-md border border-ink/10 bg-white px-3 py-2 text-ink/70 transition hover:border-moss/25 hover:text-moss"
+                className="rounded-md border border-white/18 px-3 py-2 text-white/82 transition hover:bg-white/10 hover:text-white"
               >
                 {query}
               </Link>
-            )
-          )}
+            ))}
+          </div>
         </div>
       </section>
-
-      <RecordVisual
-        label="Place-first record"
-        caption="A quieter map for roads, meetings, projects, parks, and official source dates."
-      />
 
       <section className="rounded-lg border border-ink/10 bg-white p-5">
         <p className="text-sm font-semibold text-moss">First coverage area</p>

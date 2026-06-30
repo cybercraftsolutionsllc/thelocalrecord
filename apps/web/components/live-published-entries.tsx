@@ -5,11 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import type { PublicEntry } from "../lib/data";
 import { contentApiBase } from "../lib/public-config";
 import {
-  entryTopicDisplayOrder,
-  entryTopicLabels,
-  getEntryTopic,
-  type EntryTopicKey
-} from "../lib/topics";
+  buildRecordSignal,
+  getResidentLane,
+  residentLaneLabels,
+  residentLaneOrder,
+  type ResidentLaneKey
+} from "../lib/record-signals";
 
 import { CommunityBriefing } from "./community-briefing";
 import { UpdateCard } from "./update-card";
@@ -29,6 +30,7 @@ type ApiEntry = {
   title: string;
   summary: string;
   category: string;
+  impact_level?: string;
   risk_level?: string;
   review_state?: string;
   source_links_json: string;
@@ -52,8 +54,8 @@ type SearchPayload = {
   query: string;
 };
 
-type TopicOption = {
-  key: EntryTopicKey;
+type LaneOption = {
+  key: ResidentLaneKey;
   label: string;
   count: number;
 };
@@ -139,6 +141,7 @@ function mapApiEntry(entry: ApiEntry, slug: string): PublicEntry {
     title: entry.title,
     summary: entry.summary,
     category: entry.category,
+    impactLevel: entry.impact_level ?? "routine",
     publishedAt: entry.published_at,
     sourceMaterialDate: entry.source_material_date ?? null,
     extractionNote: entry.extraction_note ?? null,
@@ -166,13 +169,13 @@ export function LivePublishedEntries({
   const [total, setTotal] = useState(initialEntries.length);
   const [searchTotal, setSearchTotal] = useState(0);
   const [feedView, setFeedView] = useState<FeedViewKey>("events_of_note");
-  const [activeTopic, setActiveTopic] = useState<EntryTopicKey>("all");
+  const [activeLane, setActiveLane] = useState<ResidentLaneKey>("all");
   const [query, setQuery] = useState("");
   const pageSize = 18;
 
   const applySearch = useCallback((nextQuery: string) => {
     setFeedView("all_records");
-    setActiveTopic("all");
+    setActiveLane("all");
     setPage(1);
     setQuery(nextQuery);
 
@@ -186,7 +189,7 @@ export function LivePublishedEntries({
 
   const resetView = useCallback(() => {
     setFeedView("events_of_note");
-    setActiveTopic("all");
+    setActiveLane("all");
     setQuery("");
     setPage(1);
 
@@ -348,29 +351,29 @@ export function LivePublishedEntries({
   const searchActive = normalizedQuery.length >= 3;
   const visiblePool = searchActive ? searchEntries : entries;
   const notableVisibleEntries = visiblePool.filter(isResidentFacingEntry);
-  const unsortedTopicOptions = visiblePool.reduce<TopicOption[]>(
+  const unsortedLaneOptions = visiblePool.reduce<LaneOption[]>(
     (options, entry) => {
-      const topic = getEntryTopic(entry);
-      const existing = options.find((option) => option.key === topic);
+      const lane = getResidentLane(entry);
+      const existing = options.find((option) => option.key === lane);
 
       if (existing) {
         existing.count += 1;
       } else {
-        options.push({ key: topic, label: entryTopicLabels[topic], count: 1 });
+        options.push({ key: lane, label: residentLaneLabels[lane], count: 1 });
       }
 
       return options;
     },
-    [{ key: "all", label: entryTopicLabels.all, count: visiblePool.length }]
+    [{ key: "all", label: residentLaneLabels.all, count: visiblePool.length }]
   );
-  const topicOptions = entryTopicDisplayOrder
-    .map((key) => unsortedTopicOptions.find((option) => option.key === key))
-    .filter((option): option is TopicOption =>
+  const laneOptions = residentLaneOrder
+    .map((key) => unsortedLaneOptions.find((option) => option.key === key))
+    .filter((option): option is LaneOption =>
       Boolean(option && option.count > 0)
     );
   const baseEntries = searchActive
     ? visiblePool
-    : activeTopic !== "all" || feedView === "all_records"
+    : activeLane !== "all" || feedView === "all_records"
       ? visiblePool
       : notableVisibleEntries;
   const filteredEntries = visiblePool.filter((entry) => {
@@ -378,10 +381,10 @@ export function LivePublishedEntries({
       return false;
     }
 
-    const matchesTopic =
-      activeTopic === "all" || getEntryTopic(entry) === activeTopic;
+    const matchesLane =
+      activeLane === "all" || getResidentLane(entry) === activeLane;
 
-    if (!matchesTopic) {
+    if (!matchesLane) {
       return false;
     }
 
@@ -410,20 +413,20 @@ export function LivePublishedEntries({
 
         <div
           id="record-results"
-          className="scroll-mt-24 rounded-lg border border-ink/10 bg-white p-5"
+          className="scroll-mt-24 rounded-lg border border-ink/10 bg-white/92 p-5 shadow-card"
         >
           <div className="space-y-5">
             <div>
               <p className="text-sm font-semibold text-moss">
-                {searchActive ? "Search results" : "Browse records"}
+                {searchActive ? "Search results" : "Filter the record"}
               </p>
               <h2 className="mt-1 font-serif text-3xl leading-tight text-ink">
-                Local records
+                {searchActive ? "Matches from official sources" : "Latest source-linked records"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-ink/62">
                 {searchActive
-                  ? "The search above ran across the live locality record."
-                  : "Use the filters below to move through the record without starting a second search."}
+                  ? "Search runs across the live locality record, then keeps the same resident filters below."
+                  : "Use one simple lane filter. The first view favors records with practical resident impact."}
               </p>
             </div>
 
@@ -444,7 +447,7 @@ export function LivePublishedEntries({
                   </button>
                 </div>
               ) : (
-                <div className="flex rounded-lg border border-ink/10 bg-sand p-1">
+                <div className="grid grid-cols-2 rounded-lg border border-ink/10 bg-sand p-1">
                   <button
                     type="button"
                     onClick={() => setFeedView("events_of_note")}
@@ -454,7 +457,7 @@ export function LivePublishedEntries({
                         : "text-ink/58 hover:text-moss"
                     }`}
                   >
-                    Highlights
+                    Important
                   </button>
                   <button
                     type="button"
@@ -465,19 +468,19 @@ export function LivePublishedEntries({
                         : "text-ink/58 hover:text-moss"
                     }`}
                   >
-                    All records
+                    Everything
                   </button>
                 </div>
               )}
 
               <div className="flex flex-wrap gap-2 border-t border-ink/8 pt-4">
-                {topicOptions.map((option) => (
+                {laneOptions.map((option) => (
                   <button
                     key={option.key}
                     type="button"
-                    onClick={() => setActiveTopic(option.key)}
+                    onClick={() => setActiveLane(option.key)}
                     className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
-                      activeTopic === option.key
+                      activeLane === option.key
                         ? "bg-moss text-white"
                         : "border border-ink/10 text-ink/68 hover:border-moss/25 hover:text-moss"
                     }`}
@@ -518,7 +521,7 @@ export function LivePublishedEntries({
               >
                 Clear search
               </button>
-            ) : activeTopic !== "all" ||
+            ) : activeLane !== "all" ||
               feedView !== "events_of_note" ||
               page > 1 ? (
               <button
@@ -566,7 +569,8 @@ export function LivePublishedEntries({
 }
 
 function isResidentFacingEntry(entry: PublicEntry) {
-  const topic = getEntryTopic(entry);
+  const signal = buildRecordSignal(entry);
+  const lane = getResidentLane(entry);
   const haystack =
     `${entry.title} ${entry.summary} ${entry.sourceLabel} ${entry.topicText ?? ""}`.toLowerCase();
 
@@ -575,12 +579,16 @@ function isResidentFacingEntry(entry: PublicEntry) {
   }
 
   if (
-    topic === "permits_and_code" &&
+    lane === "permits" &&
     /permit|inspection|fee schedule|code compliance|faq|electrical|plumbing|deck|patio|fireworks|complaints|occupancy|rental housing/.test(
       haystack
     )
   ) {
     return false;
+  }
+
+  if (signal.important) {
+    return true;
   }
 
   if (entry.category === "service_notice") {

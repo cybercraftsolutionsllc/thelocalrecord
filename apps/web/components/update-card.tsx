@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 
+import { buildRecordSignal } from "../lib/record-signals";
+
 type UpdateCardProps = {
   id?: string;
   title: string;
   summary: string;
   category: string;
+  impactLevel?: string;
   publishedAt: string;
   sourceMaterialDate?: string | null;
   sourceLabel: string;
@@ -98,6 +101,20 @@ function escapeRegExp(value: string) {
 export function UpdateCard(props: UpdateCardProps) {
   const [expanded, setExpanded] = useState(false);
   const sourceLinks = Array.isArray(props.sourceLinks) ? props.sourceLinks : [];
+  const signal = buildRecordSignal({
+    id: props.id ?? props.title,
+    title: props.title,
+    summary: props.summary,
+    category: props.category,
+    impactLevel: props.impactLevel,
+    publishedAt: props.publishedAt,
+    sourceMaterialDate: props.sourceMaterialDate,
+    sourceLabel: props.sourceLabel,
+    sourceLinks,
+    detailUrl: props.detailUrl,
+    extractionNote: props.extractionNote,
+    topicText: props.topicText
+  });
   const datedLabel =
     props.sourceMaterialDate && props.sourceMaterialDate !== props.publishedAt
       ? formatPublishedDate(props.sourceMaterialDate)
@@ -110,9 +127,11 @@ export function UpdateCard(props: UpdateCardProps) {
   const canExpand = expandedExcerpt.length > 0;
 
   return (
-    <article className="rounded-lg border border-ink/10 bg-white p-5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink/54">
-        <span className="font-semibold text-moss">
+    <article className="rounded-lg border border-ink/10 bg-white/94 p-5 shadow-card">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-ink/46">
+        <span className="text-moss">{signal.laneLabel}</span>
+        <span>{signal.importanceLabel}</span>
+        <span>
           {formatCategory(props.category)}
         </span>
         <span>{datedLabel}</span>
@@ -123,6 +142,18 @@ export function UpdateCard(props: UpdateCardProps) {
         {props.title}
       </h3>
       <p className="mt-3 text-base leading-7 text-ink/72">{props.summary}</p>
+
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <p className="rounded-md bg-sand/70 px-3 py-2 leading-6 text-ink/66">
+          <span className="font-semibold text-ink">Why it matters: </span>
+          {signal.why}
+        </p>
+        <p className="rounded-md bg-sand/70 px-3 py-2 leading-6 text-ink/66">
+          <span className="font-semibold text-ink">Next step: </span>
+          {signal.dateToKnow ? `${signal.dateToKnow}. ` : ""}
+          {signal.action}
+        </p>
+      </div>
 
       {canExpand ? (
         <div className="mt-4 border-t border-ink/8 pt-4">
@@ -153,7 +184,7 @@ export function UpdateCard(props: UpdateCardProps) {
             href={props.detailUrl}
             className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
           >
-            Details
+            Record details
           </a>
         ) : null}
         {sourceLinks.map((link) => (
@@ -164,7 +195,9 @@ export function UpdateCard(props: UpdateCardProps) {
             rel="noreferrer"
             className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
           >
-            {link.label}
+            {link.label === "Original post" || link.label === "Original document"
+              ? "Official source"
+              : link.label}
           </a>
         ))}
       </div>

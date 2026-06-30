@@ -6,7 +6,6 @@ import { LocalityMeetingIntelligence } from "../../components/locality-meeting-i
 import { LocalityNewsletterBox } from "../../components/locality-newsletter-box";
 import { LocalitySubnav } from "../../components/locality-subnav";
 import { LivePublishedEntries } from "../../components/live-published-entries";
-import { RecordVisual } from "../../components/record-visual";
 import { getLocalityData } from "../../lib/data";
 import { municipalities } from "@thelocalrecord/core";
 
@@ -35,37 +34,42 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 lg:py-12">
-      <section className="border-b border-ink/10 pb-8">
-        <p className="text-sm font-semibold text-moss">
-          {data.municipality.name}
-        </p>
-        <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-ink sm:text-6xl">
-          Check your local record.
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-7 text-ink/64">
-          Search by property clue, street, project, route, park, or meeting.
-          Results stay source-linked and resident-first.
-        </p>
+      <section className="relative overflow-hidden rounded-xl border border-ink/10 bg-ink text-white shadow-card">
+        <img
+          src="/images/manheim-hero.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover opacity-32"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/88 to-ink/52" />
+        <div className="relative p-5 sm:p-7">
+          <p className="text-sm font-semibold text-sky">
+            {data.municipality.name}
+          </p>
+          <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-none text-white sm:text-6xl">
+            Your resident record for what is changing nearby.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-white/74">
+            Search roads, ordinances, projects, parks, meetings, permits, and
+            official updates. Every important claim points back to a public
+            source.
+          </p>
 
-        <div className="mt-6 divide-y divide-ink/8 rounded-lg border border-ink/10 bg-white">
-          <Stat label="Sources" value={activeSources.length} />
-          <Stat label="Lanes" value={sourceCategories.size} />
-          <Stat
-            label="Status"
-            value={activeSources.length > 0 ? "Live" : "Planned"}
-          />
-        </div>
+          <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+            <Stat label="Tracked sources" value={activeSources.length} dark />
+            <Stat label="Coverage lanes" value={sourceCategories.size} dark />
+            <Stat
+              label="Status"
+              value={activeSources.length > 0 ? "Live" : "Planned"}
+              dark
+            />
+          </div>
 
-        <div className="mt-6">
-          <LocalitySubnav slug={slug} currentSuffix="" />
+          <div className="mt-6">
+            <LocalitySubnav slug={slug} currentSuffix="" tone="dark" />
+          </div>
         </div>
       </section>
-
-      <RecordVisual
-        variant="town"
-        label={data.municipality.shortName}
-        caption="Local updates should feel like checking the weather: quick, clear, and source-linked."
-      />
 
       <section className="min-w-0">
         <LivePublishedEntries
@@ -115,11 +119,31 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({
+  label,
+  value,
+  dark = false
+}: {
+  label: string;
+  value: string | number;
+  dark?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
-      <p className="font-semibold text-ink/58">{label}</p>
-      <p className="font-serif text-2xl leading-none text-ink">{value}</p>
+    <div
+      className={`flex items-center justify-between gap-4 border-t px-0 py-3 text-sm sm:border-t-0 ${
+        dark ? "border-white/16" : "border-ink/8 px-4"
+      }`}
+    >
+      <p className={`font-semibold ${dark ? "text-white/58" : "text-ink/58"}`}>
+        {label}
+      </p>
+      <p
+        className={`font-serif text-2xl leading-none ${
+          dark ? "text-white" : "text-ink"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
