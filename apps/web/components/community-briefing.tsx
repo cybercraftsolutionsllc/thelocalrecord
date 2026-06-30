@@ -121,14 +121,14 @@ export function CommunityBriefing({
                   type="search"
                   value={draftQuery}
                   onChange={(event) => setDraftQuery(event.target.value)}
-                  placeholder="Street, project, road, vote..."
+                  placeholder="Road, project, vote..."
                   className="h-12 w-full border-0 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:bg-sky/35 sm:h-14"
                 />
               </label>
               <button
                 type="submit"
                 disabled={draftQuery.trim().length < 3}
-                className="h-12 w-24 shrink-0 bg-moss px-4 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 sm:h-14 sm:w-auto sm:px-6"
+                className="h-12 w-20 shrink-0 bg-moss px-3 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 sm:h-14 sm:w-auto sm:px-6"
               >
                 Search
               </button>
