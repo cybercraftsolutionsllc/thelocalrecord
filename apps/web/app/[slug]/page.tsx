@@ -60,24 +60,24 @@ export default async function LocalityPage({ params }: LocalityPageProps) {
         </ToolDetails>
       </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card">
-        <p className="text-sm font-semibold text-moss">Trust trail</p>
+      <section className="rounded-2xl border border-ink/10 bg-white p-4">
+        <p className="text-sm font-semibold text-ink">Trust trail</p>
         <div className="mt-3 flex flex-wrap gap-2 text-sm">
           <Link
             href={`/${slug}/source-inventory`}
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
           >
             Sources
           </Link>
           <Link
             href={`/${slug}/corrections`}
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
           >
             Fix a detail
           </Link>
           <Link
             href="/policy"
-            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/45 hover:text-moss"
+            className="rounded-lg border border-ink/10 px-3 py-2 font-semibold text-ink/70 transition hover:bg-sky/55 hover:text-ink"
           >
             Rules
           </Link>
@@ -98,8 +98,10 @@ function ToolDetails({
 }) {
   return (
     <details className="group">
-      <summary className="cursor-pointer list-none rounded-2xl border border-ink/10 bg-white/92 p-4 shadow-card">
-        <p className="font-serif text-2xl leading-tight text-ink">{title}</p>
+      <summary className="cursor-pointer list-none rounded-2xl border border-ink/10 bg-white p-4 transition hover:border-moss/25">
+        <p className="text-2xl font-semibold leading-tight tracking-tight text-ink">
+          {title}
+        </p>
         <p className="mt-1 text-sm leading-6 text-ink/58">{summary}</p>
         <p className="mt-3 text-sm font-semibold text-moss group-open:hidden">
           Open

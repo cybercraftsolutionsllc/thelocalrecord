@@ -139,13 +139,13 @@ export function UpdateCard(props: UpdateCardProps) {
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl border bg-white shadow-card ${
-        important ? "border-clay/25" : "border-ink/10"
+      className={`overflow-hidden rounded-2xl border bg-white ${
+        important ? "border-clay/30" : "border-ink/10"
       }`}
     >
       <div className="p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink/44">
-          <span className="rounded-full bg-sky px-3 py-1 text-moss">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink/42">
+          <span className="rounded-full border border-moss/10 bg-sky/70 px-3 py-1 text-moss">
             {signal.laneLabel}
           </span>
           <span className={important ? "text-clay" : ""}>
@@ -157,7 +157,7 @@ export function UpdateCard(props: UpdateCardProps) {
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.34fr)]">
           <div>
-            <h3 className="font-serif text-2xl leading-tight text-ink sm:text-3xl">
+            <h3 className="text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl">
               {props.title}
             </h3>
             <p
@@ -169,8 +169,8 @@ export function UpdateCard(props: UpdateCardProps) {
             </p>
           </div>
 
-          <aside className="rounded-2xl bg-sand/80 p-4 text-sm">
-            <p className="font-semibold text-moss">Resident read</p>
+          <aside className="rounded-2xl border border-ink/8 bg-sand/72 p-4 text-sm">
+            <p className="font-semibold text-ink">Resident read</p>
             <p className="mt-2 leading-6 text-ink/66">
               <span className="font-semibold text-ink">Why: </span>
               {signal.why}
@@ -219,7 +219,7 @@ export function UpdateCard(props: UpdateCardProps) {
             {props.detailUrl ? (
               <a
                 href={props.detailUrl}
-                className="rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+                className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-moss"
               >
                 Read record
               </a>
@@ -230,7 +230,7 @@ export function UpdateCard(props: UpdateCardProps) {
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/45"
+                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:border-moss/25 hover:bg-sky/55 hover:text-ink"
               >
                 {sourceButtonLabel(link.label)}
               </a>

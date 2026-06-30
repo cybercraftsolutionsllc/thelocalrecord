@@ -467,7 +467,7 @@ export function LivePublishedEntries({
             <p className="text-sm font-semibold text-moss">
               {searchActive ? "Other matches" : "Also watch"}
             </p>
-            <h2 className="mt-1 font-serif text-2xl leading-tight text-ink sm:text-3xl">
+            <h2 className="mt-1 text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl">
               {searchActive
                 ? `Records related to "${query.trim()}"`
                 : feedView === "events_of_note"
@@ -502,7 +502,7 @@ export function LivePublishedEntries({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-4 rounded-xl border border-ink/10 bg-white px-5 py-4">
+        <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-4">
           <p className="text-sm text-ink/70">
             {searchActive
               ? searchStatus === "loading"
@@ -515,7 +515,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={() => setVisibleLimit((current) => current + 4)}
-                className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink"
+                className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-moss"
               >
                 Show {Math.min(4, remainingDisplayCount)} more
               </button>
@@ -524,7 +524,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
               >
                 Clear search
               </button>
@@ -534,7 +534,7 @@ export function LivePublishedEntries({
               <button
                 type="button"
                 onClick={resetView}
-                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
               >
                 Reset filters
               </button>
@@ -548,7 +548,7 @@ export function LivePublishedEntries({
                 onClick={() =>
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
-                className="rounded-md border border-ink/10 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-sky/40"
+                className="rounded-lg border border-ink/10 px-3 py-2 text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
               >
                 Load more records
               </button>
@@ -564,7 +564,7 @@ export function LivePublishedEntries({
       id="records"
       className="scroll-mt-24 rounded-lg border border-dashed border-ink/15 bg-white p-5 text-ink/64"
     >
-      <h3 className="font-serif text-2xl text-ink">
+      <h3 className="text-2xl font-semibold tracking-tight text-ink">
         {status === "loading"
           ? "Loading published entries"
           : "No published entries yet"}

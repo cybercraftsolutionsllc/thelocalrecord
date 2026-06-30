@@ -8,20 +8,27 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 lg:py-10">
-      <section className="relative overflow-hidden rounded-2xl border border-ink/10 bg-ink text-white shadow-card">
+      <section className="relative overflow-hidden rounded-[2rem] border border-ink/10 bg-[#fdfdf9] shadow-card">
         <img
-          src="/images/site-background.png"
+          src="/images/civic-map-hero.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: "center right" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/88 to-ink/60" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(253,253,249,0.98) 0%, rgba(253,253,249,0.91) 48%, rgba(253,253,249,0.35) 100%)"
+          }}
+        />
         <div className="relative p-5 sm:p-8 lg:p-10">
-          <p className="text-sm font-semibold text-sky">Resident lookup</p>
-          <h1 className="mt-3 max-w-4xl font-serif text-5xl leading-tight text-white sm:text-6xl">
+          <p className="text-sm font-semibold text-moss">Resident lookup</p>
+          <h1 className="mt-3 max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-ink sm:text-6xl">
             Find the local record before it affects your street.
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-white/76">
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/66">
             Search streets, projects, roads, parks, ordinances, permits, and
             meetings. The useful parts are summarized, dated, and tied back to
             official sources.
@@ -39,15 +46,15 @@ export default function HomePage() {
                 type="search"
                 minLength={3}
                 required
-              placeholder="Street, project, ordinance, road, park..."
-              className="h-14 w-full rounded-xl border border-white/20 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-sky"
-            />
-          </label>
-          <button
-            type="submit"
-            className="h-14 w-full rounded-xl bg-white px-6 text-sm font-semibold text-moss transition hover:bg-sky sm:w-auto"
-          >
-            Search Manheim
+                placeholder="Street, project, ordinance, road, park..."
+                className="h-14 w-full rounded-xl border border-ink/10 bg-white px-4 text-base text-ink outline-none transition placeholder:text-ink/38 focus:border-moss/35"
+              />
+            </label>
+            <button
+              type="submit"
+              className="h-14 w-full rounded-xl bg-ink px-6 text-sm font-semibold text-white transition hover:bg-moss sm:w-auto"
+            >
+              Search Manheim
             </button>
           </form>
 
@@ -61,7 +68,7 @@ export default function HomePage() {
               <Link
                 key={query}
                 href={`/${launchLocality.slug}?q=${encodeURIComponent(query)}#records`}
-                className="rounded-lg border border-white/18 px-3 py-2 text-white/82 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-ink/10 bg-white/70 px-3 py-2 text-ink/68 transition hover:bg-sky/65 hover:text-ink"
               >
                 {query}
               </Link>
@@ -70,9 +77,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6">
+      <section className="rounded-2xl border border-ink/10 bg-white p-5 sm:p-6">
         <p className="text-sm font-semibold text-moss">First coverage area</p>
-        <h2 className="mt-2 font-serif text-3xl leading-tight text-ink">
+        <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-ink">
           {launchLocality.shortName}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/62">
@@ -81,20 +88,20 @@ export default function HomePage() {
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
             href={`/${launchLocality.slug}`}
-            className="rounded-md bg-moss px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-ink"
+            className="rounded-lg bg-ink px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-moss"
           >
             Open Manheim
           </Link>
           <Link
             href="/my-record"
-            className="rounded-md border border-ink/10 px-4 py-3 text-center text-sm font-semibold text-moss transition hover:bg-sky/45"
+            className="rounded-lg border border-ink/10 px-4 py-3 text-center text-sm font-semibold text-ink/72 transition hover:bg-sky/55 hover:text-ink"
           >
             Save My Place
           </Link>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6">
+      <section className="rounded-2xl border border-ink/10 bg-white p-5 sm:p-6">
         <p className="text-sm font-semibold text-moss">How it works</p>
         <div className="mt-4 divide-y divide-ink/8">
           {[
@@ -109,16 +116,18 @@ export default function HomePage() {
             ]
           ].map(([title, body]) => (
             <div key={title} className="py-4 first:pt-0 last:pb-0">
-              <h2 className="font-serif text-2xl text-ink">{title}</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-ink">
+                {title}
+              </h2>
               <p className="mt-2 text-sm leading-6 text-ink/62">{body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-card sm:p-6">
+      <section className="rounded-2xl border border-ink/10 bg-white p-5 sm:p-6">
         <p className="text-sm font-semibold text-moss">Source trail</p>
-        <h2 className="mt-2 max-w-2xl font-serif text-3xl text-ink">
+        <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-tight text-ink">
           Built to answer one resident question at a time.
         </h2>
         <div className="mt-5 divide-y divide-ink/8 text-sm text-ink/68">

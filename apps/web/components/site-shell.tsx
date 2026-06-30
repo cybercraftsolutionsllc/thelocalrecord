@@ -32,20 +32,22 @@ export function SiteShell({ children }: SiteShellProps) {
 
   return (
     <div className="record-shell min-h-screen text-ink">
-      <header className="record-glass border-b border-white/70">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <header className="record-glass sticky top-0 z-30 border-b border-ink/8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <Link href="/" className="inline-flex items-center gap-3">
             <img
               src="/icon.svg"
               alt=""
               aria-hidden="true"
-              className="h-9 w-9 rounded-lg shadow-card"
+              className="h-8 w-8 rounded-md"
             />
             <span className="flex flex-col">
-              <span className="font-serif text-2xl leading-none text-moss">
+              <span className="text-xl font-semibold leading-none tracking-tight text-ink">
                 The Local Record
               </span>
-              <span className="text-sm text-ink/50">resident utility</span>
+              <span className="text-xs font-medium uppercase tracking-[0.14em] text-ink/42">
+                resident utility
+              </span>
             </span>
           </Link>
 
@@ -54,7 +56,7 @@ export function SiteShell({ children }: SiteShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-md px-3 py-2 text-ink/68 transition hover:bg-sky/55 hover:text-moss"
+                className="rounded-full px-3 py-2 font-medium text-ink/62 transition hover:bg-ink/5 hover:text-ink"
               >
                 {item.label}
               </Link>
@@ -65,7 +67,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
       <main>{children}</main>
 
-      <footer className="record-glass border-t border-white/70">
+      <footer className="record-glass border-t border-ink/8">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-ink/62 sm:px-6">
           <div className="space-y-1">
             <p className="font-semibold text-ink">{PLATFORM_DISCLAIMER}</p>
@@ -85,7 +87,7 @@ export function SiteShell({ children }: SiteShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="hover:text-moss"
+                  className="hover:text-ink"
                 >
                   {item.label}
                 </Link>
